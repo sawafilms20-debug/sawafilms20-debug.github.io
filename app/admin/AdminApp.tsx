@@ -119,7 +119,8 @@ const emptyDraft = (): Draft => ({
 
 export default function AdminApp() {
   const [token, setToken] = useState<string>("");
-  const [tokenInput, setTokenInput] = useState<string>("");
+  const [pwInput, setPwInput] = useState<string>("");
+  const [loggingIn, setLoggingIn] = useState(false);
   const [authed, setAuthed] = useState<boolean | null>(null);
   const [posts, setPosts] = useState<PostFile[]>([]);
   const [view, setView] = useState<"list" | "edit">("list");
@@ -332,8 +333,30 @@ export default function AdminApp() {
   const logout = () => {
     localStorage.removeItem("rk-admin-token");
     setToken("");
-    setTokenInput("");
+    setPwInput("");
     setAuthed(false);
+  };
+
+  const login = async () => {
+    const password = pwInput.trim();
+    if (!password) return;
+    setErr("");
+    setLoggingIn(true);
+    try {
+      const res = await fetch("/api/admin/login", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ password }),
+      });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) throw new Error(data.error || "تعذّر تسجيل الدخول.");
+      setAuthed(null);
+      setToken(data.token);
+    } catch (e: unknown) {
+      setErr(e instanceof Error ? e.message : "تعذّر تسجيل الدخول.");
+    } finally {
+      setLoggingIn(false);
+    }
   };
 
   const previewHtml = useMemo(
@@ -357,31 +380,27 @@ export default function AdminApp() {
         <div className="adm-login">
           <span className="slug">لوحة التحكم</span>
           <h1>مرحبًا رحيق 👋</h1>
-          <p>
-            هذا الجهاز غير مفعّل بعد. الصقي <b>مفتاح الدخول</b> هنا مرة واحدة فقط،
-            وسيبقى الجهاز مفتوحًا دائمًا بعدها:
-          </p>
+          <p>أدخلي كلمة المرور للدخول إلى لوحة التحكم:</p>
           <input
             type="password"
             dir="ltr"
-            placeholder="مفتاح الدخول…"
-            value={tokenInput}
-            onChange={(e) => setTokenInput(e.target.value)}
+            placeholder="كلمة المرور…"
+            value={pwInput}
+            onChange={(e) => setPwInput(e.target.value)}
+            onKeyDown={(e) => {
+              if (e.key === "Enter") login();
+            }}
           />
           <button
             className="btn btn-gold"
-            disabled={!tokenInput.trim()}
-            onClick={() => {
-              setErr("");
-              setAuthed(null);
-              setToken(tokenInput.trim());
-            }}
+            disabled={!pwInput.trim() || loggingIn}
+            onClick={login}
           >
-            تفعيل الجهاز
+            {loggingIn ? "جارٍ الدخول…" : "دخول"}
           </button>
           {err && <p className="adm-err">{err}</p>}
           <p className="adm-muted" style={{ marginTop: 14, fontSize: 13 }}>
-            لا تملكين المفتاح؟ اطلبيه ممن يدير الموقع.
+            نسيتِ كلمة المرور؟ اطلبيها ممن يدير الموقع.
           </p>
         </div>
       </div>
