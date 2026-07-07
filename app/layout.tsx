@@ -15,7 +15,7 @@ const tajawal = Tajawal({
 });
 
 export const metadata: Metadata = {
-  metadataBase: new URL("https://raheeqkanjo.surge.sh"),
+  metadataBase: new URL("https://raheeqkanjo.com"),
   title: "رحيق كنجو — شريكة المحتوى للخبراء والشركات",
   description:
     "رحيق كنجو — كاتبة سيناريو وغوست رايتر وخبيرة استراتيجيات المحتوى. أحوّل خبرتك إلى حضور يبني الثقة ويجذب العملاء: نظام محتوى متكامل بصوتك أنت.",
