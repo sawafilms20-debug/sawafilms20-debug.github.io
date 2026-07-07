@@ -1,8 +1,7 @@
 import type { Metadata } from "next";
-import Link from "next/link";
 import SiteNav from "@/components/SiteNav";
 import SiteFooter from "@/components/SiteFooter";
-import { getPosts } from "@/lib/posts";
+import BlogList from "./BlogList";
 
 export const metadata: Metadata = {
   title: "المدونة — رحيق كنجو",
@@ -11,8 +10,6 @@ export const metadata: Metadata = {
 };
 
 export default function BlogPage() {
-  const posts = getPosts();
-
   return (
     <>
       <SiteNav solid />
@@ -27,41 +24,7 @@ export default function BlogPage() {
             الشخصية بالمحتوى.
           </p>
         </div>
-
-        {posts.length === 0 ? (
-          <p className="page-lead">لا توجد مقالات بعد. عودوا قريبًا.</p>
-        ) : (
-          <div className="blog-grid">
-            {posts.map((post, i) => (
-              <Link
-                key={post.slug}
-                href={`/blog/${post.slug}`}
-                className={`post-card${i === 0 ? " featured" : ""}`}
-                dir={post.lang === "en" ? "ltr" : undefined}
-              >
-                <div className="post-meta">
-                  <span className={`lang-chip ${post.lang}`}>
-                    {post.lang === "en" ? "English" : "عربي"}
-                  </span>
-                  <span>{post.dateFormatted}</span>
-                  <span>{post.readingLabel}</span>
-                </div>
-                <h2>{post.title}</h2>
-                <p>{post.excerpt}</p>
-                <div className="post-foot">
-                  <span className="read-more">
-                    {post.lang === "en" ? "Read article →" : "اقرأ المقال ←"}
-                  </span>
-                  <span className="post-tags">
-                    {post.tags.map((t) => (
-                      <i key={t}>{t}</i>
-                    ))}
-                  </span>
-                </div>
-              </Link>
-            ))}
-          </div>
-        )}
+        <BlogList />
       </main>
       <SiteFooter />
     </>

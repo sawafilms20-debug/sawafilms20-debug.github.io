@@ -26,58 +26,8 @@ type Draft = {
   excerpt: string;
   tags: string;
   body: string;
-  sha?: string; // present when editing an existing post
+  sha?: string;
 };
-
-type DeployState = {
-  status: string;
-  conclusion: string | null;
-  url: string;
-} | null;
-
-/* Workflow installed automatically on first login (self-bootstrapping pipeline) */
-const WORKFLOW_PATH = ".github/workflows/deploy.yml";
-const WORKFLOW_YML = `name: Build & Deploy Site
-
-on:
-  push:
-    branches: [main]
-  workflow_dispatch:
-
-permissions:
-  contents: read
-  pages: write
-  id-token: write
-
-concurrency:
-  group: pages
-  cancel-in-progress: true
-
-jobs:
-  build:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
-        with:
-          node-version: 20
-          cache: npm
-      - run: npm ci
-      - run: npm run build
-      - uses: actions/upload-pages-artifact@v3
-        with:
-          path: ./out
-
-  deploy:
-    needs: build
-    runs-on: ubuntu-latest
-    environment:
-      name: github-pages
-      url: \${{ steps.deployment.outputs.page_url }}
-    steps:
-      - id: deployment
-        uses: actions/deploy-pages@v4
-`;
 
 /* ---------- utf-8 safe base64 ---------- */
 
@@ -145,18 +95,15 @@ ${d.body.trim()}
 }
 
 function slugify(title: string): string {
-  const latin = title
+  return title
     .toLowerCase()
     .replace(/[^a-z0-9\s-]/g, "")
     .trim()
     .replace(/\s+/g, "-")
     .slice(0, 60);
-  return latin;
 }
 
-function today(): string {
-  return new Date().toISOString().slice(0, 10);
-}
+const today = () => new Date().toISOString().slice(0, 10);
 
 const emptyDraft = (): Draft => ({
   slug: "",
@@ -181,20 +128,21 @@ export default function AdminApp() {
   const [busy, setBusy] = useState(false);
   const [msg, setMsg] = useState<string>("");
   const [err, setErr] = useState<string>("");
-  const [deploy, setDeploy] = useState<DeployState>(null);
-  const [needsSetup, setNeedsSetup] = useState<boolean>(false);
 
   const api = useCallback(
     async (path: string, init: RequestInit = {}) => {
-      const res = await fetch(`https://api.github.com/repos/${GH_OWNER}/${GH_REPO}/${path}`, {
-        ...init,
-        headers: {
-          Authorization: `Bearer ${token}`,
-          Accept: "application/vnd.github+json",
-          "X-GitHub-Api-Version": "2022-11-28",
-          ...(init.headers || {}),
-        },
-      });
+      const res = await fetch(
+        `https://api.github.com/repos/${GH_OWNER}/${GH_REPO}/${path}`,
+        {
+          ...init,
+          headers: {
+            Authorization: `Bearer ${token}`,
+            Accept: "application/vnd.github+json",
+            "X-GitHub-Api-Version": "2022-11-28",
+            ...(init.headers || {}),
+          },
+        }
+      );
       if (!res.ok) {
         const body = await res.json().catch(() => ({}));
         throw new Error(`${res.status}: ${body.message || res.statusText}`);
@@ -208,11 +156,8 @@ export default function AdminApp() {
 
   useEffect(() => {
     const saved = localStorage.getItem("rk-admin-token") || "";
-    if (saved) {
-      setToken(saved);
-    } else {
-      setAuthed(false);
-    }
+    if (saved) setToken(saved);
+    else setAuthed(false);
   }, []);
 
   useEffect(() => {
@@ -228,7 +173,7 @@ export default function AdminApp() {
         if (cancelled) return;
         localStorage.removeItem("rk-admin-token");
         setAuthed(false);
-        setErr("الرمز غير صالح أو لا يملك صلاحية على المستودع.");
+        setErr("مفتاح الدخول غير صالح. اطلبي مفتاحًا جديدًا.");
       }
     })();
     return () => {
@@ -236,7 +181,7 @@ export default function AdminApp() {
     };
   }, [token, api]);
 
-  /* ----- data loading ----- */
+  /* ----- data ----- */
 
   const loadPosts = useCallback(async () => {
     setBusy(true);
@@ -256,80 +201,53 @@ export default function AdminApp() {
       );
       loaded.sort((a, b) => (a.date < b.date ? 1 : -1));
       setPosts(loaded);
+      return loaded;
     } catch (e: unknown) {
       setErr(`تعذّر تحميل المقالات — ${e instanceof Error ? e.message : e}`);
+      return [];
     } finally {
       setBusy(false);
     }
   }, [api]);
 
-  const loadDeploy = useCallback(async () => {
-    try {
-      const data = await api(`actions/runs?per_page=1&branch=${GH_BRANCH}`);
-      const run = data.workflow_runs?.[0];
-      if (run)
-        setDeploy({ status: run.status, conclusion: run.conclusion, url: run.html_url });
-    } catch {
-      /* non-fatal */
-    }
-  }, [api]);
+  useEffect(() => {
+    if (authed) loadPosts();
+  }, [authed, loadPosts]);
 
-  // check whether the auto-publish pipeline is installed
-  const checkSetup = useCallback(async () => {
-    try {
-      await api(`contents/${WORKFLOW_PATH}?ref=${GH_BRANCH}`);
-      setNeedsSetup(false);
-    } catch {
-      setNeedsSetup(true);
-    }
-  }, [api]);
+  /* ----- manifest (what the public blog page reads) ----- */
 
-  const runSetup = async () => {
-    setBusy(true);
-    setErr("");
-    try {
-      await api(`contents/${WORKFLOW_PATH}`, {
+  const writeManifest = useCallback(
+    async (list: PostFile[]) => {
+      const manifest = list
+        .slice()
+        .sort((a, b) => (a.date < b.date ? 1 : -1))
+        .map((p) => ({
+          slug: p.slug,
+          title: p.title,
+          date: p.date,
+          lang: p.lang,
+          excerpt: p.excerpt,
+          tags: p.tags,
+        }));
+      let sha: string | undefined;
+      try {
+        const cur = await api(`contents/${BLOG_DIR}/index.json?ref=${GH_BRANCH}`);
+        sha = cur.sha;
+      } catch {
+        /* first time */
+      }
+      await api(`contents/${BLOG_DIR}/index.json`, {
         method: "PUT",
         body: JSON.stringify({
-          message: "Install auto-deploy pipeline",
-          content: b64encode(WORKFLOW_YML),
+          message: "Update blog index",
+          content: b64encode(JSON.stringify(manifest, null, 2)),
           branch: GH_BRANCH,
+          ...(sha ? { sha } : {}),
         }),
       });
-      try {
-        await api("pages", {
-          method: "PUT",
-          body: JSON.stringify({ build_type: "workflow" }),
-        });
-      } catch {
-        /* already set, or Pages permission missing — non-fatal */
-      }
-      setNeedsSetup(false);
-      setMsg("تم تفعيل النشر التلقائي ✓ — الموقع يُبنى الآن لأول مرة (~3 دقائق).");
-      setTimeout(loadDeploy, 5000);
-    } catch (e: unknown) {
-      setErr(
-        `تعذّر التفعيل — ${e instanceof Error ? e.message : e}. تأكدي أن الرمز يملك صلاحية Workflows: Read and write.`
-      );
-    } finally {
-      setBusy(false);
-    }
-  };
-
-  useEffect(() => {
-    if (authed) {
-      loadPosts();
-      loadDeploy();
-      checkSetup();
-    }
-  }, [authed, loadPosts, loadDeploy, checkSetup]);
-
-  // poll deploy status while a build is running
-  useEffect(() => {
-    if (!authed || !deploy || deploy.status === "completed") return;
-    const t = setInterval(loadDeploy, 15000);
-    return () => clearInterval(t);
-  }, [authed, deploy, loadDeploy]);
+    },
+    [api]
+  );
 
   /* ----- actions ----- */
 
@@ -363,27 +281,24 @@ export default function AdminApp() {
     if (!draft.title.trim()) return setErr("العنوان مطلوب.");
     if (!draft.body.trim()) return setErr("محتوى المقال مطلوب.");
     let slug = draft.slug.trim();
-    if (!slug) {
-      slug = slugify(draft.title) || `post-${today().replace(/-/g, "")}`;
-    }
+    if (!slug) slug = slugify(draft.title) || `post-${today().replace(/-/g, "")}`;
     if (!/^[a-z0-9-]+$/.test(slug))
       return setErr("الرابط (slug) يجب أن يكون أحرفًا إنجليزية صغيرة وأرقامًا وشرطات فقط.");
     setBusy(true);
     try {
-      const content = b64encode(buildMarkdown({ ...draft, slug }));
       await api(`contents/${BLOG_DIR}/${slug}.md`, {
         method: "PUT",
         body: JSON.stringify({
           message: draft.sha ? `Update post: ${slug}` : `New post: ${slug}`,
-          content,
+          content: b64encode(buildMarkdown({ ...draft, slug })),
           branch: GH_BRANCH,
           ...(draft.sha ? { sha: draft.sha } : {}),
         }),
       });
-      setMsg("تم الحفظ ✓ — الموقع يُبنى الآن وسيتحدّث خلال دقيقتين تقريبًا.");
+      const fresh = await loadPosts();
+      await writeManifest(fresh);
+      setMsg("تم النشر ✓ — سيظهر على الموقع خلال دقيقة أو دقيقتين.");
       setView("list");
-      await loadPosts();
-      setTimeout(loadDeploy, 4000);
     } catch (e: unknown) {
       setErr(`تعذّر الحفظ — ${e instanceof Error ? e.message : e}`);
     } finally {
@@ -404,9 +319,9 @@ export default function AdminApp() {
           branch: GH_BRANCH,
         }),
       });
-      setMsg("تم الحذف ✓ — الموقع يُبنى الآن.");
-      await loadPosts();
-      setTimeout(loadDeploy, 4000);
+      const fresh = await loadPosts();
+      await writeManifest(fresh);
+      setMsg("تم الحذف ✓ — سيختفي من الموقع خلال دقيقة أو دقيقتين.");
     } catch (e: unknown) {
       setErr(`تعذّر الحذف — ${e instanceof Error ? e.message : e}`);
     } finally {
@@ -431,7 +346,7 @@ export default function AdminApp() {
   if (authed === null) {
     return (
       <div className="adm-shell">
-        <p className="adm-muted">جارٍ التحقق…</p>
+        <p className="adm-muted">جارٍ الفتح…</p>
       </div>
     );
   }
@@ -443,36 +358,13 @@ export default function AdminApp() {
           <span className="slug">لوحة التحكم</span>
           <h1>مرحبًا رحيق 👋</h1>
           <p>
-            للدخول تحتاجين <b>رمز وصول GitHub</b> (يُنشأ مرة واحدة ويبقى محفوظًا على هذا
-            الجهاز):
+            هذا الجهاز غير مفعّل بعد. الصقي <b>مفتاح الدخول</b> هنا مرة واحدة فقط،
+            وسيبقى الجهاز مفتوحًا دائمًا بعدها:
           </p>
-          <ol>
-            <li>
-              افتحي{" "}
-              <a
-                href="https://github.com/settings/personal-access-tokens/new"
-                target="_blank"
-                rel="noopener"
-              >
-                github.com/settings/personal-access-tokens/new
-              </a>
-            </li>
-            <li>
-              Repository access ← <b>Only select repositories</b> ← اختاري{" "}
-              <code>
-                {GH_OWNER}/{GH_REPO}
-              </code>
-            </li>
-            <li>
-              Permissions ← <b>Contents: Read and write</b> · <b>Workflows: Read and
-              write</b> · <b>Pages: Read and write</b> · <b>Actions: Read-only</b>
-            </li>
-            <li>Generate token ← انسخي الرمز والصقيه هنا</li>
-          </ol>
           <input
             type="password"
             dir="ltr"
-            placeholder="github_pat_…"
+            placeholder="مفتاح الدخول…"
             value={tokenInput}
             onChange={(e) => setTokenInput(e.target.value)}
           />
@@ -485,9 +377,12 @@ export default function AdminApp() {
               setToken(tokenInput.trim());
             }}
           >
-            دخول
+            تفعيل الجهاز
           </button>
           {err && <p className="adm-err">{err}</p>}
+          <p className="adm-muted" style={{ marginTop: 14, fontSize: 13 }}>
+            لا تملكين المفتاح؟ اطلبيه ممن يدير الموقع.
+          </p>
         </div>
       </div>
     );
@@ -501,17 +396,8 @@ export default function AdminApp() {
           <h1>مدونة رحيق</h1>
         </div>
         <div className="adm-head-actions">
-          {deploy && (
-            <a className={`adm-deploy ${deploy.conclusion || deploy.status}`} href={deploy.url} target="_blank" rel="noopener">
-              {deploy.status !== "completed"
-                ? "⏳ الموقع يُبنى الآن…"
-                : deploy.conclusion === "success"
-                  ? "✓ آخر نشر ناجح"
-                  : "⚠ آخر نشر فشل"}
-            </a>
-          )}
-          <a className="adm-link" href={SITE_URL} target="_blank" rel="noopener">
-            عرض الموقع ↗
+          <a className="adm-link" href={`${SITE_URL}/blog/`} target="_blank" rel="noopener">
+            عرض المدونة ↗
           </a>
           <button className="adm-link" onClick={logout}>
             خروج
@@ -521,16 +407,6 @@ export default function AdminApp() {
 
       {msg && <p className="adm-ok">{msg}</p>}
       {err && <p className="adm-err">{err}</p>}
-
-      {needsSetup && (
-        <div className="adm-setup">
-          <b>خطوة أخيرة لمرة واحدة:</b> تفعيل النشر التلقائي حتى يتحدّث الموقع وحده بعد
-          كل حفظ.
-          <button className="btn btn-gold" onClick={runSetup} disabled={busy}>
-            {busy ? "جارٍ التفعيل…" : "تفعيل النشر التلقائي"}
-          </button>
-        </div>
-      )}
 
       {view === "list" && (
         <>
@@ -554,11 +430,15 @@ export default function AdminApp() {
                       <span className={`adm-lang ${p.lang}`}>
                         {p.lang === "en" ? "EN" : "ع"}
                       </span>{" "}
-                      {p.date} · /blog/{p.slug}
+                      {p.date}
                     </small>
                   </div>
                   <div className="adm-row-actions">
-                    <a href={`${SITE_URL}/blog/${p.slug}/`} target="_blank" rel="noopener">
+                    <a
+                      href={`${SITE_URL}/blog/p/?s=${p.slug}`}
+                      target="_blank"
+                      rel="noopener"
+                    >
                       عرض
                     </a>
                     <button onClick={() => openEdit(p)}>تعديل</button>
@@ -625,7 +505,7 @@ export default function AdminApp() {
             </label>
           </div>
           <label>
-            المقتطف (يظهر في صفحة المدونة ونتائج البحث)
+            المقتطف (يظهر في صفحة المدونة)
             <textarea
               rows={2}
               dir="auto"
@@ -662,7 +542,7 @@ export default function AdminApp() {
 
           <div className="adm-toolbar">
             <button className="btn btn-gold" onClick={save} disabled={busy}>
-              {busy ? "جارٍ الحفظ…" : "حفظ ونشر"}
+              {busy ? "جارٍ النشر…" : "حفظ ونشر"}
             </button>
             <button className="adm-link" onClick={() => setShowPreview((v) => !v)}>
               {showPreview ? "إخفاء المعاينة" : "معاينة"}
