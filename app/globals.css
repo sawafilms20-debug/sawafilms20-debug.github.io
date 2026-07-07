@@ -580,6 +580,13 @@ section.chapter{padding:clamp(70px,10vw,120px) 0 0}
 .adm-deploy.success{color:#2f5e1f;border-color:#cfe6c2;background:#f4faf0}
 .adm-deploy.failure{color:#8d2f2f;border-color:#f0cfcf;background:#fdf3f3}
 .adm-deploy.in_progress,.adm-deploy.queued{color:#7a5b12;border-color:var(--gold-soft);background:#fdf6e5}
+.adm-setup{
+  display:flex;justify-content:space-between;align-items:center;gap:16px;flex-wrap:wrap;
+  background:linear-gradient(135deg,#fdf8ee 0%,#f5ead2 100%);
+  border:1px solid var(--gold-soft);border-radius:16px;padding:18px 22px;margin:14px 0;
+  font-size:14.5px;color:var(--ink);
+}
+.adm-setup .btn{border:none;cursor:pointer;font-family:inherit;padding:10px 22px;font-size:14.5px}
 .adm-toolbar{display:flex;gap:18px;align-items:center;margin:18px 0}
 .adm-toolbar .btn{padding:11px 26px;font-size:15px;cursor:pointer;border:none;font-family:inherit}
 .adm-table{display:grid;gap:12px}

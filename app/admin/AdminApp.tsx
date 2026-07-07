@@ -35,6 +35,50 @@ type DeployState = {
   url: string;
 } | null;
 
+/* Workflow installed automatically on first login (self-bootstrapping pipeline) */
+const WORKFLOW_PATH = ".github/workflows/deploy.yml";
+const WORKFLOW_YML = `name: Build & Deploy Site
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: true
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+      - run: npm ci
+      - run: npm run build
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: ./out
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: \${{ steps.deployment.outputs.page_url }}
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@v4
+`;
+
 /* ---------- utf-8 safe base64 ---------- */
 
 function b64encode(text: string): string {
@@ -138,6 +182,7 @@ export default function AdminApp() {
   const [msg, setMsg] = useState<string>("");
   const [err, setErr] = useState<string>("");
   const [deploy, setDeploy] = useState<DeployState>(null);
+  const [needsSetup, setNeedsSetup] = useState<boolean>(false);
 
   const api = useCallback(
     async (path: string, init: RequestInit = {}) => {
@@ -229,12 +274,55 @@ export default function AdminApp() {
     }
   }, [api]);
 
+  // check whether the auto-publish pipeline is installed
+  const checkSetup = useCallback(async () => {
+    try {
+      await api(`contents/${WORKFLOW_PATH}?ref=${GH_BRANCH}`);
+      setNeedsSetup(false);
+    } catch {
+      setNeedsSetup(true);
+    }
+  }, [api]);
+
+  const runSetup = async () => {
+    setBusy(true);
+    setErr("");
+    try {
+      await api(`contents/${WORKFLOW_PATH}`, {
+        method: "PUT",
+        body: JSON.stringify({
+          message: "Install auto-deploy pipeline",
+          content: b64encode(WORKFLOW_YML),
+          branch: GH_BRANCH,
+        }),
+      });
+      try {
+        await api("pages", {
+          method: "PUT",
+          body: JSON.stringify({ build_type: "workflow" }),
+        });
+      } catch {
+        /* already set, or Pages permission missing — non-fatal */
+      }
+      setNeedsSetup(false);
+      setMsg("تم تفعيل النشر التلقائي ✓ — الموقع يُبنى الآن لأول مرة (~3 دقائق).");
+      setTimeout(loadDeploy, 5000);
+    } catch (e: unknown) {
+      setErr(
+        `تعذّر التفعيل — ${e instanceof Error ? e.message : e}. تأكدي أن الرمز يملك صلاحية Workflows: Read and write.`
+      );
+    } finally {
+      setBusy(false);
+    }
+  };
+
   useEffect(() => {
     if (authed) {
       loadPosts();
       loadDeploy();
+      checkSetup();
     }
-  }, [authed, loadPosts, loadDeploy]);
+  }, [authed, loadPosts, loadDeploy, checkSetup]);
 
   // poll deploy status while a build is running
   useEffect(() => {
@@ -376,7 +464,8 @@ export default function AdminApp() {
               </code>
             </li>
             <li>
-              Permissions ← <b>Contents: Read and write</b> و <b>Actions: Read-only</b>
+              Permissions ← <b>Contents: Read and write</b> · <b>Workflows: Read and
+              write</b> · <b>Pages: Read and write</b> · <b>Actions: Read-only</b>
             </li>
             <li>Generate token ← انسخي الرمز والصقيه هنا</li>
           </ol>
@@ -432,6 +521,16 @@ export default function AdminApp() {
 
       {msg && <p className="adm-ok">{msg}</p>}
       {err && <p className="adm-err">{err}</p>}
+
+      {needsSetup && (
+        <div className="adm-setup">
+          <b>خطوة أخيرة لمرة واحدة:</b> تفعيل النشر التلقائي حتى يتحدّث الموقع وحده بعد
+          كل حفظ.
+          <button className="btn btn-gold" onClick={runSetup} disabled={busy}>
+            {busy ? "جارٍ التفعيل…" : "تفعيل النشر التلقائي"}
+          </button>
+        </div>
+      )}
 
       {view === "list" && (
         <>
