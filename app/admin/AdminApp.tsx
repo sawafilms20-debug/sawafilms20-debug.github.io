@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { marked } from "marked";
-import { GH_OWNER, GH_REPO, GH_BRANCH, BLOG_DIR, SITE_URL } from "./config";
+import { GH_BRANCH, BLOG_DIR, SITE_URL } from "./config";
 
 /* ---------- types ---------- */
 
@@ -118,7 +118,6 @@ const emptyDraft = (): Draft => ({
 /* ---------- component ---------- */
 
 export default function AdminApp() {
-  const [token, setToken] = useState<string>("");
   const [pwInput, setPwInput] = useState<string>("");
   const [loggingIn, setLoggingIn] = useState(false);
   const [authed, setAuthed] = useState<boolean | null>(null);
@@ -132,55 +131,36 @@ export default function AdminApp() {
 
   const api = useCallback(
     async (path: string, init: RequestInit = {}) => {
-      const res = await fetch(
-        `https://api.github.com/repos/${GH_OWNER}/${GH_REPO}/${path}`,
-        {
-          ...init,
-          headers: {
-            Authorization: `Bearer ${token}`,
-            Accept: "application/vnd.github+json",
-            "X-GitHub-Api-Version": "2022-11-28",
-            ...(init.headers || {}),
-          },
-        }
-      );
+      const res = await fetch(`/api/gh/${path}`, {
+        ...init,
+        credentials: "include",
+        headers: { ...(init.headers || {}) },
+      });
       if (!res.ok) {
         const body = await res.json().catch(() => ({}));
         throw new Error(`${res.status}: ${body.message || res.statusText}`);
       }
       return res.json();
     },
-    [token]
+    []
   );
 
   /* ----- auth bootstrap ----- */
 
   useEffect(() => {
-    const saved = localStorage.getItem("rk-admin-token") || "";
-    if (saved) setToken(saved);
-    else setAuthed(false);
-  }, []);
-
-  useEffect(() => {
-    if (!token) return;
     let cancelled = false;
     (async () => {
       try {
         await api("");
-        if (cancelled) return;
-        localStorage.setItem("rk-admin-token", token);
-        setAuthed(true);
+        if (!cancelled) setAuthed(true);
       } catch {
-        if (cancelled) return;
-        localStorage.removeItem("rk-admin-token");
-        setAuthed(false);
-        setErr("مفتاح الدخول غير صالح. اطلبي مفتاحًا جديدًا.");
+        if (!cancelled) setAuthed(false);
       }
     })();
     return () => {
       cancelled = true;
     };
-  }, [token, api]);
+  }, [api]);
 
   /* ----- data ----- */
 
@@ -330,9 +310,12 @@ export default function AdminApp() {
     }
   };
 
-  const logout = () => {
-    localStorage.removeItem("rk-admin-token");
-    setToken("");
+  const logout = async () => {
+    try {
+      await fetch("/api/admin/logout", { method: "POST", credentials: "include" });
+    } catch {
+      /* ignore */
+    }
     setPwInput("");
     setAuthed(false);
   };
@@ -350,8 +333,8 @@ export default function AdminApp() {
       });
       const data = await res.json().catch(() => ({}));
       if (!res.ok) throw new Error(data.error || "تعذّر تسجيل الدخول.");
-      setAuthed(null);
-      setToken(data.token);
+      setPwInput("");
+      setAuthed(true);
     } catch (e: unknown) {
       setErr(e instanceof Error ? e.message : "تعذّر تسجيل الدخول.");
     } finally {

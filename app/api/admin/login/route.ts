@@ -1,14 +1,14 @@
 import { NextResponse } from "next/server";
+import { COOKIE_NAME, sessionValue } from "@/lib/adminSession";
 
 // Password-based admin login.
 //
-// Set two environment variables on the server (Railway → Variables):
-//   ADMIN_PASSWORD  — the memorable password Raheeq types at /admin
-//   GITHUB_TOKEN    — a GitHub fine-grained token with Contents: Read & write
-//                     on sawafilms20-debug/sawafilms20-debug.github.io
+// Server env vars (Railway → Variables):
+//   ADMIN_PASSWORD — the password Raheeq types at /admin
+//   GITHUB_TOKEN   — a token with write access to the blog repo
 //
-// The GitHub token never ships in the built site — it lives only on the
-// server and is handed to the browser only after the correct password.
+// On success we set an HttpOnly session cookie. The GitHub token is NEVER
+// sent to the browser — all GitHub calls go through /api/gh/* server-side.
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -32,7 +32,6 @@ export async function POST(req: Request) {
     /* ignore */
   }
 
-  // constant-time-ish comparison
   const a = Buffer.from(password);
   const b = Buffer.from(expected);
   const ok = a.length === b.length && timingSafeEqual(a, b);
@@ -41,7 +40,15 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: "كلمة المرور غير صحيحة." }, { status: 401 });
   }
 
-  return NextResponse.json({ token });
+  const res = NextResponse.json({ ok: true });
+  res.cookies.set(COOKIE_NAME, sessionValue(), {
+    httpOnly: true,
+    secure: true,
+    sameSite: "lax",
+    path: "/",
+    maxAge: 60 * 60 * 24 * 365,
+  });
+  return res;
 }
 
 function timingSafeEqual(a: Buffer, b: Buffer) {
