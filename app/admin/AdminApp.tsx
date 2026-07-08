@@ -1,157 +1,45 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useState } from "react";
-import { marked } from "marked";
-import { GH_BRANCH, BLOG_DIR, SITE_URL } from "./config";
+import { useCallback, useEffect, useState } from "react";
+import { SITE_URL } from "./config";
+import { gh, readJson, loadPosts, PROJECTS_PATH, LEADS_PATH } from "./lib";
+import DashboardHome from "./sections/DashboardHome";
+import AnalyticsSection from "./sections/AnalyticsSection";
+import BlogSection from "./sections/BlogSection";
+import ProjectsSection from "./sections/ProjectsSection";
+import LeadsSection from "./sections/LeadsSection";
 
-/* ---------- types ---------- */
+type Section = "dashboard" | "analytics" | "blog" | "projects" | "leads";
 
-type PostFile = {
-  name: string;
-  slug: string;
-  sha: string;
-  title: string;
-  date: string;
-  lang: "ar" | "en";
-  excerpt: string;
-  tags: string[];
-  body: string;
+const NAV: { id: Section; label: string; icon: string }[] = [
+  { id: "dashboard", label: "الرئيسية", icon: "▦" },
+  { id: "analytics", label: "التحليلات", icon: "▤" },
+  { id: "blog", label: "المقالات", icon: "✎" },
+  { id: "projects", label: "المشاريع", icon: "◳" },
+  { id: "leads", label: "الرسائل", icon: "✉" },
+];
+
+const TITLES: Record<Section, { h: string; sub: string }> = {
+  dashboard: { h: "الرئيسية", sub: "كل ما على موقعك، في مكان واحد." },
+  analytics: { h: "التحليلات", sub: "من يزور موقعك، من أين، وكيف يتفاعل." },
+  blog: { h: "المقالات", sub: "اكتبي وانشري وعدّلي مقالات مدوّنتك." },
+  projects: { h: "المشاريع", sub: "أعمالك ومشاريعك التي تظهر على الموقع." },
+  leads: { h: "الرسائل", sub: "رسائل نموذج التواصل من زوّار موقعك." },
 };
-
-type Draft = {
-  slug: string;
-  title: string;
-  date: string;
-  lang: "ar" | "en";
-  excerpt: string;
-  tags: string;
-  body: string;
-  sha?: string;
-};
-
-/* ---------- utf-8 safe base64 ---------- */
-
-function b64encode(text: string): string {
-  const bytes = new TextEncoder().encode(text);
-  let bin = "";
-  for (let i = 0; i < bytes.length; i++) bin += String.fromCharCode(bytes[i]);
-  return btoa(bin);
-}
-
-function b64decode(b64: string): string {
-  const bin = atob(b64.replace(/\n/g, ""));
-  const bytes = new Uint8Array(bin.length);
-  for (let i = 0; i < bin.length; i++) bytes[i] = bin.charCodeAt(i);
-  return new TextDecoder().decode(bytes);
-}
-
-/* ---------- frontmatter ---------- */
-
-function parsePost(name: string, sha: string, raw: string): PostFile {
-  const m = raw.match(/^---\n([\s\S]*?)\n---\n?([\s\S]*)$/);
-  const fm = m ? m[1] : "";
-  const body = m ? m[2].replace(/^\n+/, "") : raw;
-  const get = (key: string) => {
-    const r = fm.match(new RegExp(`^${key}:\\s*"?([^"\\n]*)"?\\s*$`, "m"));
-    return r ? r[1].trim() : "";
-  };
-  const tagsRaw = fm.match(/^tags:\s*\[([^\]]*)\]/m);
-  const tags = tagsRaw
-    ? tagsRaw[1]
-        .split(",")
-        .map((t) => t.trim().replace(/^"|"$/g, ""))
-        .filter(Boolean)
-    : [];
-  return {
-    name,
-    slug: name.replace(/\.md$/, ""),
-    sha,
-    title: get("title") || name,
-    date: get("date") || "",
-    lang: get("lang") === "en" ? "en" : "ar",
-    excerpt: get("excerpt"),
-    tags,
-    body,
-  };
-}
-
-function buildMarkdown(d: Draft): string {
-  const tags = d.tags
-    .split(/[,،]/)
-    .map((t) => t.trim())
-    .filter(Boolean)
-    .map((t) => `"${t}"`)
-    .join(", ");
-  return `---
-title: "${d.title.replace(/"/g, "'")}"
-date: "${d.date}"
-lang: "${d.lang}"
-excerpt: "${d.excerpt.replace(/"/g, "'")}"
-tags: [${tags}]
----
-
-${d.body.trim()}
-`;
-}
-
-function slugify(title: string): string {
-  return title
-    .toLowerCase()
-    .replace(/[^a-z0-9\s-]/g, "")
-    .trim()
-    .replace(/\s+/g, "-")
-    .slice(0, 60);
-}
-
-const today = () => new Date().toISOString().slice(0, 10);
-
-const emptyDraft = (): Draft => ({
-  slug: "",
-  title: "",
-  date: today(),
-  lang: "ar",
-  excerpt: "",
-  tags: "",
-  body: "",
-});
-
-/* ---------- component ---------- */
 
 export default function AdminApp() {
-  const [pwInput, setPwInput] = useState<string>("");
-  const [loggingIn, setLoggingIn] = useState(false);
   const [authed, setAuthed] = useState<boolean | null>(null);
-  const [posts, setPosts] = useState<PostFile[]>([]);
-  const [view, setView] = useState<"list" | "edit">("list");
-  const [draft, setDraft] = useState<Draft>(emptyDraft());
-  const [showPreview, setShowPreview] = useState(false);
-  const [busy, setBusy] = useState(false);
-  const [msg, setMsg] = useState<string>("");
-  const [err, setErr] = useState<string>("");
-
-  const api = useCallback(
-    async (path: string, init: RequestInit = {}) => {
-      const res = await fetch(`/api/gh/${path}`, {
-        ...init,
-        credentials: "include",
-        headers: { ...(init.headers || {}) },
-      });
-      if (!res.ok) {
-        const body = await res.json().catch(() => ({}));
-        throw new Error(`${res.status}: ${body.message || res.statusText}`);
-      }
-      return res.json();
-    },
-    []
-  );
-
-  /* ----- auth bootstrap ----- */
+  const [pwInput, setPwInput] = useState("");
+  const [loggingIn, setLoggingIn] = useState(false);
+  const [section, setSection] = useState<Section>("dashboard");
+  const [msg, setMsg] = useState("");
+  const [err, setErr] = useState("");
 
   useEffect(() => {
     let cancelled = false;
     (async () => {
       try {
-        await api("");
+        await gh("");
         if (!cancelled) setAuthed(true);
       } catch {
         if (!cancelled) setAuthed(false);
@@ -160,165 +48,14 @@ export default function AdminApp() {
     return () => {
       cancelled = true;
     };
-  }, [api]);
+  }, []);
 
-  /* ----- data ----- */
-
-  const loadPosts = useCallback(async () => {
-    setBusy(true);
-    setErr("");
-    try {
-      const list: { name: string; sha: string }[] = await api(
-        `contents/${BLOG_DIR}?ref=${GH_BRANCH}`
-      );
-      const files = list.filter(
-        (f) => f.name.endsWith(".md") && f.name.toLowerCase() !== "readme.md"
-      );
-      const loaded = await Promise.all(
-        files.map(async (f) => {
-          const data = await api(`contents/${BLOG_DIR}/${f.name}?ref=${GH_BRANCH}`);
-          return parsePost(f.name, data.sha, b64decode(data.content));
-        })
-      );
-      loaded.sort((a, b) => (a.date < b.date ? 1 : -1));
-      setPosts(loaded);
-      return loaded;
-    } catch (e: unknown) {
-      setErr(`تعذّر تحميل المقالات — ${e instanceof Error ? e.message : e}`);
-      return [];
-    } finally {
-      setBusy(false);
-    }
-  }, [api]);
-
-  useEffect(() => {
-    if (authed) loadPosts();
-  }, [authed, loadPosts]);
-
-  /* ----- manifest (what the public blog page reads) ----- */
-
-  const writeManifest = useCallback(
-    async (list: PostFile[]) => {
-      const manifest = list
-        .slice()
-        .sort((a, b) => (a.date < b.date ? 1 : -1))
-        .map((p) => ({
-          slug: p.slug,
-          title: p.title,
-          date: p.date,
-          lang: p.lang,
-          excerpt: p.excerpt,
-          tags: p.tags,
-        }));
-      let sha: string | undefined;
-      try {
-        const cur = await api(`contents/${BLOG_DIR}/index.json?ref=${GH_BRANCH}`);
-        sha = cur.sha;
-      } catch {
-        /* first time */
-      }
-      await api(`contents/${BLOG_DIR}/index.json`, {
-        method: "PUT",
-        body: JSON.stringify({
-          message: "Update blog index",
-          content: b64encode(JSON.stringify(manifest, null, 2)),
-          branch: GH_BRANCH,
-          ...(sha ? { sha } : {}),
-        }),
-      });
-    },
-    [api]
-  );
-
-  /* ----- actions ----- */
-
-  const openNew = () => {
-    setDraft(emptyDraft());
-    setShowPreview(false);
+  // clear transient messages when switching sections
+  const goTo = useCallback((s: Section) => {
+    setSection(s);
     setMsg("");
     setErr("");
-    setView("edit");
-  };
-
-  const openEdit = (p: PostFile) => {
-    setDraft({
-      slug: p.slug,
-      title: p.title,
-      date: p.date,
-      lang: p.lang,
-      excerpt: p.excerpt,
-      tags: p.tags.join("، "),
-      body: p.body,
-      sha: p.sha,
-    });
-    setShowPreview(false);
-    setMsg("");
-    setErr("");
-    setView("edit");
-  };
-
-  const save = async () => {
-    setErr("");
-    if (!draft.title.trim()) return setErr("العنوان مطلوب.");
-    if (!draft.body.trim()) return setErr("محتوى المقال مطلوب.");
-    let slug = draft.slug.trim();
-    if (!slug) slug = slugify(draft.title) || `post-${today().replace(/-/g, "")}`;
-    if (!/^[a-z0-9-]+$/.test(slug))
-      return setErr("الرابط (slug) يجب أن يكون أحرفًا إنجليزية صغيرة وأرقامًا وشرطات فقط.");
-    setBusy(true);
-    try {
-      await api(`contents/${BLOG_DIR}/${slug}.md`, {
-        method: "PUT",
-        body: JSON.stringify({
-          message: draft.sha ? `Update post: ${slug}` : `New post: ${slug}`,
-          content: b64encode(buildMarkdown({ ...draft, slug })),
-          branch: GH_BRANCH,
-          ...(draft.sha ? { sha: draft.sha } : {}),
-        }),
-      });
-      const fresh = await loadPosts();
-      await writeManifest(fresh);
-      setMsg("تم النشر ✓ — سيظهر على الموقع خلال دقيقة أو دقيقتين.");
-      setView("list");
-    } catch (e: unknown) {
-      setErr(`تعذّر الحفظ — ${e instanceof Error ? e.message : e}`);
-    } finally {
-      setBusy(false);
-    }
-  };
-
-  const remove = async (p: PostFile) => {
-    if (!confirm(`حذف «${p.title}» نهائيًا؟`)) return;
-    setBusy(true);
-    setErr("");
-    try {
-      await api(`contents/${BLOG_DIR}/${p.name}`, {
-        method: "DELETE",
-        body: JSON.stringify({
-          message: `Delete post: ${p.slug}`,
-          sha: p.sha,
-          branch: GH_BRANCH,
-        }),
-      });
-      const fresh = await loadPosts();
-      await writeManifest(fresh);
-      setMsg("تم الحذف ✓ — سيختفي من الموقع خلال دقيقة أو دقيقتين.");
-    } catch (e: unknown) {
-      setErr(`تعذّر الحذف — ${e instanceof Error ? e.message : e}`);
-    } finally {
-      setBusy(false);
-    }
-  };
-
-  const logout = async () => {
-    try {
-      await fetch("/api/admin/logout", { method: "POST", credentials: "include" });
-    } catch {
-      /* ignore */
-    }
-    setPwInput("");
-    setAuthed(false);
-  };
+  }, []);
 
   const login = async () => {
     const password = pwInput.trim();
@@ -342,12 +79,38 @@ export default function AdminApp() {
     }
   };
 
-  const previewHtml = useMemo(
-    () => (showPreview ? (marked.parse(draft.body || "") as string) : ""),
-    [showPreview, draft.body]
-  );
+  const logout = async () => {
+    try {
+      await fetch("/api/admin/logout", { method: "POST", credentials: "include" });
+    } catch {
+      /* ignore */
+    }
+    setPwInput("");
+    setAuthed(false);
+    setSection("dashboard");
+  };
 
-  /* ----- render ----- */
+  const exportContent = async () => {
+    setErr("");
+    try {
+      const [posts, projects, leads] = await Promise.all([
+        loadPosts().catch(() => []),
+        readJson(PROJECTS_PATH, []).then((r) => r.data),
+        readJson(LEADS_PATH, []).then((r) => r.data),
+      ]);
+      const blob = new Blob(
+        [JSON.stringify({ exportedAt: new Date().toISOString(), posts, projects, leads }, null, 2)],
+        { type: "application/json" }
+      );
+      const a = document.createElement("a");
+      a.href = URL.createObjectURL(blob);
+      a.download = `raheeq-content-${new Date().toISOString().slice(0, 10)}.json`;
+      a.click();
+      URL.revokeObjectURL(a.href);
+    } catch (e: unknown) {
+      setErr(`تعذّر التصدير — ${e instanceof Error ? e.message : e}`);
+    }
+  };
 
   if (authed === null) {
     return (
@@ -370,15 +133,9 @@ export default function AdminApp() {
             placeholder="كلمة المرور…"
             value={pwInput}
             onChange={(e) => setPwInput(e.target.value)}
-            onKeyDown={(e) => {
-              if (e.key === "Enter") login();
-            }}
+            onKeyDown={(e) => e.key === "Enter" && login()}
           />
-          <button
-            className="btn btn-gold"
-            disabled={!pwInput.trim() || loggingIn}
-            onClick={login}
-          >
+          <button className="btn btn-gold" disabled={!pwInput.trim() || loggingIn} onClick={login}>
             {loggingIn ? "جارٍ الدخول…" : "دخول"}
           </button>
           {err && <p className="adm-err">{err}</p>}
@@ -390,171 +147,56 @@ export default function AdminApp() {
     );
   }
 
+  const t = TITLES[section];
+
   return (
-    <div className="adm-shell">
-      <header className="adm-head">
-        <div>
-          <span className="slug">لوحة التحكم</span>
-          <h1>مدونة رحيق</h1>
+    <div className="adm-app">
+      <aside className="adm-side">
+        <div className="adm-brand">
+          <b>لوحة</b> <span>رحيق</span>
         </div>
-        <div className="adm-head-actions">
-          <a className="adm-link" href={`${SITE_URL}/blog/`} target="_blank" rel="noopener">
-            عرض المدونة ↗
+        <nav className="adm-nav">
+          {NAV.map((n) => (
+            <button
+              key={n.id}
+              className={`adm-nav-item ${section === n.id ? "active" : ""}`}
+              onClick={() => goTo(n.id)}
+            >
+              <span className="adm-nav-icon">{n.icon}</span>
+              {n.label}
+            </button>
+          ))}
+        </nav>
+        <div className="adm-side-foot">
+          <button className="adm-side-link" onClick={exportContent}>
+            ⭳ تصدير المحتوى
+          </button>
+          <a className="adm-side-link" href={SITE_URL} target="_blank" rel="noopener">
+            ⤢ عرض الموقع
           </a>
-          <button className="adm-link" onClick={logout}>
-            خروج
+          <button className="adm-side-link" onClick={logout}>
+            ⏻ خروج
           </button>
         </div>
-      </header>
+      </aside>
 
-      {msg && <p className="adm-ok">{msg}</p>}
-      {err && <p className="adm-err">{err}</p>}
-
-      {view === "list" && (
-        <>
-          <div className="adm-toolbar">
-            <button className="btn btn-gold" onClick={openNew}>
-              + مقال جديد
-            </button>
-            <button className="adm-link" onClick={loadPosts} disabled={busy}>
-              تحديث
-            </button>
+      <main className="adm-main">
+        <header className="adm-main-head">
+          <div>
+            <h1>{t.h}</h1>
+            <p className="adm-muted">{t.sub}</p>
           </div>
-          {busy && posts.length === 0 ? (
-            <p className="adm-muted">جارٍ التحميل…</p>
-          ) : (
-            <div className="adm-table">
-              {posts.map((p) => (
-                <div className="adm-row" key={p.slug}>
-                  <div className="adm-row-main">
-                    <b>{p.title}</b>
-                    <small>
-                      <span className={`adm-lang ${p.lang}`}>
-                        {p.lang === "en" ? "EN" : "ع"}
-                      </span>{" "}
-                      {p.date}
-                    </small>
-                  </div>
-                  <div className="adm-row-actions">
-                    <a
-                      href={`${SITE_URL}/blog/p/?s=${p.slug}`}
-                      target="_blank"
-                      rel="noopener"
-                    >
-                      عرض
-                    </a>
-                    <button onClick={() => openEdit(p)}>تعديل</button>
-                    <button className="adm-danger" onClick={() => remove(p)}>
-                      حذف
-                    </button>
-                  </div>
-                </div>
-              ))}
-              {posts.length === 0 && <p className="adm-muted">لا توجد مقالات بعد.</p>}
-            </div>
-          )}
-        </>
-      )}
+        </header>
 
-      {view === "edit" && (
-        <div className="adm-editor">
-          <div className="adm-grid">
-            <label>
-              العنوان
-              <input
-                value={draft.title}
-                dir="auto"
-                onChange={(e) => {
-                  const title = e.target.value;
-                  setDraft((d) => ({
-                    ...d,
-                    title,
-                    slug: d.sha ? d.slug : d.slug || slugify(title),
-                  }));
-                }}
-              />
-            </label>
-            <label>
-              الرابط (slug) — إنجليزي
-              <input
-                value={draft.slug}
-                dir="ltr"
-                disabled={!!draft.sha}
-                placeholder="my-article-name"
-                onChange={(e) => setDraft((d) => ({ ...d, slug: e.target.value }))}
-              />
-            </label>
-            <label>
-              التاريخ
-              <input
-                type="date"
-                value={draft.date}
-                dir="ltr"
-                onChange={(e) => setDraft((d) => ({ ...d, date: e.target.value }))}
-              />
-            </label>
-            <label>
-              اللغة
-              <select
-                value={draft.lang}
-                onChange={(e) =>
-                  setDraft((d) => ({ ...d, lang: e.target.value as "ar" | "en" }))
-                }
-              >
-                <option value="ar">عربي</option>
-                <option value="en">English</option>
-              </select>
-            </label>
-          </div>
-          <label>
-            المقتطف (يظهر في صفحة المدونة)
-            <textarea
-              rows={2}
-              dir="auto"
-              value={draft.excerpt}
-              onChange={(e) => setDraft((d) => ({ ...d, excerpt: e.target.value }))}
-            />
-          </label>
-          <label>
-            الوسوم (مفصولة بفاصلة)
-            <input
-              value={draft.tags}
-              dir="auto"
-              placeholder="الكتابة التسويقية، السرد القصصي"
-              onChange={(e) => setDraft((d) => ({ ...d, tags: e.target.value }))}
-            />
-          </label>
-          <label>
-            المحتوى (Markdown — العناوين بـ ## والغامق بـ **)
-            <textarea
-              rows={16}
-              dir="auto"
-              value={draft.body}
-              onChange={(e) => setDraft((d) => ({ ...d, body: e.target.value }))}
-            />
-          </label>
+        {msg && <p className="adm-ok">{msg}</p>}
+        {err && <p className="adm-err">{err}</p>}
 
-          {showPreview && (
-            <div
-              className="prose adm-preview"
-              dir={draft.lang === "en" ? "ltr" : "rtl"}
-              dangerouslySetInnerHTML={{ __html: previewHtml }}
-            />
-          )}
-
-          <div className="adm-toolbar">
-            <button className="btn btn-gold" onClick={save} disabled={busy}>
-              {busy ? "جارٍ النشر…" : "حفظ ونشر"}
-            </button>
-            <button className="adm-link" onClick={() => setShowPreview((v) => !v)}>
-              {showPreview ? "إخفاء المعاينة" : "معاينة"}
-            </button>
-            <button className="adm-link" onClick={() => setView("list")}>
-              رجوع
-            </button>
-          </div>
-        </div>
-      )}
+        {section === "dashboard" && <DashboardHome onErr={setErr} goTo={goTo} />}
+        {section === "analytics" && <AnalyticsSection />}
+        {section === "blog" && <BlogSection onMsg={setMsg} onErr={setErr} />}
+        {section === "projects" && <ProjectsSection onMsg={setMsg} onErr={setErr} />}
+        {section === "leads" && <LeadsSection onMsg={setMsg} onErr={setErr} />}
+      </main>
     </div>
   );
 }
