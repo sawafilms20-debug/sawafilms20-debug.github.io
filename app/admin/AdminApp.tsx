@@ -155,7 +155,7 @@ export default function AdminApp() {
         <div className="adm-brand">
           <b>لوحة</b> <span>رحيق</span>
         </div>
-        <nav className="adm-nav">
+        <div className="adm-nav">
           {NAV.map((n) => (
             <button
               key={n.id}
@@ -166,7 +166,7 @@ export default function AdminApp() {
               {n.label}
             </button>
           ))}
-        </nav>
+        </div>
         <div className="adm-side-foot">
           <button className="adm-side-link" onClick={exportContent}>
             ⭳ تصدير المحتوى
