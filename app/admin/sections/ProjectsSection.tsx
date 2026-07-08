@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useState } from "react";
 import { type Project, PROJECTS_PATH, readJson, writeJson, slugify, today } from "../lib";
+import { IconRefresh } from "../icons";
 
 type Editing = Project & { _new?: boolean };
 
@@ -19,12 +20,18 @@ const empty = (): Editing => ({
 export default function ProjectsSection({
   onMsg,
   onErr,
+  confirm,
+  onChange,
+  newNonce,
 }: {
   onMsg: (m: string) => void;
   onErr: (e: string) => void;
+  confirm: (m: string) => Promise<boolean>;
+  onChange: () => void;
+  newNonce: number;
 }) {
   const [projects, setProjects] = useState<Project[]>([]);
-  const [sha, setSha] = useState<string | undefined>();
+  const [loaded, setLoaded] = useState(false);
   const [busy, setBusy] = useState(false);
   const [editing, setEditing] = useState<Editing | null>(null);
   const [tagsText, setTagsText] = useState("");
@@ -32,13 +39,13 @@ export default function ProjectsSection({
   const refresh = useCallback(async () => {
     setBusy(true);
     try {
-      const { data, sha } = await readJson<Project[]>(PROJECTS_PATH, []);
+      const { data } = await readJson<Project[]>(PROJECTS_PATH, []);
       setProjects(Array.isArray(data) ? data : []);
-      setSha(sha);
     } catch (e: unknown) {
       onErr(`تعذّر تحميل المشاريع — ${e instanceof Error ? e.message : e}`);
     } finally {
       setBusy(false);
+      setLoaded(true);
     }
   }, [onErr]);
 
@@ -46,17 +53,26 @@ export default function ProjectsSection({
     refresh();
   }, [refresh]);
 
+  const startNew = useCallback(() => {
+    setEditing(empty());
+    setTagsText("");
+    onErr("");
+  }, [onErr]);
+
+  useEffect(() => {
+    if (newNonce > 0) startNew();
+  }, [newNonce, startNew]);
+
   const persist = async (next: Project[], message: string) => {
     setBusy(true);
     onErr("");
     try {
-      // re-read sha to avoid conflicts, then write
       const cur = await readJson<Project[]>(PROJECTS_PATH, []);
       await writeJson(PROJECTS_PATH, next, cur.sha, message);
       const after = await readJson<Project[]>(PROJECTS_PATH, []);
       setProjects(after.data);
-      setSha(after.sha);
-      onMsg("تم الحفظ ✓ — سيظهر على الموقع خلال دقيقة أو دقيقتين.");
+      onChange();
+      onMsg("تم الحفظ ✓ — سيظهر على الموقع خلال دقيقة.");
     } catch (e: unknown) {
       onErr(`تعذّر الحفظ — ${e instanceof Error ? e.message : e}`);
     } finally {
@@ -64,11 +80,6 @@ export default function ProjectsSection({
     }
   };
 
-  const startNew = () => {
-    setEditing(empty());
-    setTagsText("");
-    onErr("");
-  };
   const startEdit = (p: Project) => {
     setEditing({ ...p });
     setTagsText(p.tags.join("، "));
@@ -89,20 +100,15 @@ export default function ProjectsSection({
       featured: editing.featured,
       date: editing.date || today(),
     };
-    const others = projects.filter((p) => p.slug !== slug && p !== editing);
     const next = editing._new
-      ? [record, ...projects]
+      ? [record, ...projects.filter((p) => p.slug !== slug)]
       : projects.map((p) => (p.slug === editing.slug ? record : p));
-    // guard against dup slug on new
-    const deduped = editing._new
-      ? [record, ...others.filter((p) => p.slug !== slug)]
-      : next;
-    await persist(deduped, `${editing._new ? "Add" : "Update"} project: ${slug}`);
+    await persist(next, `${editing._new ? "Add" : "Update"} project: ${slug}`);
     setEditing(null);
   };
 
   const remove = async (p: Project) => {
-    if (!confirm(`حذف مشروع «${p.title}»؟`)) return;
+    if (!(await confirm(`حذف مشروع «${p.title}»؟`))) return;
     await persist(projects.filter((x) => x.slug !== p.slug), `Delete project: ${p.slug}`);
   };
 
@@ -115,6 +121,7 @@ export default function ProjectsSection({
             <input
               value={editing.title}
               dir="auto"
+              autoFocus
               onChange={(e) => setEditing({ ...editing, title: e.target.value })}
             />
           </label>
@@ -179,16 +186,21 @@ export default function ProjectsSection({
 
   return (
     <>
-      <div className="adm-toolbar">
-        <button className="btn btn-gold" onClick={startNew}>
-          + مشروع جديد
-        </button>
-        <button className="adm-link" onClick={refresh} disabled={busy}>
-          تحديث
+      <div className="adm-toolbar adm-listbar">
+        <span className="adm-muted">{projects.length} مشروع</span>
+        <button className="adm-icon-btn" onClick={refresh} disabled={busy} aria-label="تحديث">
+          <IconRefresh />
         </button>
       </div>
-      {busy && projects.length === 0 ? (
-        <p className="adm-muted">جارٍ التحميل…</p>
+      {!loaded ? (
+        <div className="adm-table">
+          {[0, 1, 2].map((i) => (
+            <div className="adm-row adm-skel-row" key={i}>
+              <div className="adm-skel" style={{ width: "35%", height: 16 }} />
+              <div className="adm-skel" style={{ width: 100, height: 14 }} />
+            </div>
+          ))}
+        </div>
       ) : (
         <div className="adm-table">
           {projects.map((p) => (
@@ -214,7 +226,10 @@ export default function ProjectsSection({
             </div>
           ))}
           {projects.length === 0 && (
-            <p className="adm-muted">لا توجد مشاريع بعد. أضيفي أول مشروع لعرض أعمالك على الموقع.</p>
+            <div className="adm-empty">
+              <p>لا توجد مشاريع بعد.</p>
+              <p className="adm-muted">أضيفي أول مشروع لعرض أعمالك على الموقع.</p>
+            </div>
           )}
         </div>
       )}

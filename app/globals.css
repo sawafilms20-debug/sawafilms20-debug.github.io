@@ -3,7 +3,7 @@
   --paper:#fffdf8;
   --espresso:#2b2622;
   --ink:#3a342e;
-  --muted:#7a7167;
+  --muted:#6e655b;
   --gold:#c79a3b;
   --gold-deep:#b1842a;
   --gold-soft:#e7d3a0;
@@ -726,4 +726,78 @@ section.chapter{padding:clamp(70px,10vw,120px) 0 0}
 @media(max-width:520px){
   .adm-stats{grid-template-columns:1fr 1fr}
   .adm-metric-grid{grid-template-columns:1fr}
+}
+
+/* ===== admin polish pass ===== */
+.adm-sr{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0}
+.adm-nav-icon{display:inline-flex}
+.adm-nav-icon svg,.adm-side-link svg,.adm-stat-icon svg,.adm-head-cta svg,.adm-row-actions svg,.adm-icon-btn svg{display:block}
+.adm-nav-label{flex:1}
+.adm-nav-badge{min-width:20px;height:20px;display:inline-flex;align-items:center;justify-content:center;font-size:11px;font-weight:800;border-radius:999px;padding:0 6px}
+.adm-nav-badge.count{background:var(--sand);color:var(--espresso)}
+.adm-nav-item.active .adm-nav-badge.count{background:rgba(255,255,255,.28);color:#fffdf8}
+.adm-nav-badge.unread{background:#c0392b;color:#fff}
+
+.adm-stat-icon{color:var(--gold-deep);font-size:0}
+.adm-stat-icon svg{width:22px;height:22px}
+.adm-head-cta{display:inline-flex;align-items:center;gap:8px;padding:11px 22px;font-size:15px;cursor:pointer;border:none;font-family:inherit}
+
+/* toasts */
+.adm-toasts{position:fixed;bottom:22px;inset-inline-start:22px;z-index:200;display:flex;flex-direction:column;gap:10px;max-width:min(92vw,420px)}
+.adm-toast{display:flex;align-items:center;gap:12px;justify-content:space-between;border-radius:14px;padding:14px 18px;font-size:14.5px;font-weight:600;
+  box-shadow:0 18px 40px -18px rgba(60,40,10,.5);animation:admSlide .35s var(--ease)}
+.adm-toast.ok{background:#eef7e8;color:#2f5e1f;border:1px solid #cfe6c2}
+.adm-toast.bad{background:#fdecec;color:#8d2f2f;border:1px solid #f0cfcf}
+.adm-toast-x{background:none;border:none;color:inherit;cursor:pointer;font-size:14px;opacity:.7;padding:2px 4px}
+.adm-toast-x:hover{opacity:1}
+@keyframes admSlide{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:none}}
+
+/* branded confirm modal */
+.adm-modal-overlay{position:fixed;inset:0;z-index:300;background:rgba(43,38,34,.42);backdrop-filter:blur(3px);display:grid;place-items:center;padding:24px;animation:admFade .2s ease}
+.adm-modal{background:var(--paper);border:1px solid var(--line);border-radius:20px;padding:28px;max-width:400px;width:100%;box-shadow:0 30px 70px -30px rgba(40,25,5,.6);text-align:center}
+.adm-modal p{font-family:var(--font-messiri),serif;font-size:18px;color:var(--espresso);margin:0 0 20px;line-height:1.6}
+.adm-modal-actions{display:flex;gap:14px;justify-content:center;align-items:center}
+.adm-modal-actions .btn{border:none;cursor:pointer;font-family:inherit;padding:11px 26px;font-size:15px}
+@keyframes admFade{from{opacity:0}to{opacity:1}}
+
+/* skeletons */
+.adm-skel{border-radius:8px;background:linear-gradient(100deg,var(--sand) 30%,#f6efe0 50%,var(--sand) 70%);background-size:200% 100%;animation:admShimmer 1.4s ease-in-out infinite}
+.adm-skel-row{align-items:center}
+@keyframes admShimmer{from{background-position:200% 0}to{background-position:-200% 0}}
+
+/* list toolbar: search + chips */
+.adm-listbar{flex-wrap:wrap}
+.adm-search{display:flex;align-items:center;gap:8px;background:var(--paper);border:1px solid var(--line);border-radius:12px;padding:0 12px;color:var(--muted);flex:1;min-width:180px;max-width:340px}
+.adm-search input{border:none;background:none;font-family:inherit;font-size:14.5px;color:var(--ink);padding:10px 0;width:100%;outline:none}
+.adm-chips{display:flex;gap:6px;flex-wrap:wrap}
+.adm-chip{font-family:inherit;font-size:13px;font-weight:700;color:var(--muted);background:var(--paper);border:1px solid var(--line);border-radius:999px;padding:7px 14px;cursor:pointer;transition:all .2s}
+.adm-chip:hover{border-color:var(--gold-soft);color:var(--gold-deep)}
+.adm-chip.active{background:var(--espresso);color:var(--paper);border-color:var(--espresso)}
+.adm-icon-btn{display:inline-flex;align-items:center;justify-content:center;width:38px;height:38px;border-radius:11px;border:1px solid var(--line);background:var(--paper);color:var(--muted);cursor:pointer;transition:all .2s}
+.adm-icon-btn:hover:not(:disabled){color:var(--gold-deep);border-color:var(--gold-soft)}
+.adm-icon-btn:disabled{opacity:.5;cursor:default}
+
+/* editor extras */
+.adm-label-row{display:flex;justify-content:space-between;align-items:baseline;gap:12px}
+.adm-hint{font-size:12.5px;margin-inline-start:auto}
+
+/* unread dot + row-link buttons */
+.adm-dot{display:inline-block;width:8px;height:8px;border-radius:50%;background:var(--gold);vertical-align:middle;margin-inline-end:2px}
+button.adm-row-link{width:100%;text-align:start;font-family:inherit;background:var(--paper);cursor:pointer}
+.adm-lead-who{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.adm-row-actions a,.adm-row-actions button{display:inline-flex;align-items:center;gap:5px;transition:color .2s}
+.adm-row-actions a:hover,.adm-row-actions button:hover:not(:disabled){color:var(--espresso)}
+.adm-row-actions .adm-danger:hover:not(:disabled){color:#8d2f2f}
+.adm-row-actions button:disabled{opacity:.5;cursor:default}
+.adm-row-actions svg{width:15px;height:15px}
+
+/* focus-visible everywhere in the admin */
+.adm-app :focus-visible,.adm-login :focus-visible{outline:2px solid var(--gold-deep);outline-offset:2px}
+.adm-nav-item:focus-visible,.adm-stat-card:focus-visible{outline-offset:-2px;border-radius:12px}
+
+@media(max-width:900px){
+  .adm-nav-item{flex:0 0 auto}
+  .adm-nav-label{flex:0 0 auto}
+  .adm-toasts{inset-inline:12px;max-width:none}
+  .adm-search{max-width:none}
 }

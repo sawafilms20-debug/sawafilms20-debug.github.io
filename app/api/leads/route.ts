@@ -3,7 +3,8 @@ import { GH_OWNER, GH_REPO, GH_BRANCH } from "@/app/admin/config";
 
 // Public contact-form endpoint. Anyone on the site can POST a message; the
 // server (holding GITHUB_TOKEN) appends it to content/leads.json in the repo.
-// No auth on POST — but validated, length-capped, honeypot-guarded.
+// Guards: validation, length caps, honeypot, per-IP rate limit, and a
+// read-modify-write retry so simultaneous submits don't drop a message.
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -16,8 +17,7 @@ const ALLOWED_ORIGINS = [
 ];
 
 function corsHeaders(origin: string | null) {
-  const allow =
-    origin && ALLOWED_ORIGINS.includes(origin) ? origin : ALLOWED_ORIGINS[0];
+  const allow = origin && ALLOWED_ORIGINS.includes(origin) ? origin : ALLOWED_ORIGINS[0];
   return {
     "Access-Control-Allow-Origin": allow,
     "Access-Control-Allow-Methods": "POST, OPTIONS",
@@ -40,14 +40,38 @@ type Lead = {
   read: boolean;
 };
 
-const clip = (v: unknown, n: number) =>
-  (typeof v === "string" ? v : "").trim().slice(0, n);
+const clip = (v: unknown, n: number) => (typeof v === "string" ? v : "").trim().slice(0, n);
+
+// naive in-memory rate limiter (per instance): max 5 submissions / 10 min / IP
+const HITS = new Map<string, number[]>();
+const WINDOW = 10 * 60 * 1000;
+const MAX = 5;
+function rateLimited(ip: string): boolean {
+  const now = Date.now();
+  const arr = (HITS.get(ip) || []).filter((t) => now - t < WINDOW);
+  if (arr.length >= MAX) {
+    HITS.set(ip, arr);
+    return true;
+  }
+  arr.push(now);
+  HITS.set(ip, arr);
+  if (HITS.size > 5000) HITS.clear(); // crude memory cap
+  return false;
+}
 
 export async function POST(req: Request) {
   const cors = corsHeaders(req.headers.get("origin"));
   const token = process.env.GITHUB_TOKEN;
   if (!token) {
     return NextResponse.json({ error: "not configured" }, { status: 500, headers: cors });
+  }
+
+  const ip = (req.headers.get("x-forwarded-for") || "").split(",")[0].trim() || "unknown";
+  if (rateLimited(ip)) {
+    return NextResponse.json(
+      { error: "الرجاء المحاولة بعد قليل." },
+      { status: 429, headers: cors }
+    );
   }
 
   let body: Record<string, unknown> = {};
@@ -57,9 +81,8 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: "bad request" }, { status: 400, headers: cors });
   }
 
-  // honeypot: real users never fill "website"
   if (clip(body.website, 100)) {
-    return NextResponse.json({ ok: true }, { headers: cors });
+    return NextResponse.json({ ok: true }, { headers: cors }); // honeypot
   }
 
   const name = clip(body.name, 120);
@@ -82,53 +105,57 @@ export async function POST(req: Request) {
     "Content-Type": "application/json",
   };
 
-  try {
-    // read current file (if any)
-    let leads: Lead[] = [];
-    let sha: string | undefined;
-    const cur = await fetch(`${api}?ref=${GH_BRANCH}`, { headers: ghHeaders });
-    if (cur.ok) {
-      const j = await cur.json();
-      sha = j.sha;
-      try {
-        leads = JSON.parse(Buffer.from(j.content, "base64").toString("utf-8"));
-        if (!Array.isArray(leads)) leads = [];
-      } catch {
-        leads = [];
+  const lead: Lead = {
+    id: `${Date.now()}-${Math.round(Math.random() * 1e6)}`,
+    name,
+    email,
+    message,
+    source,
+    date: new Date().toISOString(),
+    read: false,
+  };
+
+  // read-modify-write with retry on 409 (concurrent writers)
+  for (let attempt = 0; attempt < 4; attempt++) {
+    try {
+      let leads: Lead[] = [];
+      let sha: string | undefined;
+      const cur = await fetch(`${api}?ref=${GH_BRANCH}`, { headers: ghHeaders });
+      if (cur.ok) {
+        const j = await cur.json();
+        sha = j.sha;
+        try {
+          leads = JSON.parse(Buffer.from(j.content, "base64").toString("utf-8"));
+          if (!Array.isArray(leads)) leads = [];
+        } catch {
+          leads = [];
+        }
       }
-    }
+      leads.unshift(lead);
+      if (leads.length > 1000) leads = leads.slice(0, 1000);
 
-    const lead: Lead = {
-      id: `${Date.now()}-${Math.round(Math.random() * 1e6)}`,
-      name,
-      email,
-      message,
-      source,
-      date: new Date().toISOString(),
-      read: false,
-    };
-    leads.unshift(lead);
-    if (leads.length > 1000) leads = leads.slice(0, 1000);
-
-    const put = await fetch(api, {
-      method: "PUT",
-      headers: ghHeaders,
-      body: JSON.stringify({
-        message: `New lead from ${name}`,
-        content: Buffer.from(JSON.stringify(leads, null, 2)).toString("base64"),
-        branch: GH_BRANCH,
-        ...(sha ? { sha } : {}),
-      }),
-    });
-    if (!put.ok) {
+      const put = await fetch(api, {
+        method: "PUT",
+        headers: ghHeaders,
+        body: JSON.stringify({
+          message: `New lead from ${name}`,
+          content: Buffer.from(JSON.stringify(leads, null, 2)).toString("base64"),
+          branch: GH_BRANCH,
+          ...(sha ? { sha } : {}),
+        }),
+      });
+      if (put.ok) return NextResponse.json({ ok: true }, { headers: cors });
+      if (put.status === 409 || put.status === 422) continue; // sha conflict — retry
       const e = await put.json().catch(() => ({}));
       throw new Error(e.message || `GitHub ${put.status}`);
+    } catch (e: unknown) {
+      if (attempt === 3) {
+        return NextResponse.json(
+          { error: e instanceof Error ? e.message : "failed" },
+          { status: 500, headers: cors }
+        );
+      }
     }
-    return NextResponse.json({ ok: true }, { headers: cors });
-  } catch (e: unknown) {
-    return NextResponse.json(
-      { error: e instanceof Error ? e.message : "failed" },
-      { status: 500, headers: cors }
-    );
   }
+  return NextResponse.json({ error: "conflict" }, { status: 503, headers: cors });
 }

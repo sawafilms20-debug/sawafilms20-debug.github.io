@@ -100,24 +100,50 @@ export function parsePost(name: string, sha: string, raw: string): PostFile {
   };
 }
 
+const oneLine = (s: string) =>
+  s.replace(/[\r\n]+/g, " ").replace(/"/g, "'").trim();
+
 export function buildMarkdown(d: Draft): string {
   const tags = d.tags
     .split(/[,،]/)
     .map((t) => t.trim())
     .filter(Boolean)
-    .map((t) => `"${t}"`)
+    .map((t) => `"${t.replace(/"/g, "'")}"`)
     .join(", ");
   return `---
-title: "${d.title.replace(/"/g, "'")}"
+title: "${oneLine(d.title)}"
 date: "${d.date}"
 lang: "${d.lang}"
 status: "${d.status}"
-excerpt: "${d.excerpt.replace(/"/g, "'")}"
+excerpt: "${oneLine(d.excerpt)}"
 tags: [${tags}]
 ---
 
 ${d.body.trim()}
 `;
+}
+
+/* words + reading time for the editor */
+export function wordStats(text: string) {
+  const words = (text.trim().match(/[\p{L}\p{N}]+/gu) || []).length;
+  const minutes = Math.max(1, Math.round(words / 200));
+  return { words, minutes };
+}
+
+/* friendly Arabic relative time */
+export function relativeTime(iso: string): string {
+  const then = new Date(iso).getTime();
+  if (!then) return "";
+  const s = Math.floor((Date.now() - then) / 1000);
+  if (s < 60) return "الآن";
+  const m = Math.floor(s / 60);
+  if (m < 60) return `قبل ${m} دقيقة`;
+  const h = Math.floor(m / 60);
+  if (h < 24) return `قبل ${h} ساعة`;
+  const d = Math.floor(h / 24);
+  if (d === 1) return "أمس";
+  if (d < 7) return `قبل ${d} أيام`;
+  return new Date(iso).toISOString().slice(0, 10);
 }
 
 export function slugify(title: string): string {
@@ -165,8 +191,12 @@ export async function readJson<T>(
   try {
     const r = await gh(`contents/${path}?ref=${GH_BRANCH}`);
     return { data: JSON.parse(b64decode(r.content)) as T, sha: r.sha };
-  } catch {
-    return { data: fallback };
+  } catch (e) {
+    // Only a genuine "file doesn't exist yet" (404) is a safe empty. Any other
+    // failure (network, 5xx, auth) must propagate — otherwise a failed read
+    // followed by a write would overwrite real content with the fallback.
+    if (e instanceof Error && /^404\b/.test(e.message)) return { data: fallback };
+    throw e;
   }
 }
 

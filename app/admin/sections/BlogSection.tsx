@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { marked } from "marked";
 import { SITE_URL, BLOG_DIR, GH_BRANCH } from "../config";
 import {
@@ -14,20 +14,34 @@ import {
   emptyDraft,
   loadPosts,
   writeManifest,
+  wordStats,
 } from "../lib";
+import { IconSearch, IconRefresh } from "../icons";
+
+type Filter = "all" | "published" | "draft" | "ar" | "en";
 
 export default function BlogSection({
   onMsg,
   onErr,
+  confirm,
+  onChange,
+  newNonce,
 }: {
   onMsg: (m: string) => void;
   onErr: (e: string) => void;
+  confirm: (m: string) => Promise<boolean>;
+  onChange: () => void;
+  newNonce: number;
 }) {
   const [posts, setPosts] = useState<PostFile[]>([]);
   const [view, setView] = useState<"list" | "edit">("list");
   const [draft, setDraft] = useState<Draft>(emptyDraft());
   const [showPreview, setShowPreview] = useState(false);
   const [busy, setBusy] = useState(false);
+  const [loaded, setLoaded] = useState(false);
+  const [q, setQ] = useState("");
+  const [filter, setFilter] = useState<Filter>("all");
+  const saveRef = useRef<() => void>(() => {});
 
   const refresh = useCallback(async () => {
     setBusy(true);
@@ -37,6 +51,7 @@ export default function BlogSection({
       onErr(`تعذّر تحميل المقالات — ${e instanceof Error ? e.message : e}`);
     } finally {
       setBusy(false);
+      setLoaded(true);
     }
   }, [onErr]);
 
@@ -44,12 +59,17 @@ export default function BlogSection({
     refresh();
   }, [refresh]);
 
-  const openNew = () => {
+  const openNew = useCallback(() => {
     setDraft(emptyDraft());
     setShowPreview(false);
     onErr("");
     setView("edit");
-  };
+  }, [onErr]);
+
+  // header "+ مقال جديد" trigger
+  useEffect(() => {
+    if (newNonce > 0) openNew();
+  }, [newNonce, openNew]);
 
   const openEdit = (p: PostFile) => {
     setDraft({
@@ -73,7 +93,10 @@ export default function BlogSection({
     if (!draft.title.trim()) return onErr("العنوان مطلوب.");
     if (!draft.body.trim()) return onErr("محتوى المقال مطلوب.");
     let slug = draft.slug.trim();
-    if (!slug) slug = slugify(draft.title) || `post-${today().replace(/-/g, "")}`;
+    if (!slug)
+      slug =
+        slugify(draft.title) ||
+        `post-${today().replace(/-/g, "")}-${Math.random().toString(36).slice(2, 6)}`;
     if (!/^[a-z0-9-]+$/.test(slug))
       return onErr("الرابط (slug) يجب أن يكون أحرفًا إنجليزية صغيرة وأرقامًا وشرطات فقط.");
     setBusy(true);
@@ -90,11 +113,8 @@ export default function BlogSection({
       const fresh = await loadPosts();
       setPosts(fresh);
       await writeManifest(fresh);
-      onMsg(
-        draft.status === "draft"
-          ? "تم الحفظ كمسودة ✓"
-          : "تم النشر ✓ — سيظهر على الموقع خلال دقيقة أو دقيقتين."
-      );
+      onChange();
+      onMsg(draft.status === "draft" ? "تم الحفظ كمسودة ✓" : "تم النشر ✓ — سيظهر خلال دقيقة.");
       setView("list");
     } catch (e: unknown) {
       onErr(`تعذّر الحفظ — ${e instanceof Error ? e.message : e}`);
@@ -102,23 +122,21 @@ export default function BlogSection({
       setBusy(false);
     }
   };
+  saveRef.current = save;
 
   const remove = async (p: PostFile) => {
-    if (!confirm(`حذف «${p.title}» نهائيًا؟`)) return;
+    if (!(await confirm(`حذف «${p.title}» نهائيًا؟`))) return;
     setBusy(true);
     onErr("");
     try {
       await gh(`contents/${BLOG_DIR}/${p.name}`, {
         method: "DELETE",
-        body: JSON.stringify({
-          message: `Delete post: ${p.slug}`,
-          sha: p.sha,
-          branch: GH_BRANCH,
-        }),
+        body: JSON.stringify({ message: `Delete post: ${p.slug}`, sha: p.sha, branch: GH_BRANCH }),
       });
       const fresh = await loadPosts();
       setPosts(fresh);
       await writeManifest(fresh);
+      onChange();
       onMsg("تم الحذف ✓");
     } catch (e: unknown) {
       onErr(`تعذّر الحذف — ${e instanceof Error ? e.message : e}`);
@@ -127,10 +145,39 @@ export default function BlogSection({
     }
   };
 
+  // ⌘/Ctrl + S saves while editing
+  useEffect(() => {
+    if (view !== "edit") return;
+    const h = (e: KeyboardEvent) => {
+      if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === "s") {
+        e.preventDefault();
+        saveRef.current();
+      }
+    };
+    window.addEventListener("keydown", h);
+    return () => window.removeEventListener("keydown", h);
+  }, [view]);
+
   const previewHtml = useMemo(
     () => (showPreview ? (marked.parse(draft.body || "") as string) : ""),
     [showPreview, draft.body]
   );
+  const stats = useMemo(() => wordStats(draft.body), [draft.body]);
+
+  const shown = useMemo(() => {
+    const needle = q.trim().toLowerCase();
+    return posts.filter((p) => {
+      if (filter === "published" && p.status === "draft") return false;
+      if (filter === "draft" && p.status !== "draft") return false;
+      if (filter === "ar" && p.lang !== "ar") return false;
+      if (filter === "en" && p.lang !== "en") return false;
+      if (!needle) return true;
+      return (
+        p.title.toLowerCase().includes(needle) ||
+        p.tags.join(" ").toLowerCase().includes(needle)
+      );
+    });
+  }, [posts, q, filter]);
 
   if (view === "edit") {
     return (
@@ -141,13 +188,10 @@ export default function BlogSection({
             <input
               value={draft.title}
               dir="auto"
+              autoFocus
               onChange={(e) => {
                 const title = e.target.value;
-                setDraft((d) => ({
-                  ...d,
-                  title,
-                  slug: d.sha ? d.slug : d.slug || slugify(title),
-                }));
+                setDraft((d) => ({ ...d, title, slug: d.sha ? d.slug : d.slug || slugify(title) }));
               }}
             />
           </label>
@@ -174,9 +218,7 @@ export default function BlogSection({
             الحالة
             <select
               value={draft.status}
-              onChange={(e) =>
-                setDraft((d) => ({ ...d, status: e.target.value as "published" | "draft" }))
-              }
+              onChange={(e) => setDraft((d) => ({ ...d, status: e.target.value as "published" | "draft" }))}
             >
               <option value="published">منشور</option>
               <option value="draft">مسودة</option>
@@ -188,9 +230,7 @@ export default function BlogSection({
             اللغة
             <select
               value={draft.lang}
-              onChange={(e) =>
-                setDraft((d) => ({ ...d, lang: e.target.value as "ar" | "en" }))
-              }
+              onChange={(e) => setDraft((d) => ({ ...d, lang: e.target.value as "ar" | "en" }))}
             >
               <option value="ar">عربي</option>
               <option value="en">English</option>
@@ -216,7 +256,10 @@ export default function BlogSection({
           />
         </label>
         <label>
-          المحتوى (Markdown — العناوين بـ ## والغامق بـ **)
+          <span className="adm-label-row">
+            المحتوى (Markdown — العناوين بـ ## والغامق بـ **)
+            <small className="adm-muted">{stats.words} كلمة · ~{stats.minutes} دقيقة قراءة</small>
+          </span>
           <textarea
             rows={16}
             dir="auto"
@@ -243,6 +286,7 @@ export default function BlogSection({
           <button className="adm-link" onClick={() => setView("list")}>
             رجوع
           </button>
+          <span className="adm-muted adm-hint">⌘S للحفظ</span>
         </div>
       </div>
     );
@@ -250,19 +294,43 @@ export default function BlogSection({
 
   return (
     <>
-      <div className="adm-toolbar">
-        <button className="btn btn-gold" onClick={openNew}>
-          + مقال جديد
-        </button>
-        <button className="adm-link" onClick={refresh} disabled={busy}>
-          تحديث
+      <div className="adm-toolbar adm-listbar">
+        <div className="adm-search">
+          <IconSearch />
+          <input
+            value={q}
+            dir="auto"
+            placeholder="بحث في العناوين والوسوم…"
+            onChange={(e) => setQ(e.target.value)}
+          />
+        </div>
+        <div className="adm-chips">
+          {([
+            ["all", "الكل"],
+            ["published", "منشور"],
+            ["draft", "مسودة"],
+            ["ar", "ع"],
+            ["en", "EN"],
+          ] as [Filter, string][]).map(([f, label]) => (
+            <button
+              key={f}
+              className={`adm-chip ${filter === f ? "active" : ""}`}
+              onClick={() => setFilter(f)}
+            >
+              {label}
+            </button>
+          ))}
+        </div>
+        <button className="adm-icon-btn" onClick={refresh} disabled={busy} aria-label="تحديث">
+          <IconRefresh />
         </button>
       </div>
-      {busy && posts.length === 0 ? (
-        <p className="adm-muted">جارٍ التحميل…</p>
+
+      {!loaded ? (
+        <Skeleton />
       ) : (
         <div className="adm-table">
-          {posts.map((p) => (
+          {shown.map((p) => (
             <div className="adm-row" key={p.slug}>
               <div className="adm-row-main">
                 <b>{p.title}</b>
@@ -270,16 +338,15 @@ export default function BlogSection({
                   <span className={`adm-badge ${p.status}`}>
                     {p.status === "draft" ? "مسودة" : "منشور"}
                   </span>{" "}
-                  <span className={`adm-lang ${p.lang}`}>
-                    {p.lang === "en" ? "EN" : "ع"}
-                  </span>{" "}
-                  {p.date}
+                  <span className={`adm-lang ${p.lang}`}>{p.lang === "en" ? "EN" : "ع"}</span> {p.date}
                 </small>
               </div>
               <div className="adm-row-actions">
-                <a href={`${SITE_URL}/blog/p/?s=${p.slug}`} target="_blank" rel="noopener">
-                  عرض
-                </a>
+                {p.status !== "draft" && (
+                  <a href={`${SITE_URL}/blog/p/?s=${p.slug}`} target="_blank" rel="noopener">
+                    عرض
+                  </a>
+                )}
                 <button onClick={() => openEdit(p)}>تعديل</button>
                 <button className="adm-danger" onClick={() => remove(p)}>
                   حذف
@@ -287,9 +354,26 @@ export default function BlogSection({
               </div>
             </div>
           ))}
-          {posts.length === 0 && <p className="adm-muted">لا توجد مقالات بعد.</p>}
+          {shown.length === 0 && (
+            <div className="adm-empty">
+              <p>{posts.length === 0 ? "لا توجد مقالات بعد." : "لا نتائج مطابقة."}</p>
+            </div>
+          )}
         </div>
       )}
     </>
+  );
+}
+
+function Skeleton() {
+  return (
+    <div className="adm-table">
+      {[0, 1, 2, 3].map((i) => (
+        <div className="adm-row adm-skel-row" key={i}>
+          <div className="adm-skel" style={{ width: "40%", height: 16 }} />
+          <div className="adm-skel" style={{ width: 120, height: 14 }} />
+        </div>
+      ))}
+    </div>
   );
 }

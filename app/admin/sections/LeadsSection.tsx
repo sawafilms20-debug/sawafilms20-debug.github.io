@@ -1,29 +1,38 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
-import { type Lead, LEADS_PATH, readJson, writeJson } from "../lib";
+import { useCallback, useEffect, useMemo, useState } from "react";
+import { type Lead, LEADS_PATH, readJson, writeJson, relativeTime } from "../lib";
+import { IconRefresh, IconReply, IconTrash } from "../icons";
 
 export default function LeadsSection({
   onMsg,
   onErr,
+  confirm,
+  onChange,
 }: {
   onMsg: (m: string) => void;
   onErr: (e: string) => void;
+  confirm: (m: string) => Promise<boolean>;
+  onChange: () => void;
 }) {
   const [leads, setLeads] = useState<Lead[]>([]);
+  const [loaded, setLoaded] = useState(false);
   const [busy, setBusy] = useState(false);
+  const [onlyUnread, setOnlyUnread] = useState(false);
+
+  const sortDesc = (list: Lead[]) =>
+    [...list].sort((a, b) => (a.date < b.date ? 1 : -1));
 
   const refresh = useCallback(async () => {
     setBusy(true);
     try {
       const { data } = await readJson<Lead[]>(LEADS_PATH, []);
-      const list = Array.isArray(data) ? data : [];
-      list.sort((a, b) => (a.date < b.date ? 1 : -1));
-      setLeads(list);
+      setLeads(sortDesc(Array.isArray(data) ? data : []));
     } catch (e: unknown) {
       onErr(`تعذّر تحميل الرسائل — ${e instanceof Error ? e.message : e}`);
     } finally {
       setBusy(false);
+      setLoaded(true);
     }
   }, [onErr]);
 
@@ -31,13 +40,17 @@ export default function LeadsSection({
     refresh();
   }, [refresh]);
 
-  const persist = async (next: Lead[], message: string) => {
+  // Re-read the freshest list, apply the change, then write — so a message
+  // that arrived since page-load is never clobbered.
+  const mutate = async (fn: (list: Lead[]) => Lead[], message: string) => {
     setBusy(true);
     onErr("");
     try {
       const cur = await readJson<Lead[]>(LEADS_PATH, []);
+      const next = fn(Array.isArray(cur.data) ? cur.data : []);
       await writeJson(LEADS_PATH, next, cur.sha, message);
-      setLeads([...next].sort((a, b) => (a.date < b.date ? 1 : -1)));
+      setLeads(sortDesc(next));
+      onChange();
     } catch (e: unknown) {
       onErr(`تعذّر الحفظ — ${e instanceof Error ? e.message : e}`);
     } finally {
@@ -46,50 +59,87 @@ export default function LeadsSection({
   };
 
   const toggleRead = (l: Lead) =>
-    persist(
-      leads.map((x) => (x.id === l.id ? { ...x, read: !x.read } : x)),
+    mutate(
+      (list) => list.map((x) => (x.id === l.id ? { ...x, read: !x.read } : x)),
       `Lead ${l.read ? "unread" : "read"}: ${l.id}`
     );
 
-  const remove = (l: Lead) => {
-    if (!confirm(`حذف رسالة «${l.name}»؟`)) return;
-    persist(leads.filter((x) => x.id !== l.id), `Delete lead: ${l.id}`);
+  const markAllRead = () =>
+    mutate((list) => list.map((x) => ({ ...x, read: true })), "Mark all leads read").then(() =>
+      onMsg("تم تعليم الكل كمقروء ✓")
+    );
+
+  const remove = async (l: Lead) => {
+    if (!(await confirm(`حذف رسالة «${l.name}»؟`))) return;
+    mutate((list) => list.filter((x) => x.id !== l.id), `Delete lead: ${l.id}`);
   };
 
   const unread = leads.filter((l) => !l.read).length;
+  const shown = useMemo(
+    () => (onlyUnread ? leads.filter((l) => !l.read) : leads),
+    [leads, onlyUnread]
+  );
 
   return (
     <>
-      <div className="adm-toolbar">
+      <div className="adm-toolbar adm-listbar">
         <span className="adm-muted">
           {leads.length} رسالة{unread ? ` · ${unread} غير مقروءة` : ""}
         </span>
-        <button className="adm-link" onClick={refresh} disabled={busy}>
-          تحديث
+        <div className="adm-chips">
+          <button
+            className={`adm-chip ${!onlyUnread ? "active" : ""}`}
+            onClick={() => setOnlyUnread(false)}
+          >
+            الكل
+          </button>
+          <button
+            className={`adm-chip ${onlyUnread ? "active" : ""}`}
+            onClick={() => setOnlyUnread(true)}
+          >
+            غير مقروءة
+          </button>
+        </div>
+        {unread > 0 && (
+          <button className="adm-link" onClick={markAllRead} disabled={busy}>
+            تعليم الكل كمقروء
+          </button>
+        )}
+        <button className="adm-icon-btn" onClick={refresh} disabled={busy} aria-label="تحديث">
+          <IconRefresh />
         </button>
       </div>
-      {busy && leads.length === 0 ? (
-        <p className="adm-muted">جارٍ التحميل…</p>
-      ) : leads.length === 0 ? (
+
+      {!loaded ? (
+        <div className="adm-table">
+          {[0, 1].map((i) => (
+            <div className="adm-lead adm-skel-row" key={i}>
+              <div className="adm-skel" style={{ width: "30%", height: 15 }} />
+              <div className="adm-skel" style={{ width: "70%", height: 13 }} />
+            </div>
+          ))}
+        </div>
+      ) : shown.length === 0 ? (
         <div className="adm-empty">
-          <p>لا توجد رسائل بعد.</p>
-          <p className="adm-muted">
-            رسائل نموذج التواصل على موقعك ستظهر هنا تلقائيًا.
-          </p>
+          <p>{onlyUnread ? "لا رسائل غير مقروءة." : "لا توجد رسائل بعد."}</p>
+          {!onlyUnread && (
+            <p className="adm-muted">رسائل نموذج التواصل على موقعك ستظهر هنا تلقائيًا.</p>
+          )}
         </div>
       ) : (
         <div className="adm-table">
-          {leads.map((l) => (
+          {shown.map((l) => (
             <div className={`adm-lead ${l.read ? "" : "unread"}`} key={l.id}>
               <div className="adm-lead-head">
-                <div>
+                <div className="adm-lead-who">
+                  {!l.read && <span className="adm-dot" aria-label="غير مقروءة" />}
                   <b>{l.name}</b>{" "}
                   <a href={`mailto:${l.email}`} className="adm-lead-email" dir="ltr">
                     {l.email}
                   </a>
                 </div>
-                <small className="adm-muted" dir="ltr">
-                  {l.date?.slice(0, 16).replace("T", " ")}
+                <small className="adm-muted" title={l.date}>
+                  {relativeTime(l.date)}
                   {l.source ? ` · ${l.source}` : ""}
                 </small>
               </div>
@@ -97,12 +147,14 @@ export default function LeadsSection({
                 {l.message}
               </p>
               <div className="adm-row-actions">
-                <a href={`mailto:${l.email}`}>ردّ</a>
-                <button onClick={() => toggleRead(l)}>
+                <a href={`mailto:${l.email}`}>
+                  <IconReply /> ردّ
+                </a>
+                <button onClick={() => toggleRead(l)} disabled={busy}>
                   {l.read ? "تعليم كغير مقروءة" : "تعليم كمقروءة"}
                 </button>
-                <button className="adm-danger" onClick={() => remove(l)}>
-                  حذف
+                <button className="adm-danger" onClick={() => remove(l)} disabled={busy}>
+                  <IconTrash /> حذف
                 </button>
               </div>
             </div>
