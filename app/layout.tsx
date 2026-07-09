@@ -60,6 +60,8 @@ export default function RootLayout({
           type="application/ld+json"
           dangerouslySetInnerHTML={{ __html: JSON.stringify(personJsonLd) }}
         />
+        {/* eslint-disable-next-line @next/next/no-sync-scripts */}
+        <script defer src="/track.js" />
       </body>
     </html>
   );
