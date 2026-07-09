@@ -121,10 +121,18 @@ export default function AnalyticsSection() {
         <Panel title="الأحداث والنقرات">
           {data?.events?.length ? (
             <table className="adm-an-table">
+              <thead>
+                <tr>
+                  <th>الحدث</th>
+                  <th>النوع</th>
+                  <th className="adm-an-num">العدد</th>
+                </tr>
+              </thead>
               <tbody>
                 {data.events.map((e) => (
                   <tr key={e.k}>
-                    <td>{e.k}</td>
+                    <td dir="ltr">{e.k}</td>
+                    <td><span className="adm-badge draft">نقرة</span></td>
                     <td className="adm-an-num">{num(e.n).toLocaleString("en-US")}</td>
                   </tr>
                 ))}
