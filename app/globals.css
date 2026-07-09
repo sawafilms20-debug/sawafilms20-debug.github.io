@@ -729,6 +729,8 @@ section.chapter{padding:clamp(70px,10vw,120px) 0 0}
 }
 
 /* ===== admin polish pass ===== */
+/* defensive: the public site's global `nav{position:fixed}` must never leak into the dashboard */
+.adm-app nav,.adm-shell nav{position:static;inset:auto;z-index:auto;background:none;backdrop-filter:none;-webkit-backdrop-filter:none;border:none}
 .adm-sr{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0}
 .adm-nav-icon{display:inline-flex}
 .adm-nav-icon svg,.adm-side-link svg,.adm-stat-icon svg,.adm-head-cta svg,.adm-row-actions svg,.adm-icon-btn svg{display:block}
