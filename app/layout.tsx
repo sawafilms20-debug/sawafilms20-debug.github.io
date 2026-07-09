@@ -62,6 +62,8 @@ export default function RootLayout({
         />
         {/* eslint-disable-next-line @next/next/no-sync-scripts */}
         <script defer src="/track.js" />
+        {/* eslint-disable-next-line @next/next/no-sync-scripts */}
+        <script defer src="/contact.js" />
       </body>
     </html>
   );
