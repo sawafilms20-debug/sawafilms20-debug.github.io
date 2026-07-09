@@ -11,6 +11,7 @@ export type BlogMeta = {
   lang: "ar" | "en";
   excerpt: string;
   tags: string[];
+  cover?: string;
 };
 
 export function formatDate(iso: string, lang: "ar" | "en"): string {
@@ -65,6 +66,7 @@ export function parsePostFile(raw: string): { meta: Omit<BlogMeta, "slug">; body
       lang: get("lang") === "en" ? "en" : "ar",
       excerpt: get("excerpt"),
       tags,
+      cover: get("cover"),
     },
     body,
   };

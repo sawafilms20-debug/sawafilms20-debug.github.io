@@ -13,6 +13,7 @@ type Loaded = {
   tags: string[];
   html: string;
   words: number;
+  cover?: string;
 };
 
 export default function PostView() {
@@ -35,6 +36,7 @@ export default function PostView() {
           tags: meta.tags,
           html: marked.parse(body) as string,
           words: body.split(/\s+/).length,
+          cover: meta.cover,
         });
         document.title = `${meta.title} — رحيق كنجو`;
       })
@@ -78,6 +80,10 @@ export default function PostView() {
           ))}
         </div>
       </header>
+      {post.cover && (
+        // eslint-disable-next-line @next/next/no-img-element
+        <img className="article-cover" src={post.cover} alt={post.title} />
+      )}
       <div
         className="prose"
         dir={post.lang === "en" ? "ltr" : undefined}

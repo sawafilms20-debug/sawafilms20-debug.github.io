@@ -1,6 +1,6 @@
 "use client";
 
-import { GH_BRANCH, BLOG_DIR } from "./config";
+import { GH_OWNER, GH_REPO, GH_BRANCH, BLOG_DIR } from "./config";
 
 /* ---------- shared types ---------- */
 
@@ -15,6 +15,7 @@ export type PostFile = {
   tags: string[];
   body: string;
   status: "published" | "draft";
+  cover: string;
 };
 
 export type Draft = {
@@ -26,6 +27,7 @@ export type Draft = {
   tags: string;
   body: string;
   status: "published" | "draft";
+  cover: string;
   sha?: string;
 };
 
@@ -97,6 +99,7 @@ export function parsePost(name: string, sha: string, raw: string): PostFile {
     tags,
     body,
     status,
+    cover: get("cover"),
   };
 }
 
@@ -110,12 +113,13 @@ export function buildMarkdown(d: Draft): string {
     .filter(Boolean)
     .map((t) => `"${t.replace(/"/g, "'")}"`)
     .join(", ");
+  const coverLine = d.cover?.trim() ? `\ncover: "${oneLine(d.cover)}"` : "";
   return `---
 title: "${oneLine(d.title)}"
 date: "${d.date}"
 lang: "${d.lang}"
 status: "${d.status}"
-excerpt: "${oneLine(d.excerpt)}"
+excerpt: "${oneLine(d.excerpt)}"${coverLine}
 tags: [${tags}]
 ---
 
@@ -166,7 +170,28 @@ export const emptyDraft = (): Draft => ({
   tags: "",
   body: "",
   status: "published",
+  cover: "",
 });
+
+/* raw.githubusercontent URL for a repo path (public repo → instantly live) */
+export const rawUrl = (path: string) =>
+  `https://raw.githubusercontent.com/${GH_OWNER}/${GH_REPO}/${GH_BRANCH}/${path}`;
+
+/* upload an image file into the repo, return its public raw URL */
+export async function uploadImage(file: File): Promise<string> {
+  const buf = new Uint8Array(await file.arrayBuffer());
+  let bin = "";
+  for (let i = 0; i < buf.length; i++) bin += String.fromCharCode(buf[i]);
+  const b64 = btoa(bin);
+  const ext = (file.name.split(".").pop() || "png").toLowerCase().replace(/[^a-z0-9]/g, "").slice(0, 5) || "png";
+  const name = `img-${Date.now()}-${Math.random().toString(36).slice(2, 6)}.${ext}`;
+  const path = `${BLOG_DIR}/images/${name}`;
+  await gh(`contents/${path}`, {
+    method: "PUT",
+    body: JSON.stringify({ message: `Upload image ${name}`, content: b64, branch: GH_BRANCH }),
+  });
+  return rawUrl(path);
+}
 
 /* ---------- authenticated GitHub client (server proxy) ---------- */
 
@@ -249,6 +274,7 @@ export async function writeManifest(list: PostFile[]) {
       lang: p.lang,
       excerpt: p.excerpt,
       tags: p.tags,
+      ...(p.cover ? { cover: p.cover } : {}),
     }));
   let sha: string | undefined;
   try {

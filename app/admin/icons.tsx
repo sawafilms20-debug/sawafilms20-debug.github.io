@@ -53,6 +53,9 @@ export const IconReply = (p: SVGProps<SVGSVGElement>) => (
 export const IconTrash = (p: SVGProps<SVGSVGElement>) => (
   <svg {...S(p)}><path d="M3 6h18M8 6V4a1 1 0 0 1 1-1h6a1 1 0 0 1 1 1v2M6 6l1 14a2 2 0 0 0 2 2h6a2 2 0 0 0 2-2l1-14" /></svg>
 );
+export const IconImage = (p: SVGProps<SVGSVGElement>) => (
+  <svg {...S(p)}><rect x="3" y="3" width="18" height="18" rx="2" /><circle cx="8.5" cy="8.5" r="1.5" /><path d="m21 15-5-5L5 21" /></svg>
+);
 export const IconEye = (p: SVGProps<SVGSVGElement>) => (
   <svg {...S(p)}><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7-10-7-10-7Z" /><circle cx="12" cy="12" r="3" /></svg>
 );
