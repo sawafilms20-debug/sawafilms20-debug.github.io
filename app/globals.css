@@ -837,3 +837,12 @@ button.adm-row-link{width:100%;text-align:start;font-family:inherit;background:v
 @media(max-width:900px){
   .adm-an-row2,.adm-an-row3{grid-template-columns:1fr}
 }
+
+/* password reveal toggle on the login field */
+.adm-pw-wrap{position:relative;margin:6px 0 16px}
+.adm-pw-wrap input{margin:0!important;padding-inline-end:46px}
+.adm-pw-toggle{position:absolute;inset-inline-end:8px;top:50%;transform:translateY(-50%);
+  display:inline-flex;align-items:center;justify-content:center;width:34px;height:34px;
+  border:none;background:none;color:var(--muted);cursor:pointer;border-radius:8px;transition:color .2s,background .2s}
+.adm-pw-toggle:hover{color:var(--gold-deep);background:var(--sand)}
+.adm-pw-toggle svg{width:18px;height:18px;display:block}

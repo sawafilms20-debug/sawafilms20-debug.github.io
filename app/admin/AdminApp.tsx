@@ -22,6 +22,8 @@ import {
   IconView,
   IconExport,
   IconLogout,
+  IconEye,
+  IconEyeOff,
 } from "./icons";
 import DashboardHome from "./sections/DashboardHome";
 import AnalyticsSection from "./sections/AnalyticsSection";
@@ -50,6 +52,7 @@ const TITLES: Record<Section, { h: string; sub: string }> = {
 export default function AdminApp() {
   const [authed, setAuthed] = useState<boolean | null>(null);
   const [pwInput, setPwInput] = useState("");
+  const [showPw, setShowPw] = useState(false);
   const [loggingIn, setLoggingIn] = useState(false);
   const [section, setSection] = useState<Section>("dashboard");
   const [msg, setMsg] = useState("");
@@ -199,15 +202,26 @@ export default function AdminApp() {
           <span className="slug">لوحة التحكم</span>
           <h1>مرحبًا رحيق 👋</h1>
           <label htmlFor="adm-pw">أدخلي كلمة المرور للدخول إلى لوحة التحكم:</label>
-          <input
-            id="adm-pw"
-            type="password"
-            dir="ltr"
-            autoComplete="current-password"
-            placeholder="كلمة المرور…"
-            value={pwInput}
-            onChange={(e) => setPwInput(e.target.value)}
-          />
+          <div className="adm-pw-wrap">
+            <input
+              id="adm-pw"
+              type={showPw ? "text" : "password"}
+              dir="ltr"
+              autoComplete="current-password"
+              placeholder="كلمة المرور…"
+              value={pwInput}
+              onChange={(e) => setPwInput(e.target.value)}
+            />
+            <button
+              type="button"
+              className="adm-pw-toggle"
+              onClick={() => setShowPw((v) => !v)}
+              aria-label={showPw ? "إخفاء كلمة المرور" : "إظهار كلمة المرور"}
+              aria-pressed={showPw}
+            >
+              {showPw ? <IconEyeOff /> : <IconEye />}
+            </button>
+          </div>
           <button className="btn btn-gold" type="submit" disabled={!pwInput.trim() || loggingIn}>
             {loggingIn ? "جارٍ الدخول…" : "دخول"}
           </button>
