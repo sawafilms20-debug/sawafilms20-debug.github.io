@@ -75,6 +75,29 @@ export default function BlogSection({
     if (newNonce > 0) openNew();
   }, [newNonce, openNew]);
 
+  /* regenerate the public blog pages (real URLs, per-post SEO, sitemap, RSS) */
+  const regenerate = useCallback(async () => {
+    const res = await fetch("/api/publish", { method: "POST", credentials: "include" });
+    if (!res.ok) {
+      const b = await res.json().catch(() => ({}));
+      throw new Error(b.error || "تعذّر توليد الصفحات");
+    }
+    return res.json();
+  }, []);
+
+  const regenerateManually = async () => {
+    setBusy(true);
+    onErr("");
+    try {
+      const r = await regenerate();
+      onMsg(`تم توليد ${r.posts} صفحة + خريطة الموقع و RSS ✓`);
+    } catch (e: unknown) {
+      onErr(`${e instanceof Error ? e.message : e}`);
+    } finally {
+      setBusy(false);
+    }
+  };
+
   const openEdit = (p: PostFile) => {
     setDraft({
       slug: p.slug,
@@ -117,7 +140,16 @@ export default function BlogSection({
       setPosts(fresh);
       await writeManifest(fresh);
       onChange();
-      onMsg(draft.status === "draft" ? "تم الحفظ كمسودة ✓" : "تم النشر ✓ — سيظهر خلال دقيقة.");
+      try {
+        await regenerate();
+        onMsg(
+          draft.status === "draft"
+            ? "تم الحفظ كمسودة ✓"
+            : "تم النشر ✓ — صفحة المقال وخريطة الموقع جاهزة (تظهر خلال دقيقة)."
+        );
+      } catch {
+        onMsg("تم الحفظ ✓ — لكن تعذّر توليد صفحات الموقع، جرّبي «إعادة توليد الصفحات».");
+      }
       setView("list");
     } catch (e: unknown) {
       onErr(`تعذّر الحفظ — ${e instanceof Error ? e.message : e}`);
@@ -140,6 +172,11 @@ export default function BlogSection({
       setPosts(fresh);
       await writeManifest(fresh);
       onChange();
+      try {
+        await regenerate();
+      } catch {
+        /* post deleted; page cleanup can be retried manually */
+      }
       onMsg("تم الحذف ✓");
     } catch (e: unknown) {
       onErr(`تعذّر الحذف — ${e instanceof Error ? e.message : e}`);
@@ -409,6 +446,9 @@ export default function BlogSection({
             </button>
           ))}
         </div>
+        <button className="adm-link" onClick={regenerateManually} disabled={busy}>
+          إعادة توليد الصفحات
+        </button>
         <button className="adm-icon-btn" onClick={refresh} disabled={busy} aria-label="تحديث">
           <IconRefresh />
         </button>
