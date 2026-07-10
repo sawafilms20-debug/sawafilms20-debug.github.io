@@ -67,6 +67,7 @@ function shell(o: {
 <meta charset="utf-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1"/>
 <link rel="stylesheet" href="${o.shell.cssHref}"/>
+<link rel="stylesheet" href="/site-extra.css"/>
 <link rel="icon" href="/icon.svg" type="image/svg+xml" sizes="any"/>
 <link rel="alternate" type="application/rss+xml" title="${BRAND}" href="/rss.xml"/>
 ${o.head}
