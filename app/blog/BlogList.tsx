@@ -15,7 +15,7 @@ export default function BlogList() {
   }, []);
 
   if (failed)
-    return <p className="page-lead">تعذّر تحميل المقالات — حاول تحديث الصفحة.</p>;
+    return <p className="page-lead">تعذّر تحميل المقالات، حاول تحديث الصفحة.</p>;
   if (posts === null) return <p className="page-lead">جارٍ تحميل المقالات…</p>;
   if (posts.length === 0) return <p className="page-lead">لا توجد مقالات بعد. عودوا قريبًا.</p>;
 
@@ -38,7 +38,7 @@ export default function BlogList() {
           <p>{post.excerpt}</p>
           <div className="post-foot">
             <span className="read-more">
-              {post.lang === "en" ? "Read article →" : "اقرأ المقال ←"}
+              {post.lang === "en" ? "Read article" : "اقرأ المقال"}
             </span>
             <span className="post-tags">
               {post.tags.map((t) => (

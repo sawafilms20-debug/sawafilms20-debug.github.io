@@ -38,7 +38,7 @@ export default function PostView() {
           words: body.split(/\s+/).length,
           cover: meta.cover,
         });
-        document.title = `${meta.title} — رحيق كنجو`;
+        document.title = `${meta.title} | رحيق كنجو`;
       })
       .catch(() => setFailed(true));
   }, [slug]);
@@ -47,7 +47,7 @@ export default function PostView() {
     return (
       <div className="article">
         <Link href="/blog" className="back-link">
-          → المدونة
+          العودة إلى المدونة
         </Link>
         <p className="page-lead">لم نعثر على هذا المقال.</p>
       </div>
@@ -64,7 +64,7 @@ export default function PostView() {
     <article className="article">
       <header className="article-head" dir={post.lang === "en" ? "ltr" : undefined}>
         <Link href="/blog" className="back-link">
-          {post.lang === "en" ? "← Blog" : "→ المدونة"}
+          {post.lang === "en" ? "Back to blog" : "العودة إلى المدونة"}
         </Link>
         <h1>{post.title}</h1>
         <div className="post-meta">
@@ -91,14 +91,11 @@ export default function PostView() {
         dangerouslySetInnerHTML={{ __html: post.html }}
       />
       <aside className="article-cta">
-        <h3>خبرتك تستحق محتوى بهذا المستوى؟</h3>
-        <p>استشارة مجانية لمدة 30 دقيقة نناقش فيها هدفك وجمهورك، وتخرج منها بخطوة واضحة.</p>
-        <a
-          className="btn btn-gold"
-          href="mailto:raheeqkanjo@gmail.com?subject=%D8%B7%D9%84%D8%A8%20%D8%A7%D8%B3%D8%AA%D8%B4%D8%A7%D8%B1%D8%A9%20%D9%85%D8%AC%D8%A7%D9%86%D9%8A%D8%A9"
-        >
-          احجز استشارتك المجانية
-        </a>
+        <h3>لديك فكرة تستحق أن تتحول إلى محتوى؟</h3>
+        <p>احكِ لي عن خبرتك، المشروع والجمهور الذي تريد الوصول إليه</p>
+        <Link className="btn btn-gold" href="/contact">
+          تواصل معي
+        </Link>
       </aside>
     </article>
   );

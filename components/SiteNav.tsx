@@ -8,13 +8,13 @@ export default function SiteNav({ solid = false }: { solid?: boolean }) {
           <img src="/logo-raheeq.webp" alt="رحيق" width={717} height={379} />
         </Link>
         <div className="nav-links">
-          <a href="/#why">النتائج</a>
-          <a href="/#services">كيف نعمل معًا</a>
-          <a href="/#method">منهجيتي</a>
-          <Link href="/blog">المدونة</Link>
-          <a className="nav-cta" href="/#contact">
-            احجز استشارة مجانية
-          </a>
+          <Link href="/linkedin">LinkedIn</Link>
+          <Link href="/articles">المقالات</Link>
+          <Link href="/scripts">سكريبتات الفيديو</Link>
+          <Link href="/about">عني</Link>
+          <Link className="nav-cta" href="/contact">
+            تواصل معي
+          </Link>
         </div>
       </div>
     </nav>

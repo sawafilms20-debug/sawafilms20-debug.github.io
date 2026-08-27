@@ -2,16 +2,17 @@
   "version": "0.0.1",
   "configurations": [
     {
-      "name": "next",
+      "name": "dev",
       "runtimeExecutable": "npm",
       "runtimeArgs": ["run", "dev"],
-      "port": 3000
+      "port": 3000,
+      "autoPort": true
     },
     {
-      "name": "site",
-      "runtimeExecutable": "python3",
-      "runtimeArgs": ["-m", "http.server", "4173"],
-      "port": 4173
+      "name": "docs-static",
+      "runtimeExecutable": "node",
+      "runtimeArgs": ["/private/tmp/claude-501/-Users-homamkashlan-Downloads-raheeq-kanjo-website/3d65f2c1-204c-4bea-af70-684b1bca1665/scratchpad/serve-docs.js"],
+      "port": 4580
     }
   ]
 }

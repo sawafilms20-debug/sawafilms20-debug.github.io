@@ -4,7 +4,7 @@ import SiteFooter from "@/components/SiteFooter";
 import BlogList from "./BlogList";
 
 export const metadata: Metadata = {
-  title: "المدونة — رحيق كنجو",
+  title: "المدونة | رحيق كنجو",
   description:
     "مقالات في صنعة المحتوى: الكتابة التسويقية، السرد القصصي، الغوست رايتنغ، واستراتيجيات المحتوى للخبراء والشركات العربية.",
 };

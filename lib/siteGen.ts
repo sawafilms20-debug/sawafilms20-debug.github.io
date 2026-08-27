@@ -50,9 +50,12 @@ export function readingLabel(words: number, lang: "ar" | "en") {
   return `${m} دقيقة قراءة`;
 }
 
-const NAV = `<nav><div class="nav-in"><a class="mark" href="/"><img src="/logo-raheeq.webp" alt="رحيق" width="717" height="379"/></a><div class="nav-links"><a href="/#why">النتائج</a><a href="/#services">كيف نعمل معًا</a><a href="/blog/">المدونة</a><a class="nav-cta" href="/#contact">تواصل معي</a></div></div></nav>`;
+const NAV = `<nav><div class="nav-in"><a class="mark" href="/"><img src="/logo-raheeq.webp" alt="رحيق" width="717" height="379"/></a><div class="nav-links"><a href="/linkedin/">LinkedIn</a><a href="/articles/">المقالات</a><a href="/scripts/">سكريبتات الفيديو</a><a href="/about/">عني</a><a class="nav-cta" href="/contact/">تواصل معي</a></div></div></nav>`;
 
-const FOOT = `<footer class="foot"><div class="wrap">${BRAND} © ${new Date().getFullYear()} · كُتب هذا الموقع <b>بحبرٍ ذهبي</b> وشغفٍ بالحكاية.<div class="foot-links"><a href="https://www.linkedin.com/in/raheekkanjo/" target="_blank" rel="noopener">لينكدإن</a><a href="mailto:raheeqkanjo@gmail.com">raheeqkanjo@gmail.com</a></div></div></footer>`;
+const LINKEDIN_SVG = `<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433c-1.144 0-2.063-.926-2.063-2.065 0-1.138.92-2.063 2.063-2.063 1.14 0 2.064.925 2.064 2.063 0 1.139-.925 2.065-2.064 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.225 0z"/></svg>`;
+const MAIL_SVG = `<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="20" height="16" x="2" y="4" rx="2"/><path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"/></svg>`;
+
+const FOOT = `<footer class="foot foot2"><div class="wrap"><div class="foot-brand"><b class="foot-name">${BRAND}</b><span class="foot-tag">كاتبة واستراتيجية محتوى للخبراء</span></div><nav class="foot-nav" aria-label="روابط الموقع"><a href="/linkedin/">LinkedIn</a><a href="/articles/">المقالات</a><a href="/scripts/">سكريبتات الفيديو</a><a href="/about/">عني</a><a href="/contact/">تواصل معي</a><a href="/blog/">المدونة</a></nav><div class="foot-social"><a href="https://www.linkedin.com/in/raheekkanjo/" target="_blank" rel="noopener" aria-label="حساب رحيق على LinkedIn">${LINKEDIN_SVG}</a><a href="mailto:raheeqkanjo@gmail.com" aria-label="راسلني عبر البريد الإلكتروني">${MAIL_SVG}</a></div><p class="foot-line">أحوّل خبرتك إلى محتوى يحمل صوتك ويصنع حضورك.</p><p class="foot-copy">© ${new Date().getFullYear()} ${BRAND}</p></div></footer>`;
 
 function shell(o: {
   lang: "ar" | "en";
@@ -104,7 +107,7 @@ export function renderPostPage(p: Post, sh: Shell) {
     keywords: p.tags.join(", "),
   };
 
-  const head = `<title>${esc(p.title)} — ${BRAND}</title>
+  const head = `<title>${esc(p.title)} | ${BRAND}</title>
 <meta name="description" content="${esc(desc)}"/>
 <link rel="canonical" href="${url}"/>
 <meta property="og:type" content="article"/>
@@ -123,7 +126,7 @@ export function renderPostPage(p: Post, sh: Shell) {
   const body = `<main class="wrap">
 <article class="article">
   <header class="article-head" dir="${dir}">
-    <a href="/blog/" class="back-link">${p.lang === "en" ? "← Blog" : "→ المدونة"}</a>
+    <a href="/blog/" class="back-link">${p.lang === "en" ? "Back to blog" : "العودة إلى المدونة"}</a>
     <h1>${esc(p.title)}</h1>
     <div class="post-meta">
       <span class="lang-chip ${p.lang}">${p.lang === "en" ? "English" : "عربي"}</span>
@@ -135,9 +138,9 @@ export function renderPostPage(p: Post, sh: Shell) {
   ${p.cover ? `<img class="article-cover" src="${esc(p.cover)}" alt="${esc(p.title)}"/>` : ""}
   <div class="prose" dir="${dir}" lang="${p.lang}">${html}</div>
   <aside class="article-cta">
-    <h3>خبرتك تستحق محتوى بهذا المستوى؟</h3>
-    <p>استشارة مجانية لمدة 30 دقيقة نناقش فيها هدفك وجمهورك، وتخرج منها بخطوة واضحة.</p>
-    <a class="btn btn-gold" href="/#contact">احجز استشارتك المجانية</a>
+    <h3>لديك فكرة تستحق أن تتحول إلى محتوى؟</h3>
+    <p>احكِ لي عن خبرتك، المشروع والجمهور الذي تريد الوصول إليه</p>
+    <a class="btn btn-gold" href="/contact/">تواصل معي</a>
   </aside>
 </article>
 </main>`;
@@ -146,11 +149,11 @@ export function renderPostPage(p: Post, sh: Shell) {
 }
 
 export function renderBlogIndex(posts: Post[], sh: Shell) {
-  const head = `<title>المدونة — ${BRAND}</title>
-<meta name="description" content="مقالات عن الكتابة، السرد، واستراتيجية المحتوى — بقلم ${BRAND}."/>
+  const head = `<title>المدونة | ${BRAND}</title>
+<meta name="description" content="مقالات عن الكتابة، السرد، واستراتيجية المحتوى بقلم ${BRAND}."/>
 <link rel="canonical" href="${SITE}/blog/"/>
 <meta property="og:type" content="website"/>
-<meta property="og:title" content="المدونة — ${BRAND}"/>
+<meta property="og:title" content="المدونة | ${BRAND}"/>
 <meta property="og:description" content="مقالات عن الكتابة، السرد، واستراتيجية المحتوى."/>
 <meta property="og:url" content="${SITE}/blog/"/>
 <meta property="og:image" content="${SITE}/og-image.jpg"/>`;
@@ -167,7 +170,7 @@ export function renderBlogIndex(posts: Post[], sh: Shell) {
   <h2>${esc(p.title)}</h2>
   <p>${esc(p.excerpt)}</p>
   <div class="post-foot">
-    <span class="read-more">${p.lang === "en" ? "Read article →" : "اقرأ المقال ←"}</span>
+    <span class="read-more">${p.lang === "en" ? "Read article" : "اقرأ المقال"}</span>
     <span class="post-tags">${p.tags.map((t) => `<i>${esc(t)}</i>`).join("")}</span>
   </div>
 </a>`
@@ -189,6 +192,11 @@ ${posts.length ? cards : "<p class='page-lead'>لا توجد مقالات بعد
 export function renderSitemap(posts: Post[]) {
   const urls = [
     { loc: `${SITE}/`, pri: "1.0" },
+    { loc: `${SITE}/linkedin/`, pri: "0.9" },
+    { loc: `${SITE}/articles/`, pri: "0.9" },
+    { loc: `${SITE}/scripts/`, pri: "0.9" },
+    { loc: `${SITE}/about/`, pri: "0.8" },
+    { loc: `${SITE}/contact/`, pri: "0.8" },
     { loc: `${SITE}/blog/`, pri: "0.8" },
     ...posts.map((p) => ({ loc: `${SITE}/blog/${p.slug}/`, pri: "0.7", lastmod: p.date })),
   ];
@@ -219,7 +227,7 @@ export function renderRss(posts: Post[]) {
     .join("\n");
   return `<?xml version="1.0" encoding="UTF-8"?>
 <rss version="2.0"><channel>
-  <title>${BRAND} — المدونة</title>
+  <title>${BRAND} | المدونة</title>
   <link>${SITE}/blog/</link>
   <description>مقالات عن الكتابة، السرد، واستراتيجية المحتوى.</description>
   <language>ar</language>

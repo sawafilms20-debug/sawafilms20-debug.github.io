@@ -16,22 +16,22 @@ const tajawal = Tajawal({
 
 export const metadata: Metadata = {
   metadataBase: new URL("https://raheeqkanjo.com"),
-  title: "رحيق كنجو — شريكة المحتوى للخبراء والشركات",
+  title: "رحيق كنجو | كاتبة محتوى تسويقي للخبراء العرب",
   description:
-    "رحيق كنجو — كاتبة سيناريو وغوست رايتر وخبيرة استراتيجيات المحتوى. أحوّل خبرتك إلى حضور يبني الثقة ويجذب العملاء: نظام محتوى متكامل بصوتك أنت.",
+    "رحيق كنجو كاتبة محتوى تسويقي أعمل مع الخبراء العرب على تحويل معرفتهم وتجاربهم وآرائهم إلى محتوى يحمل صوتهم: على LinkedIn، في مدونات المواقع، وفي سكريبتات الفيديو.",
   openGraph: {
     type: "website",
     locale: "ar_AR",
-    title: "رحيق كنجو — شريكة المحتوى للخبراء والشركات",
+    title: "رحيق كنجو | كاتبة محتوى تسويقي للخبراء العرب",
     description:
-      "نظام محتوى متكامل بصوتك أنت: سيناريو، غوست رايتنغ، واستراتيجية محتوى. أكثر من مليوني مشاهدة و12+ علامة تنمو أسبوعيًا.",
+      "أعمل مع الخبراء العرب على تحويل معرفتهم وتجاربهم وآرائهم إلى محتوى يحمل صوتهم: على LinkedIn، في مدونات المواقع، وفي سكريبتات الفيديو.",
     images: ["/og-image.jpg"],
   },
   twitter: {
     card: "summary_large_image",
-    title: "رحيق كنجو — شريكة المحتوى للخبراء والشركات",
+    title: "رحيق كنجو | كاتبة محتوى تسويقي للخبراء العرب",
     description:
-      "نظام محتوى متكامل بصوتك أنت: سيناريو، غوست رايتنغ، واستراتيجية محتوى.",
+      "أحوّل معرفة الخبراء العرب وتجاربهم إلى محتوى يحمل صوتهم: LinkedIn، مقالات، وسكريبتات فيديو.",
     images: ["/og-image.jpg"],
   },
 };
@@ -41,12 +41,12 @@ const personJsonLd = {
   "@type": "Person",
   name: "Raheek Kanjo",
   alternateName: "رحيق كنجو",
-  jobTitle: "Senior Content Writer, Ghostwriter & Scriptwriter",
+  jobTitle: "Marketing Content Writer & Content Strategist",
   email: "mailto:raheeqkanjo@gmail.com",
   sameAs: ["https://www.linkedin.com/in/raheekkanjo/"],
   knowsLanguage: ["ar", "en"],
   description:
-    "كاتبة سيناريو وغوست رايتر وخبيرة استراتيجيات المحتوى للخبراء والشركات العربية",
+    "كاتبة واستراتيجية محتوى للخبراء العرب: محتوى LinkedIn، مقالات المواقع، وسكريبتات الفيديو",
 };
 
 export default function RootLayout({
@@ -62,10 +62,6 @@ export default function RootLayout({
         />
         {/* eslint-disable-next-line @next/next/no-sync-scripts */}
         <script defer src="/track.js" />
-        {/* eslint-disable-next-line @next/next/no-sync-scripts */}
-        <script defer src="/contact.js" />
-        {/* eslint-disable-next-line @next/next/no-sync-scripts */}
-        <script defer src="/projects.js" />
       </body>
     </html>
   );

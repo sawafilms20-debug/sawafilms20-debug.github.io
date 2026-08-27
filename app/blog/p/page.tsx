@@ -5,7 +5,7 @@ import SiteFooter from "@/components/SiteFooter";
 import PostView from "./PostView";
 
 export const metadata: Metadata = {
-  title: "مقال — رحيق كنجو",
+  title: "مقال | رحيق كنجو",
 };
 
 export default function PostPage() {
