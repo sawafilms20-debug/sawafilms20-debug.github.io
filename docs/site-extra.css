@@ -20,16 +20,16 @@ textarea.cf-in{resize:vertical;line-height:1.8}
   border-radius:20px;border:1px solid var(--line);margin:24px 0 4px}
 
 /* ===== projects / portfolio ===== */
-.projects{padding:clamp(60px,8vw,90px) 0}
+.projects{padding-block:clamp(60px,8vw,90px)}
 .projects h2{font-family:var(--font-messiri),serif;font-weight:700;color:var(--espresso);
   font-size:clamp(30px,4.4vw,46px);line-height:1.25;margin:10px 0 6px}
 .projects .lead{color:var(--ink);font-size:17px;max-width:60ch}
 .projects-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(290px,1fr));gap:20px;margin-top:30px}
-.project-card{background:var(--paper);border:1px solid var(--line);border-radius:20px;padding:26px;
+.project-card{background:var(--paper);border:1px solid var(--line);border-radius:12px;padding:26px;
   display:grid;gap:10px;align-content:start;text-decoration:none;
   transition:transform .35s var(--ease),box-shadow .35s,border-color .35s}
-.project-card:hover{transform:translateY(-3px);border-color:var(--gold-soft);
-  box-shadow:0 20px 44px -24px rgba(120,90,20,.45)}
+.project-card:hover{transform:translateY(-2px);border-color:var(--gold-soft);
+  box-shadow:0 6px 18px -8px rgba(70,55,30,.12)}
 .project-card.featured{border-color:var(--gold-soft);background:
   linear-gradient(180deg,rgba(231,211,160,.16),transparent 60%),var(--paper)}
 .project-card h3{font-family:var(--font-messiri),serif;font-weight:700;font-size:21px;color:var(--espresso);margin:0}
