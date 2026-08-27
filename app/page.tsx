@@ -150,8 +150,8 @@ export default function Home() {
                 alt=""
                 aria-hidden="true"
                 loading="lazy"
-                width={900}
-                height={900}
+                width={554}
+                height={580}
               />
               <h3>LinkedIn</h3>
               <p>
