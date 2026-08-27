@@ -146,12 +146,12 @@ export default function Home() {
             <Link className="offer" href="/linkedin" aria-label="خدمات LinkedIn">
               <img
                 className="offer-art"
-                src="/art-pen.webp"
+                src="/art-linkedin.png"
                 alt=""
                 aria-hidden="true"
                 loading="lazy"
-                width={560}
-                height={464}
+                width={900}
+                height={900}
               />
               <h3>LinkedIn</h3>
               <p>
