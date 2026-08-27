@@ -4,9 +4,8 @@ import { useEffect } from "react";
 
 const TYPED_ROLES = [
   "كاتبة محتوى تسويقي",
-  "كاتبة واستراتيجية محتوى",
-  "كاتبة محتوى LinkedIn",
-  "كاتبة مقالات وسكريبتات فيديو",
+  "Ghost writer",
+  "Script writer",
 ];
 
 export default function FX() {

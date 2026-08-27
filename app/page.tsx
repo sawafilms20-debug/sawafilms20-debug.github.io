@@ -29,7 +29,7 @@ export default function Home() {
             <span className="line">لأن الناس لا ترى سنوات خبرتك الطويلة</span>
             <span className="line">ترى ما اخترت أن تشاركه منها</span>
           </h1>
-          <p className="hero-choice rv d2">لذلك أنا موجودة هنا من أجل هذا الاختيار</p>
+          <p className="hero-choice rv d2">لذلك أنا موجودة هنا من أجل هذا <b className="choice-word">الاختيار</b></p>
           <div className="hero-grid">
             <div className="hero-text">
               <div className="type-row rv d3">
