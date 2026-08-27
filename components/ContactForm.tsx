@@ -93,7 +93,7 @@ export default function ContactForm() {
         tabIndex={-1}
         autoComplete="off"
         aria-hidden="true"
-        style={{ position: "absolute", left: -9999, width: 1, height: 1 }}
+        className="cf-hp"
       />
       <button className="btn btn-gold cf-send" type="submit" disabled={status === "sending"}>
         {status === "sending" ? "جارٍ الإرسال…" : status === "ok" ? "تم الإرسال ✓" : "تواصل معي"}

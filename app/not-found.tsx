@@ -1,6 +1,12 @@
+import type { Metadata } from "next";
 import Link from "next/link";
 import SiteNav from "@/components/SiteNav";
 import SiteFooter from "@/components/SiteFooter";
+
+export const metadata: Metadata = {
+  title: "الصفحة غير موجودة | رحيق كنجو",
+  robots: { index: false, follow: true },
+};
 
 export default function NotFound() {
   return (
