@@ -900,9 +900,11 @@ textarea.cf-in{resize:vertical;line-height:1.8}
 
 /* hero (multi-line headline) */
 .hero-title{font-family:var(--font-messiri),serif;font-weight:700;color:var(--espresso);
-  font-size:clamp(28px,4.6vw,52px);line-height:1.42;margin:10px 0 4px}
+  font-size:clamp(19px,2.5vw,30px);line-height:1.5;margin:10px 0 4px}
+.hero-title .line{display:block;white-space:nowrap}
+@media(max-width:560px){.hero-title .line{white-space:normal}}
 .hero-choice{font-family:var(--font-messiri),serif;font-weight:600;color:var(--gold-deep);
-  font-size:clamp(19px,2.8vw,27px);line-height:1.55;margin-top:10px}
+  font-size:clamp(17px,2.1vw,22px);line-height:1.55;margin-top:10px}
 .hero-sub{margin-top:20px;font-size:17px;max-width:56ch;color:var(--ink);line-height:1.7}
 .hero-find{margin-top:22px;font-size:15.5px;color:var(--muted);max-width:52ch;line-height:1.7}
 .channels{margin:24px 0 0;display:grid;gap:12px;list-style:none;padding:0}
