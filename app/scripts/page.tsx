@@ -48,7 +48,7 @@ export default function ScriptsPage() {
         </p>
       </header>
 
-      <main>
+      <main id="main">
         <div className="method-band">
           <div className="wrap">
             <div className="ch-head rv">

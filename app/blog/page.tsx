@@ -13,7 +13,7 @@ export default function BlogPage() {
   return (
     <>
       <SiteNav solid />
-      <main className="wrap page-head">
+      <main id="main" className="wrap page-head">
         <div className="ch-head">
           <h1 className="ch-title">
             مقالات في <em>صنعة المحتوى</em>

@@ -75,3 +75,11 @@ textarea.cf-in{resize:vertical;line-height:1.8}
   .nav-links a{display:block;padding:14px 2px;font-size:16px;border-bottom:1px solid var(--line)}
   .nav-links a.nav-cta{margin-top:14px;text-align:center;padding:13px 20px;border-bottom:none!important}
 }
+
+/* a11y: skip link for generated pages */
+.skip-link{position:fixed;top:10px;inset-inline-start:10px;z-index:200;
+  background:var(--espresso);color:#fffdf8;font-weight:700;font-size:14.5px;
+  padding:10px 20px;border-radius:10px;text-decoration:none;
+  transform:translateY(-200%);transition:transform .2s}
+.skip-link:focus-visible{transform:none}
+a,button{touch-action:manipulation}

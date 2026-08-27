@@ -95,7 +95,7 @@ export default function Home() {
         </div>
       </header>
 
-      <main>
+      <main id="main">
         {/* ======== PROBLEM ======== */}
         <section className="chapter wrap">
           <div className="pain">
@@ -143,7 +143,7 @@ export default function Home() {
             </h2>
           </div>
           <div className="offers rv d1">
-            <Link className="offer" href="/linkedin">
+            <Link className="offer" href="/linkedin" aria-label="خدمات LinkedIn">
               <span className="ic-chip svc-ic">
                 <LinkedInIcon />
               </span>
@@ -166,7 +166,7 @@ export default function Home() {
                 <span>خدمات LinkedIn</span>
               </div>
             </Link>
-            <Link className="offer" href="/articles">
+            <Link className="offer" href="/articles" aria-label="كتابة المقالات">
               <span className="ic-chip svc-ic">
                 <FileText />
               </span>
@@ -185,7 +185,7 @@ export default function Home() {
                 <span>كتابة المقالات</span>
               </div>
             </Link>
-            <Link className="offer" href="/scripts">
+            <Link className="offer" href="/scripts" aria-label="كتابة السكريبت">
               <span className="ic-chip svc-ic">
                 <Clapperboard />
               </span>

@@ -59,7 +59,7 @@ export default function ContactPage() {
         </p>
       </header>
 
-      <main className="wrap contact-main">
+      <main id="main" className="wrap contact-main">
         <ContactForm />
         <div className="contact-alt rv">
           <a href="mailto:raheeqkanjo@gmail.com">

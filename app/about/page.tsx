@@ -99,7 +99,7 @@ export default function AboutPage() {
         </div>
       </header>
 
-      <main>
+      <main id="main">
         <div className="method-band">
           <div className="wrap">
             <div className="ch-head rv">

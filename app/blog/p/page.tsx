@@ -12,7 +12,7 @@ export default function PostPage() {
   return (
     <>
       <SiteNav solid />
-      <main className="wrap page-head">
+      <main id="main" className="wrap page-head">
         <Suspense fallback={<p className="page-lead">جارٍ التحميل…</p>}>
           <PostView />
         </Suspense>

@@ -55,6 +55,7 @@ export default function RootLayout({
   return (
     <html lang="ar" dir="rtl" className={`${messiri.variable} ${tajawal.variable}`}>
       <body>
+        <a className="skip-link" href="#main">تخطَّ إلى المحتوى</a>
         {children}
         <script
           type="application/ld+json"

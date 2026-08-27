@@ -76,6 +76,7 @@ function shell(o: {
 ${o.head}
 </head>
 <body>
+<a class="skip-link" href="#main">تخطَّ إلى المحتوى</a>
 ${NAV}
 ${o.body}
 ${FOOT}
@@ -123,7 +124,7 @@ export function renderPostPage(p: Post, sh: Shell) {
 <meta name="twitter:image" content="${esc(image)}"/>
 <script type="application/ld+json">${JSON.stringify(jsonLd)}</script>`;
 
-  const body = `<main class="wrap">
+  const body = `<main id="main" class="wrap">
 <article class="article">
   <header class="article-head" dir="${dir}">
     <a href="/blog/" class="back-link">${p.lang === "en" ? "Back to blog" : "العودة إلى المدونة"}</a>
@@ -177,7 +178,7 @@ export function renderBlogIndex(posts: Post[], sh: Shell) {
     )
     .join("\n");
 
-  const body = `<main class="wrap page">
+  const body = `<main id="main" class="wrap page">
 <h1 class="page-title">مقالات عن الكتابة والسرد</h1>
 <p class="page-lead">أكتب هنا عمّا تعلّمته من سنواتٍ في صناعة المحتوى العربي.</p>
 <div class="blog-grid">

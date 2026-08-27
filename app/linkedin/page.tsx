@@ -54,7 +54,7 @@ export default function LinkedInPage() {
         </p>
       </header>
 
-      <main>
+      <main id="main">
         <section className="chapter wrap">
           <div className="ch-head rv">
             <h2 className="ch-title">

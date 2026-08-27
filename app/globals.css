@@ -1089,3 +1089,11 @@ textarea.cf-in{resize:vertical;line-height:1.8}
 }
 
 .nav-burger{justify-self:end}
+
+/* ===== a11y: skip link + tap latency ===== */
+.skip-link{position:fixed;top:10px;inset-inline-start:10px;z-index:200;
+  background:var(--espresso);color:#fffdf8;font-weight:700;font-size:14.5px;
+  padding:10px 20px;border-radius:10px;text-decoration:none;
+  transform:translateY(-200%);transition:transform .2s}
+.skip-link:focus-visible{transform:none}
+a,button{touch-action:manipulation}
