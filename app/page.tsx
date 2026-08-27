@@ -25,7 +25,7 @@ export default function Home() {
       {/* ======== HERO ======== */}
       <header className="hero">
         <div className="wrap">
-          <div className="hero-grid">
+          <div className="hero-grid hero-grid-wide">
             <div className="hero-text">
               <h1 className="hero-title rv d1">
                 <span className="line">لأن الناس لا ترى سنوات خبرتك الطويلة</span>
@@ -99,7 +99,6 @@ export default function Home() {
         {/* ======== PROBLEM ======== */}
         <section className="chapter wrap">
           <div className="pain">
-            <span className="slug rv">قبل أن نبدأ</span>
             <h2 className="ch-title rv d1">
               لديك الكثير لتقوله .. لكن <em>لا تعرف من أين تبدأ</em>
             </h2>
@@ -139,7 +138,6 @@ export default function Home() {
         {/* ======== SERVICES ======== */}
         <section className="chapter wrap" id="services">
           <div className="ch-head rv">
-            <span className="slug">الخدمات</span>
             <h2 className="ch-title">
               كيف <em>أساعدك</em>؟
             </h2>
@@ -216,7 +214,7 @@ export default function Home() {
         <div className="voice-band">
           <div className="wrap">
             <div className="ch-head rv">
-              <span className="slug">أكتب من صوتك</span>
+              <h2 className="ch-title">أكتب من <em>صوتك</em></h2>
             </div>
             <p className="voice-lines rv d1">
               قد يتحدث كثيرون عن الموضوع نفسه
@@ -236,7 +234,6 @@ export default function Home() {
         {/* ======== TESTIMONIALS ======== */}
         <section className="chapter wrap" id="testimonials">
           <div className="ch-head rv">
-            <span className="slug">التوصيات</span>
             <h2 className="ch-title">
               توصيات ممن <em>عملت معهم</em>
             </h2>
@@ -282,7 +279,6 @@ export default function Home() {
         <div className="method-band" id="process">
           <div className="wrap">
             <div className="ch-head rv">
-              <span className="slug">طريقة العمل</span>
               <h2 className="ch-title">
                 كيف نعمل <em>معًا</em>؟
               </h2>

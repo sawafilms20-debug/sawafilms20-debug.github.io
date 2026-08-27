@@ -39,7 +39,6 @@ export default function LinkedInPage() {
       <SiteNav solid />
 
       <header className="page-head wrap">
-        <span className="slug rv">LinkedIn</span>
         <h1 className="hero-title rv d1">
           خبرتك تظهر في عملك كل يوم
           <br />
@@ -58,10 +57,10 @@ export default function LinkedInPage() {
       <main>
         <section className="chapter wrap">
           <div className="ch-head rv">
-            <span className="slug">نبدأ من سؤال واحد</span>
             <h2 className="ch-title">
-              بماذا تريد أن <em>يعرفك السوق</em>؟
+              نبدأ من <em>سؤال واحد</em>
             </h2>
+            <p className="page-lead strong">بماذا تريد أن يعرفك السوق؟</p>
             <p className="page-lead">من هنا نحدد:</p>
           </div>
           <ul className="icon-list cols2">
@@ -95,7 +94,6 @@ export default function LinkedInPage() {
 
         <section className="chapter wrap">
           <div className="ch-head rv">
-            <span className="slug">بنك الأفكار</span>
             <h2 className="ch-title">
               خبرتك هي <em>بنك الأفكار</em>
             </h2>
@@ -140,7 +138,6 @@ export default function LinkedInPage() {
 
         <section className="chapter wrap">
           <div className="ch-head rv">
-            <span className="slug">الخدمات</span>
             <h2 className="ch-title">
               خدمات <em>LinkedIn</em>
             </h2>

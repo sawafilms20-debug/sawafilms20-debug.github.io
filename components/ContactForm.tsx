@@ -59,24 +59,34 @@ export default function ContactForm() {
   return (
     <form className="contact-form" noValidate onSubmit={onSubmit}>
       <div className="cf-row">
-        <input className="cf-in" name="name" placeholder="الاسم" autoComplete="name" required />
-        <input
+        <label className="cf-field" htmlFor="cf-name">
+          <span>الاسم</span>
+          <input id="cf-name" className="cf-in" name="name" autoComplete="name" required />
+        </label>
+        <label className="cf-field" htmlFor="cf-email">
+          <span>البريد الإلكتروني</span>
+          <input
+            id="cf-email"
+            className="cf-in"
+            name="email"
+            type="email"
+            dir="ltr"
+            autoComplete="email"
+            required
+          />
+        </label>
+      </div>
+      <label className="cf-field" htmlFor="cf-message">
+        <span>رسالتك</span>
+        <textarea
+          id="cf-message"
           className="cf-in"
-          name="email"
-          type="email"
-          dir="ltr"
-          placeholder="البريد الإلكتروني"
-          autoComplete="email"
+          name="message"
+          rows={5}
+          placeholder="احكِ لي عن خبرتك، المشروع والجمهور الذي تريد الوصول إليه"
           required
         />
-      </div>
-      <textarea
-        className="cf-in"
-        name="message"
-        rows={5}
-        placeholder="احكِ لي عن خبرتك، المشروع والجمهور الذي تريد الوصول إليه"
-        required
-      />
+      </label>
       <input
         type="text"
         name="website"

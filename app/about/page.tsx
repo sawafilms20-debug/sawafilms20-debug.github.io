@@ -36,7 +36,6 @@ export default function AboutPage() {
       <header className="page-head wrap">
         <div className="hero-grid">
           <div className="hero-text">
-            <span className="slug rv">عني</span>
             <h1 className="hero-title rv d1">
               أنا رحيق كنجو
               <br />
@@ -104,7 +103,7 @@ export default function AboutPage() {
         <div className="method-band">
           <div className="wrap">
             <div className="ch-head rv">
-              <span className="slug">طريقتي</span>
+              <h2 className="ch-title"><em>طريقتي</em></h2>
             </div>
             <div className="method-lines">
               <p className="rv">أستمع حتى أفهم</p>
@@ -118,7 +117,6 @@ export default function AboutPage() {
 
         <section className="chapter wrap">
           <div className="ch-head rv">
-            <span className="slug">العملاء</span>
             <h2 className="ch-title">
               أعمل <em>مع</em>
             </h2>
@@ -180,7 +178,6 @@ export default function AboutPage() {
 
         <section className="chapter wrap" id="certs">
           <div className="ch-head rv">
-            <span className="slug">الشهادات</span>
             <h2 className="ch-title">
               تعلّم <em>مستمر</em>
             </h2>

@@ -15,7 +15,6 @@ export default function BlogPage() {
       <SiteNav solid />
       <main className="wrap page-head">
         <div className="ch-head">
-          <span className="slug">المدونة</span>
           <h1 className="ch-title">
             مقالات في <em>صنعة المحتوى</em>
           </h1>

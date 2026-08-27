@@ -57,3 +57,21 @@ textarea.cf-in{resize:vertical;line-height:1.8}
 .foot-line{margin-top:22px;font-family:var(--font-messiri),serif;font-weight:600;
   color:var(--gold-deep);font-size:16.5px}
 .foot-copy{margin-top:6px;font-size:13px;color:var(--muted)}
+
+/* ===== mobile burger nav for generated static pages ===== */
+.nav-burger{display:none;width:44px;height:44px;place-items:center;border:1px solid var(--line);
+  border-radius:12px;background:var(--paper);color:var(--espresso);cursor:pointer;transition:color .2s,border-color .2s}
+.nav-burger:hover{color:var(--gold-text);border-color:var(--gold-soft)}
+.nav-burger svg{width:21px;height:21px}
+@media(max-width:860px){
+  .nav-burger{display:grid}
+  .nav-links{
+    position:absolute;top:100%;inset-inline:0;display:none;flex-direction:column;align-items:stretch;gap:0;
+    background:rgba(247,242,233,.97);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);
+    border-bottom:1px solid var(--line);padding:8px clamp(20px,4vw,48px) 18px;
+    box-shadow:0 24px 40px -24px rgba(70,55,30,.35);
+  }
+  nav.nav-open .nav-links{display:flex}
+  .nav-links a{display:block;padding:14px 2px;font-size:16px;border-bottom:1px solid var(--line)}
+  .nav-links a.nav-cta{margin-top:14px;text-align:center;padding:13px 20px;border-bottom:none!important}
+}

@@ -36,7 +36,6 @@ export default function ArticlesPage() {
       <SiteNav solid />
 
       <header className="page-head wrap">
-        <span className="slug rv">مدونات الموقع</span>
         <h1 className="hero-title rv d1">بعض الأفكار تحتاج مساحة أكبر</h1>
         <p className="page-lead rv d2">
           رأي يحتاج حجة
@@ -56,7 +55,6 @@ export default function ArticlesPage() {
         <div className="method-band">
           <div className="wrap">
             <div className="ch-head rv">
-              <span className="slug">طريقة العمل</span>
               <h2 className="ch-title">
                 كيف أبني <em>المقال</em>؟
               </h2>
@@ -108,7 +106,6 @@ export default function ArticlesPage() {
 
         <section className="chapter wrap">
           <div className="ch-head rv">
-            <span className="slug">أنواع المقالات</span>
             <h2 className="ch-title">
               <em>أكتب</em>
             </h2>

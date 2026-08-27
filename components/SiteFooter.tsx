@@ -8,7 +8,7 @@ export default function SiteFooter() {
       <div className="wrap">
         <div className="foot-brand">
           <b className="foot-name">رحيق كنجو</b>
-          <span className="foot-tag">كاتبة واستراتيجية محتوى للخبراء</span>
+          <span className="foot-tag">كاتبة محتوى تسويقي مختصة باستراتيجيات المحتوى للخبراء العرب</span>
         </div>
         <nav className="foot-nav" aria-label="روابط الموقع">
           <Link href="/linkedin">LinkedIn</Link>

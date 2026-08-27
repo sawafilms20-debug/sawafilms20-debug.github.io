@@ -36,7 +36,6 @@ export default function ScriptsPage() {
       <SiteNav solid />
 
       <header className="page-head wrap">
-        <span className="slug rv">سكريبتات الفيديو</span>
         <h1 className="hero-title rv d1">
           لديك المعرفة
           <br />
@@ -53,7 +52,6 @@ export default function ScriptsPage() {
         <div className="method-band">
           <div className="wrap">
             <div className="ch-head rv">
-              <span className="slug">طريقة العمل</span>
               <h2 className="ch-title">
                 كيف أبني <em>السكريبت</em>؟
               </h2>
@@ -105,7 +103,6 @@ export default function ScriptsPage() {
 
         <section className="chapter wrap">
           <div className="ch-head rv">
-            <span className="slug">أنواع السكريبتات</span>
             <h2 className="ch-title">
               أكتب <em>سكريبتات</em>
             </h2>
