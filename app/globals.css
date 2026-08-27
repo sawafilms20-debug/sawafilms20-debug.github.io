@@ -411,8 +411,8 @@ section.chapter{padding-top:clamp(70px,10vw,120px)}
   flex:1;
 }
 .note q::before,.note q::after{color:var(--gold);font-size:1.2em}
-.note footer{margin-top:18px;font-size:13px;color:var(--muted);display:flex;align-items:center;gap:8px}
-.note footer::before{content:"";width:22px;height:2px;background:var(--gold-soft);border-radius:2px}
+.note footer{margin-top:18px;font-size:13px;color:var(--muted);display:flex;align-items:center;gap:12px}
+.note-avatar{width:44px;height:44px;border-radius:50%;object-fit:cover;flex:0 0 auto;border:1px solid var(--line)}
 .notes-cta{text-align:center;margin-top:44px}
 @media(max-width:860px){.notes{grid-template-columns:1fr;max-width:520px;margin-inline:0}}
 

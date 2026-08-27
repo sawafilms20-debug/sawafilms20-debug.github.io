@@ -245,6 +245,14 @@ export default function Home() {
                 وتحافظ على صوته وأسلوبه بدل أن تفرض عليه أسلوبًا جاهزًا.
               </q>
               <footer>
+                <img
+                  className="note-avatar"
+                  src="/avatar-fouad.jpg"
+                  alt=""
+                  width={100}
+                  height={100}
+                  loading="lazy"
+                />
                 <span className="note-who" dir="ltr">
                   <b>Fouad Hasan</b>
                   <small>CFO</small>
@@ -257,6 +265,14 @@ export default function Home() {
                 حلولًا مدروسة تعكس صوت الحساب وشخصيته بصدق.
               </q>
               <footer>
+                <img
+                  className="note-avatar"
+                  src="/avatar-asmaa.jpg"
+                  alt=""
+                  width={100}
+                  height={100}
+                  loading="lazy"
+                />
                 <span className="note-who">
                   <b>أسماء الخالدي</b>
                   <small>مستشارة LinkedIn للخبراء العرب</small>
@@ -269,6 +285,14 @@ export default function Home() {
                 كتابتها للعلامات الشخصية.
               </q>
               <footer>
+                <img
+                  className="note-avatar"
+                  src="/avatar-rami.jpg"
+                  alt=""
+                  width={100}
+                  height={100}
+                  loading="lazy"
+                />
                 <span className="note-who" dir="ltr">
                   <b>Rami Badrah</b>
                   <small>Marketing Content &amp; UX Consultant</small>
@@ -281,6 +305,14 @@ export default function Home() {
                 أندم عليها أبدًا لفريق EXEED.
               </q>
               <footer>
+                <img
+                  className="note-avatar"
+                  src="/avatar-jandali.jpg"
+                  alt=""
+                  width={100}
+                  height={100}
+                  loading="lazy"
+                />
                 <span className="note-who" dir="ltr">
                   <b>Mohamad Jandali</b>
                   <small>CEO @ exeedin.com</small>
@@ -293,6 +325,14 @@ export default function Home() {
                 recommend Raheek to be a cornerstone of any copywriting team.
               </q>
               <footer>
+                <img
+                  className="note-avatar"
+                  src="/avatar-okko.jpg"
+                  alt=""
+                  width={100}
+                  height={100}
+                  loading="lazy"
+                />
                 <span className="note-who">
                   <b>Mohammed Okko</b>
                   <small>CEO &amp; Founder of Digital Genuity</small>
@@ -306,6 +346,14 @@ export default function Home() {
                 عميقة وعملية.
               </q>
               <footer>
+                <img
+                  className="note-avatar"
+                  src="/avatar-ali.jpg"
+                  alt=""
+                  width={100}
+                  height={100}
+                  loading="lazy"
+                />
                 <span className="note-who" dir="ltr">
                   <b>Ali Hasan</b>
                   <small>OT/ICS Security · Mechatronics Engineer</small>
