@@ -143,7 +143,7 @@ export default function Home() {
             </h2>
           </div>
           <div className="offers rv d1">
-            <div className="offer">
+            <Link className="offer" href="/linkedin">
               <span className="ic-chip svc-ic">
                 <LinkedInIcon />
               </span>
@@ -163,10 +163,10 @@ export default function Home() {
                 من التموضع واستخراج الأفكار إلى كتابة المحتوى وتطوير الحساب
               </p>
               <div className="offer-cta">
-                <Link href="/linkedin">خدمات LinkedIn</Link>
+                <span>خدمات LinkedIn</span>
               </div>
-            </div>
-            <div className="offer">
+            </Link>
+            <Link className="offer" href="/articles">
               <span className="ic-chip svc-ic">
                 <FileText />
               </span>
@@ -182,10 +182,10 @@ export default function Home() {
               <h3>مدونات الموقع</h3>
               <p>أحوّل معرفتك ورأيك إلى مقالات واضحة وعميقة تحمل اسمك ووجهة نظرك</p>
               <div className="offer-cta">
-                <Link href="/articles">كتابة المقالات</Link>
+                <span>كتابة المقالات</span>
               </div>
-            </div>
-            <div className="offer">
+            </Link>
+            <Link className="offer" href="/scripts">
               <span className="ic-chip svc-ic">
                 <Clapperboard />
               </span>
@@ -204,9 +204,9 @@ export default function Home() {
                 المشاهد
               </p>
               <div className="offer-cta">
-                <Link href="/scripts">كتابة السكريبت</Link>
+                <span>كتابة السكريبت</span>
               </div>
-            </div>
+            </Link>
           </div>
         </section>
 
