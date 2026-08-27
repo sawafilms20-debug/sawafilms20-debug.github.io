@@ -1127,3 +1127,20 @@ a,button{touch-action:manipulation}
 .cf-send{justify-self:center}
 .cf-status{text-align:center}
 .contact-alt{justify-content:center}
+
+/* ===== visual polish round ===== */
+/* ornament divider above each chapter */
+section.chapter::before{content:"\273A";display:block;text-align:center;
+  color:var(--gold-soft);font-size:20px;line-height:1;
+  margin-bottom:clamp(28px,4vw,44px)}
+/* larger service-card artwork (icon chips removed) */
+.offer-art{width:clamp(120px,12vw,170px)!important;margin:0 0 2px!important}
+/* footer logo */
+.foot-logo{height:44px;width:auto;display:block;margin:0 auto 6px}
+/* 404 */
+.nf{padding:clamp(140px,20vh,200px) 0 clamp(80px,12vw,120px);text-align:center}
+.nf-art{width:clamp(200px,24vw,300px);height:auto;margin:0 auto 10px;display:block}
+.nf .page-lead{margin-inline:auto}
+.nf-ctas{margin-top:30px;justify-content:center}
+/* contact page seal above the form */
+.contact-main .contact-art{margin-inline:auto}

@@ -144,9 +144,6 @@ export default function Home() {
           </div>
           <div className="offers rv d1">
             <Link className="offer" href="/linkedin" aria-label="خدمات LinkedIn">
-              <span className="ic-chip svc-ic">
-                <LinkedInIcon />
-              </span>
               <img
                 className="offer-art"
                 src="/art-pen.webp"
@@ -167,9 +164,6 @@ export default function Home() {
               </div>
             </Link>
             <Link className="offer" href="/articles" aria-label="كتابة المقالات">
-              <span className="ic-chip svc-ic">
-                <FileText />
-              </span>
               <img
                 className="offer-art"
                 src="/art-book.webp"
@@ -186,9 +180,6 @@ export default function Home() {
               </div>
             </Link>
             <Link className="offer" href="/scripts" aria-label="كتابة السكريبت">
-              <span className="ic-chip svc-ic">
-                <Clapperboard />
-              </span>
               <img
                 className="offer-art"
                 src="/art-script.webp"

@@ -60,6 +60,15 @@ export default function ContactPage() {
       </header>
 
       <main id="main" className="wrap contact-main">
+        <img
+          className="contact-art rv"
+          src="/art-seal.webp"
+          alt=""
+          aria-hidden="true"
+          loading="lazy"
+          width={444}
+          height={377}
+        />
         <ContactForm />
         <div className="contact-alt rv">
           <a href="mailto:raheeqkanjo@gmail.com">

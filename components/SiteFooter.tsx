@@ -7,7 +7,14 @@ export default function SiteFooter() {
     <footer className="foot foot2">
       <div className="wrap">
         <div className="foot-brand">
-          <b className="foot-name">رحيق كنجو</b>
+          <img
+            className="foot-logo"
+            src="/logo-raheeq.webp"
+            alt="رحيق كنجو"
+            width={717}
+            height={379}
+            loading="lazy"
+          />
           <span className="foot-tag">كاتبة محتوى تسويقي مختصة باستراتيجيات المحتوى للخبراء العرب</span>
         </div>
         <nav className="foot-nav" aria-label="روابط الموقع">

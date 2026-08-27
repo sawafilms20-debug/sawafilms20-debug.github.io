@@ -83,3 +83,6 @@ textarea.cf-in{resize:vertical;line-height:1.8}
   transform:translateY(-200%);transition:transform .2s}
 .skip-link:focus-visible{transform:none}
 a,button{touch-action:manipulation}
+
+/* footer logo (generated pages) */
+.foot-logo{height:44px;width:auto;display:block;margin:0 auto 6px}
