@@ -306,7 +306,7 @@ export default function Home() {
                 />
                 <span className="note-who" dir="ltr">
                   <b>Mohamad Jandali</b>
-                  <small>CEO @ exeedin.com</small>
+                  <small>CEO · exeedin.com</small>
                 </span>
               </footer>
             </blockquote>
@@ -326,7 +326,7 @@ export default function Home() {
                 />
                 <span className="note-who">
                   <b>Mohammed Okko</b>
-                  <small>CEO &amp; Founder of Digital Genuity</small>
+                  <small>CEO &amp; Founder · Digital Genuity</small>
                 </span>
               </footer>
             </blockquote>
@@ -347,7 +347,7 @@ export default function Home() {
                 />
                 <span className="note-who" dir="ltr">
                   <b>Ali Hasan</b>
-                  <small>OT/ICS Security · Mechatronics Engineer</small>
+                  <small>OT/ICS Security Engineer</small>
                 </span>
               </footer>
             </blockquote>
