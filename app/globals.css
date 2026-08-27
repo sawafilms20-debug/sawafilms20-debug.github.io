@@ -1097,3 +1097,32 @@ textarea.cf-in{resize:vertical;line-height:1.8}
   transform:translateY(-200%);transition:transform .2s}
 .skip-link:focus-visible{transform:none}
 a,button{touch-action:manipulation}
+
+/* ===== centered content sections (hero and page heads stay start-aligned) ===== */
+.ch-head{text-align:center}
+.ch-head .page-lead{margin-inline:auto}
+.pain{text-align:center;margin-inline:auto}
+.pain-points{margin-inline:auto;text-align:start}
+.pain-pivot::before{inset-inline-start:calc(50% - 28px)}
+.pain-art{margin-inline:auto}
+.icon-list.cols2{margin-inline:auto}
+.list-close{text-align:center}
+.voice-band{text-align:center}
+.contact{text-align:center}
+.contact h2,.contact p{margin-inline:auto}
+.contact-ctas{justify-content:center}
+.band-cta{text-align:center}
+.offer{align-items:center;text-align:center}
+.offer-art{align-self:center}
+.svc-card{align-items:center;text-align:center}
+.steps .step{text-align:center}
+.steps .step::before{inset-inline-start:calc(50% - 7px)}
+.step .ic-chip{margin-inline:auto}
+.method-lines{margin-inline:auto}
+.cert-cap{text-align:center;justify-items:center}
+.projects{text-align:center}
+.projects .lead{margin-inline:auto}
+.contact-main .contact-form{margin-inline:auto}
+.cf-send{justify-self:center}
+.cf-status{text-align:center}
+.contact-alt{justify-content:center}
