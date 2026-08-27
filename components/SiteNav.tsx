@@ -26,20 +26,22 @@ export default function SiteNav({ solid = false }: { solid?: boolean }) {
           <Link href="/articles" onClick={close}>المقالات</Link>
           <Link href="/scripts" onClick={close}>سكريبتات الفيديو</Link>
           <Link href="/about" onClick={close}>عني</Link>
+        </div>
+        <div className="nav-end">
           <Link className="nav-cta" href="/contact" onClick={close}>
             تواصل معي
           </Link>
+          <button
+            type="button"
+            className="nav-burger"
+            aria-label={open ? "إغلاق القائمة" : "فتح القائمة"}
+            aria-expanded={open}
+            aria-controls="nav-menu"
+            onClick={() => setOpen((o) => !o)}
+          >
+            {open ? <X /> : <Menu />}
+          </button>
         </div>
-        <button
-          type="button"
-          className="nav-burger"
-          aria-label={open ? "إغلاق القائمة" : "فتح القائمة"}
-          aria-expanded={open}
-          aria-controls="nav-menu"
-          onClick={() => setOpen((o) => !o)}
-        >
-          {open ? <X /> : <Menu />}
-        </button>
       </div>
     </nav>
   );

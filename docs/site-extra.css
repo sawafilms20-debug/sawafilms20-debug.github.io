@@ -73,7 +73,7 @@ textarea.cf-in{resize:vertical;line-height:1.8}
   }
   nav.nav-open .nav-links{display:flex}
   .nav-links a{display:block;padding:14px 2px;font-size:16px;border-bottom:1px solid var(--line)}
-  .nav-links a.nav-cta{margin-top:14px;text-align:center;padding:13px 20px;border-bottom:none!important}
+  .nav-cta{min-height:44px}
 }
 
 /* a11y: skip link for generated pages */
@@ -86,3 +86,5 @@ a,button{touch-action:manipulation}
 
 /* footer logo (generated pages) */
 .foot-logo{height:44px;width:auto;display:block;margin:0 auto 6px}
+
+.nav-end{display:flex;align-items:center;gap:10px;justify-self:end}
