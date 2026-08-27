@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { El_Messiri, Tajawal } from "next/font/google";
 import "./globals.css";
 
@@ -27,6 +27,11 @@ export const metadata: Metadata = {
       "أعمل مع الخبراء العرب على تحويل معرفتهم وتجاربهم وآرائهم إلى محتوى يحمل صوتهم: على LinkedIn، في مدونات المواقع، وفي سكريبتات الفيديو.",
     images: ["/og-image.jpg"],
   },
+  icons: {
+    icon: "/icon.svg",
+    apple: "/apple-touch-icon.png",
+  },
+  appleWebApp: { title: "رحيق كنجو", capable: false },
   twitter: {
     card: "summary_large_image",
     title: "رحيق كنجو | كاتبة محتوى تسويقي للخبراء العرب",
@@ -34,6 +39,10 @@ export const metadata: Metadata = {
       "أحوّل معرفة الخبراء العرب وتجاربهم إلى محتوى يحمل صوتهم: LinkedIn، مقالات، وسكريبتات فيديو.",
     images: ["/og-image.jpg"],
   },
+};
+
+export const viewport: Viewport = {
+  themeColor: "#f7f2e9",
 };
 
 const personJsonLd = {

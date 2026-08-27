@@ -71,9 +71,9 @@ export default function Home() {
                 أبحث عن الفكرة التي تستحق أن تظهر، وأجد لها الزاوية والصوت والشكل المناسب
               </p>
               <div className="hero-ctas rv d4">
-                <a className="btn btn-gold" href="#process">
+                <Link className="btn btn-gold" href="/contact">
                   اكتشف كيف نعمل معًا
-                </a>
+                </Link>
               </div>
             </div>
 

@@ -72,6 +72,9 @@ function shell(o: {
 <link rel="stylesheet" href="${o.shell.cssHref}"/>
 <link rel="stylesheet" href="/site-extra.css"/>
 <link rel="icon" href="/icon.svg" type="image/svg+xml" sizes="any"/>
+<link rel="apple-touch-icon" href="/apple-touch-icon.png"/>
+<meta name="apple-mobile-web-app-title" content="${BRAND}"/>
+<meta name="theme-color" content="#f7f2e9"/>
 <link rel="alternate" type="application/rss+xml" title="${BRAND}" href="/rss.xml"/>
 ${o.head}
 </head>
