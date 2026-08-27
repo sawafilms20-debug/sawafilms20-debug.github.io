@@ -226,7 +226,7 @@ export default function Home() {
         <section className="chapter wrap" id="testimonials">
           <div className="ch-head rv">
             <h2 className="ch-title">
-              توصيات ممن <em>عملت معهم</em>
+              <em>توصيات</em>
             </h2>
           </div>
           <div className="notes">
