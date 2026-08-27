@@ -178,6 +178,69 @@ export default function AboutPage() {
           </ul>
         </section>
 
+        <section className="chapter wrap" id="certs">
+          <div className="ch-head rv">
+            <span className="slug">الشهادات</span>
+            <h2 className="ch-title">
+              تعلّم <em>مستمر</em>
+            </h2>
+          </div>
+          <div className="certs-grid">
+            <a className="cert-card rv" href="/cert-rami-badrah.jpg" target="_blank" rel="noopener">
+              <img
+                src="/cert-rami-badrah.jpg"
+                alt="شهادة إتمام البرنامج التدريبي الشامل في صناعة وكتابة المحتوى التسويقي والإعلاني من أكاديمية رامي بدره"
+                loading="lazy"
+                width={1920}
+                height={1368}
+              />
+              <span className="cert-cap">
+                <b>صناعة وكتابة المحتوى التسويقي والإعلاني</b>
+                <small>أكاديمية رامي بدره، 45 ساعة تدريبية، 2025</small>
+              </span>
+            </a>
+            <a className="cert-card rv d1" href="/cert-iese-storytelling.jpg" target="_blank" rel="noopener">
+              <img
+                src="/cert-iese-storytelling.jpg"
+                alt="شهادة The Art of Storytelling من IESE Business School عبر Coursera"
+                loading="lazy"
+                width={604}
+                height={473}
+              />
+              <span className="cert-cap">
+                <b>The Art of Storytelling</b>
+                <small>IESE Business School عبر Coursera، 2026</small>
+              </span>
+            </a>
+            <a className="cert-card rv d2" href="/cert-edraak-seo.jpg" target="_blank" rel="noopener">
+              <img
+                src="/cert-edraak-seo.jpg"
+                alt="شهادة إتمام Search Engine Optimization من منصة إدراك"
+                loading="lazy"
+                width={1043}
+                height={720}
+              />
+              <span className="cert-cap">
+                <b>Search Engine Optimization</b>
+                <small>منصة إدراك، 2023</small>
+              </span>
+            </a>
+            <a className="cert-card rv d3" href="/cert-light-initiative.jpg" target="_blank" rel="noopener">
+              <img
+                src="/cert-light-initiative.jpg"
+                alt="شهادة تقدير عن تسجيل 300 صفحة صوتيًا لدعم الطلاب المكفوفين من Light Initiative وSyrian Youth Assembly"
+                loading="lazy"
+                width={674}
+                height={498}
+              />
+              <span className="cert-cap">
+                <b>شهادة تقدير: تسجيل 300 صفحة صوتيًا لدعم الطلاب المكفوفين</b>
+                <small>Light Initiative وSyrian Youth Assembly، 2022</small>
+              </span>
+            </a>
+          </div>
+        </section>
+
         <section className="chapter wrap" id="studio">
           <div className="photo-strip">
             <figure className="polaroid rv">

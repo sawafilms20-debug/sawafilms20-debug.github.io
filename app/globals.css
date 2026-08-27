@@ -1007,3 +1007,18 @@ textarea.cf-in{resize:vertical;line-height:1.8}
 .foot-line{margin-top:22px;font-family:var(--font-messiri),serif;font-weight:600;
   color:var(--gold-deep);font-size:16.5px}
 .foot-copy{margin-top:6px;font-size:13px;color:var(--muted)}
+
+/* certificates (about page) */
+.certs-grid{display:grid;grid-template-columns:1fr 1fr;gap:clamp(16px,2.2vw,26px)}
+.cert-card{display:flex;flex-direction:column;gap:0;text-decoration:none;
+  background:var(--paper);border:1px solid var(--line);border-radius:18px;overflow:hidden;
+  box-shadow:0 18px 42px -28px rgba(70,55,30,.35);
+  transition:transform .5s var(--ease),box-shadow .5s,border-color .5s}
+.cert-card:hover{transform:translateY(-5px);border-color:var(--gold-soft);
+  box-shadow:0 30px 60px -30px rgba(70,55,30,.5)}
+.cert-card img{display:block;width:100%;height:auto;border-bottom:1px solid var(--line)}
+.cert-cap{display:grid;gap:3px;padding:16px 20px 18px}
+.cert-cap b{font-family:var(--font-messiri),serif;font-weight:600;color:var(--espresso);
+  font-size:15.5px;line-height:1.6}
+.cert-cap small{color:var(--muted);font-size:13px}
+@media(max-width:720px){.certs-grid{grid-template-columns:1fr}}

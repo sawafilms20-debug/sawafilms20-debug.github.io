@@ -33,10 +33,14 @@ export default function Home() {
                 ترى ما اخترت أن تشاركه منها
               </h1>
               <p className="hero-choice rv d2">لذلك أنا موجودة هنا من أجل هذا الاختيار</p>
+              <div className="type-row rv d3">
+                <span className="pre">أنا رحيق كنجو،</span>
+                <span id="typed"></span>
+                <span className="caret"></span>
+              </div>
               <p className="hero-sub rv d3">
-                رحيق كنجو كاتبة محتوى تسويقي أعمل مع الخبراء العرب على تحويل معرفتهم
-                وتجاربهم وآرائهم إلى محتوى يحمل صوتهم ويقرّبهم من الجمهور الذي يريدون
-                الوصول إليه
+                أعمل مع الخبراء العرب على تحويل معرفتهم وتجاربهم وآرائهم إلى محتوى يحمل
+                صوتهم ويقرّبهم من الجمهور الذي يريدون الوصول إليه
               </p>
               <ul className="channels rv d3">
                 <li>
