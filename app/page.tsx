@@ -25,13 +25,13 @@ export default function Home() {
       {/* ======== HERO ======== */}
       <header className="hero">
         <div className="wrap">
-          <div className="hero-grid hero-grid-wide">
+          <h1 className="hero-title hero-title-xl rv d1">
+            <span className="line">لأن الناس لا ترى سنوات خبرتك الطويلة</span>
+            <span className="line">ترى ما اخترت أن تشاركه منها</span>
+          </h1>
+          <p className="hero-choice rv d2">لذلك أنا موجودة هنا من أجل هذا الاختيار</p>
+          <div className="hero-grid">
             <div className="hero-text">
-              <h1 className="hero-title rv d1">
-                <span className="line">لأن الناس لا ترى سنوات خبرتك الطويلة</span>
-                <span className="line">ترى ما اخترت أن تشاركه منها</span>
-              </h1>
-              <p className="hero-choice rv d2">لذلك أنا موجودة هنا من أجل هذا الاختيار</p>
               <div className="type-row rv d3">
                 <span className="pre">أنا رحيق كنجو،</span>
                 <span id="typed"></span>
@@ -241,8 +241,8 @@ export default function Home() {
           <div className="notes">
             <blockquote className="note rv">
               <q>
-                تستمع جيدًا وتحاول أن تفهم الشخص وطريقة تفكيره قبل أن تبدأ بالعمل وتحافظ
-                على صوته وأسلوبه.
+                تستمع جيدًا وتحاول أن تفهم الشخص وطريقة تفكيره قبل أن تبدأ بالعمل،
+                وتحافظ على صوته وأسلوبه بدل أن تفرض عليه أسلوبًا جاهزًا.
               </q>
               <footer>
                 <span className="note-who" dir="ltr">
@@ -252,7 +252,10 @@ export default function Home() {
               </footer>
             </blockquote>
             <blockquote className="note rv d1">
-              <q>باحثة ممتازة. تطرح الأسئلة الصحيحة، وتلتقط التفاصيل المهمة.</q>
+              <q>
+                باحثة ممتازة. تطرح الأسئلة الصحيحة، وتلتقط التفاصيل المهمة، ثم تقدّم
+                حلولًا مدروسة تعكس صوت الحساب وشخصيته بصدق.
+              </q>
               <footer>
                 <span className="note-who">
                   <b>أسماء الخالدي</b>
@@ -261,11 +264,51 @@ export default function Home() {
               </footer>
             </blockquote>
             <blockquote className="note rv d2">
-              <q>تملك حسًا واضحًا في فهم العلامة وصوتها.</q>
+              <q>
+                تملك حسًا واضحًا في فهم العلامة وصوتها، وهو ما يظهر بصورة خاصة في
+                كتابتها للعلامات الشخصية.
+              </q>
               <footer>
                 <span className="note-who" dir="ltr">
                   <b>Rami Badrah</b>
                   <small>Marketing Content &amp; UX Consultant</small>
+                </span>
+              </footer>
+            </blockquote>
+            <blockquote className="note rv">
+              <q>
+                إتقان. احترام وتقدير. تواجد دائمًا. إبداع بالبحث والكتابة. رحيق إضافة لا
+                أندم عليها أبدًا لفريق EXEED.
+              </q>
+              <footer>
+                <span className="note-who" dir="ltr">
+                  <b>Mohamad Jandali</b>
+                  <small>CEO @ exeedin.com</small>
+                </span>
+              </footer>
+            </blockquote>
+            <blockquote className="note rv d1" dir="ltr">
+              <q>
+                Well organized, result oriented and creative copywriter. I really
+                recommend Raheek to be a cornerstone of any copywriting team.
+              </q>
+              <footer>
+                <span className="note-who">
+                  <b>Mohammed Okko</b>
+                  <small>CEO &amp; Founder of Digital Genuity</small>
+                </span>
+              </footer>
+            </blockquote>
+            <blockquote className="note rv d2">
+              <q>
+                استشارة تسويقية مركزة وقوية لبناء علامتي الشخصية وهوية حساب الشركة، مع
+                استراتيجيات واضحة لزيادة المتابعين واستقطاب الجمهور. المعلومات جاءت
+                عميقة وعملية.
+              </q>
+              <footer>
+                <span className="note-who" dir="ltr">
+                  <b>Ali Hasan</b>
+                  <small>OT/ICS Security · Mechatronics Engineer</small>
                 </span>
               </footer>
             </blockquote>

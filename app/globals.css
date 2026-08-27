@@ -178,12 +178,8 @@ h1 .ink svg path{stroke:var(--gold);stroke-width:3.5;fill:none;stroke-linecap:ro
 .scribble path{stroke:var(--gold);stroke-width:3;fill:none;stroke-linecap:round;
   stroke-dasharray:400;stroke-dashoffset:400;animation:draw 1.6s var(--ease) 1.3s forwards}
 @media(max-width:860px){
-  .hero-grid{grid-template-columns:1fr;text-align:center}
-  .hero-p{margin-inline:auto}
-  .hero-ctas{justify-content:center}
-  .type-row{justify-content:center}
-  .portrait{order:-1}
-  .stamp{inset-inline-start:-10px}
+  .hero-grid{grid-template-columns:1fr}
+  .portrait{order:-1;justify-self:start}
 }
 
 /* ====== marquee ====== */
@@ -403,9 +399,6 @@ section.chapter{padding-top:clamp(70px,10vw,120px)}
   transition:transform .3s var(--ease),box-shadow .3s;
   display:flex;flex-direction:column;
 }
-.note:nth-child(1){transform:rotate(-1.2deg)}
-.note:nth-child(2){transform:rotate(.8deg) translateY(14px)}
-.note:nth-child(3){transform:rotate(-.6deg)}
 .note:hover{transform:rotate(0) translateY(-2px);box-shadow:0 6px 18px -8px rgba(70,55,30,.12)}
 .note::before{
   content:"";position:absolute;top:-12px;inset-inline-start:26px;width:74px;height:24px;
@@ -421,7 +414,7 @@ section.chapter{padding-top:clamp(70px,10vw,120px)}
 .note footer{margin-top:18px;font-size:13px;color:var(--muted);display:flex;align-items:center;gap:8px}
 .note footer::before{content:"";width:22px;height:2px;background:var(--gold-soft);border-radius:2px}
 .notes-cta{text-align:center;margin-top:44px}
-@media(max-width:860px){.notes{grid-template-columns:1fr;max-width:520px;margin-inline:auto}.note:nth-child(2){transform:rotate(.8deg)}}
+@media(max-width:860px){.notes{grid-template-columns:1fr;max-width:520px;margin-inline:0}}
 
 /* ====== contact ====== */
 .contact{padding-block:clamp(80px,11vw,130px)}
@@ -916,11 +909,9 @@ textarea.cf-in{resize:vertical;line-height:1.8}
 /* hero (multi-line headline) */
 .hero-title{font-family:var(--font-messiri),serif;font-weight:700;color:var(--espresso);
   font-size:clamp(22px,3vw,34px);line-height:1.5;margin:10px 0 4px}
-.hero-grid-wide .hero-title{font-size:clamp(24px,5.5vw,40px);line-height:1.45}
-@media(min-width:861px){
-  .hero-grid-wide{grid-template-columns:1.4fr .6fr}
-  .hero-grid-wide .hero-title{font-size:clamp(30px,calc(3.2vw + 5px),42px)}
-}
+.hero-title-xl{font-size:clamp(28px,5vw,60px);line-height:1.4}
+.hero .hero-choice{font-size:clamp(20px,2.6vw,30px)}
+.hero .hero-grid{margin-top:clamp(26px,4vw,44px)}
 .hero-title .line{display:block;white-space:nowrap}
 @media(max-width:560px){.hero-title .line{white-space:normal}}
 .hero-choice{font-family:var(--font-messiri),serif;font-weight:600;color:var(--gold-deep);
@@ -931,10 +922,7 @@ textarea.cf-in{resize:vertical;line-height:1.8}
 .channels a{display:inline-flex;align-items:center;gap:12px;color:var(--espresso);text-decoration:none;
   font-weight:700;font-size:16.5px;transition:color .3s,transform .3s}
 .channels a:hover{color:var(--gold-deep);transform:translateX(-3px)}
-@media(max-width:860px){
-  .channels a{justify-content:center}
-  .hero-find{margin-inline:auto}
-}
+
 
 /* problem section */
 .pain-intro{margin-top:14px;font-size:17px;color:var(--muted)}
@@ -1069,3 +1057,5 @@ textarea.cf-in{resize:vertical;line-height:1.8}
 .project-tags i{font-style:normal;font-size:12.5px;font-weight:700;color:var(--gold-text);
   border:1px solid var(--gold-soft);border-radius:999px;padding:3px 11px}
 .project-link{color:var(--gold-text);font-weight:700;font-size:14.5px;margin-top:4px}
+
+.note[dir="ltr"] q{quotes:"\201C" "\201D"}
