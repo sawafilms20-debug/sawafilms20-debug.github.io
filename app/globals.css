@@ -1427,3 +1427,10 @@ section.chapter::before{content:"";display:block;width:min(180px,42%);height:1px
   content:"";position:absolute;inset-inline-start:0;top:.12em;bottom:.12em;width:3px;border-radius:3px;
   background:linear-gradient(180deg,var(--gold),var(--gold-soft));
 }
+
+/* ===== a named keyword, and a question, each get the colour ===== */
+.kw{color:var(--gold-deep);font-weight:800}
+/* body copy is small, and --gold-deep is only 3.04:1 on ivory, so it steps
+   down to the darker gold wherever the keyword sits inside running text */
+p .kw,li .kw{color:var(--gold-text);font-weight:700}
+.q{color:var(--gold-text)}

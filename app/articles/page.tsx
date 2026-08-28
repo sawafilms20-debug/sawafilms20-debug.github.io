@@ -36,7 +36,7 @@ export default function ArticlesPage() {
       <SiteNav solid />
 
       <header className="page-head wrap">
-        <h1 className="hero-title rv d1">بعض الأفكار تحتاج مساحة أكبر</h1>
+        <h1 className="hero-title rv d1">بعض الأفكار تحتاج <span className="hl-gold">مساحة</span> أكبر</h1>
         <p className="page-lead rv d2">
           رأي يحتاج حجة
           <br />
@@ -66,7 +66,7 @@ export default function ArticlesPage() {
                 </span>
                 <div className="step-num">01</div>
                 <h3>الفكرة</h3>
-                <p>نحدد السؤال ووجهة النظر</p>
+                <p>أحدد السؤال ووجهة النظر</p>
               </div>
               <div className="step rv d1">
                 <span className="ic-chip step-ic">

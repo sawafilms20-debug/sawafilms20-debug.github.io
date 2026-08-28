@@ -63,7 +63,7 @@ export default function ScriptsPage() {
                 </span>
                 <div className="step-num">01</div>
                 <h3>أفهم الجمهور</h3>
-                <p>ما الذي يهمه؟ وما الذي يعرفه مسبقًا؟</p>
+                <p className="q">ما الذي يهمه؟ وما الذي يعرفه مسبقًا؟</p>
               </div>
               <div className="step rv d1">
                 <span className="ic-chip step-ic">
@@ -87,7 +87,7 @@ export default function ScriptsPage() {
                 </span>
                 <div className="step-num">04</div>
                 <h3>أبني الهوك</h3>
-                <p>نبدأ من نقطة تخلق فضولًا أو حاجة</p>
+                <p>أبدأ من نقطة تخلق فضولًا أو حاجة</p>
               </div>
               <div className="step rv d4">
                 <span className="ic-chip step-ic">

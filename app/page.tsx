@@ -159,10 +159,10 @@ export default function Home() {
                 من التموضع واستخراج الأفكار إلى كتابة المحتوى وتطوير الحساب
               </p>
               <div className="offer-cta">
-                <span>خدمات LinkedIn</span>
+                <span>تفاصيل الخدمة</span>
               </div>
             </Link>
-            <Link className="offer" href="/articles" aria-label="كتابة المقالات">
+            <Link className="offer" href="/articles" aria-label="خدمة كتابة المقالات">
               <img
                 className="offer-art"
                 src="/art-book.webp"
@@ -172,13 +172,13 @@ export default function Home() {
                 width={764}
                 height={390}
               />
-              <h3>مدونات الموقع</h3>
+              <h3>خدمة كتابة المقالات</h3>
               <p>أحوّل معرفتك ورأيك إلى مقالات واضحة وعميقة تحمل اسمك ووجهة نظرك</p>
               <div className="offer-cta">
-                <span>كتابة المقالات</span>
+                <span>تفاصيل الخدمة</span>
               </div>
             </Link>
-            <Link className="offer" href="/scripts" aria-label="كتابة السكريبت">
+            <Link className="offer" href="/scripts" aria-label="خدمة كتابة سيناريو الفيديو">
               <img
                 className="offer-art"
                 src="/art-script.webp"
@@ -188,13 +188,15 @@ export default function Home() {
                 width={560}
                 height={544}
               />
-              <h3>سكريبتات الفيديو</h3>
+              <h3>خدمة كتابة سيناريو الفيديو</h3>
               <p>
-                من الفكرة إلى فيديو يعرف كيف يبدأ، كيف يتحرك، وكيف يحافظ على انتباه
-                المشاهد
+                أعطني الفكرة لأصنع منها <b className="kw">سكريبت</b> يحافظ على انتباه
+                المشاهد من الهوك حتى آخر ثانية
+                <br />
+                أحدد الزاوية، وفيديو احترافي يعكس فكرتك بأفضل صورة
               </p>
               <div className="offer-cta">
-                <span>كتابة السكريبت</span>
+                <span>تفاصيل الخدمة</span>
               </div>
             </Link>
           </div>
@@ -361,7 +363,7 @@ export default function Home() {
           <div className="wrap">
             <div className="ch-head rv">
               <h2 className="ch-title">
-                كيف نعمل <em>معًا</em>؟
+                كيف <em>أعمل</em>؟
               </h2>
             </div>
             <div className="steps">
@@ -370,15 +372,15 @@ export default function Home() {
                   <Compass />
                 </span>
                 <div className="step-num">01</div>
-                <h3>نفهم الاتجاه</h3>
-                <p>من جمهورك؟ وبماذا تريد أن يعرفك؟</p>
+                <h3>أفهم الاتجاه</h3>
+                <p className="q">من جمهورك؟ وبماذا تريد أن يعرفك؟</p>
               </div>
               <div className="step rv d1">
                 <span className="ic-chip step-ic">
                   <Lightbulb />
                 </span>
                 <div className="step-num">02</div>
-                <h3>نستخرج المادة</h3>
+                <h3>أستخرج الأفكار</h3>
                 <p>الأفكار، التجارب، القصص والآراء الموجودة داخل خبرتك</p>
               </div>
               <div className="step rv d2">
@@ -386,15 +388,15 @@ export default function Home() {
                   <Target />
                 </span>
                 <div className="step-num">03</div>
-                <h3>نبني الزاوية</h3>
-                <p>نحدد الفكرة التي تستحق الظهور والطريقة الأنسب لتقديمها</p>
+                <h3>أحدد أنسب زاوية للعرض</h3>
+                <p>أحدد الفكرة التي تستحق الظهور والطريقة الأنسب لتقديمها</p>
               </div>
               <div className="step rv d3">
                 <span className="ic-chip step-ic">
                   <PenLine />
                 </span>
                 <div className="step-num">04</div>
-                <h3>نكتب</h3>
+                <h3>أكتب</h3>
                 <p>منشور، مقال أو سكريبت يحمل صوتك ويخدم هدفك</p>
               </div>
             </div>

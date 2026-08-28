@@ -64,7 +64,7 @@ export default function AboutPage() {
                 src="/raheeq-about.webp"
                 alt="رحيق كنجو، كاتبة واستراتيجية محتوى للخبراء"
                 width={900}
-                height={1764}
+                height={1485}
                 fetchPriority="high"
               />
             </div>
@@ -249,41 +249,6 @@ export default function AboutPage() {
                 <small>Light Initiative وSyrian Youth Assembly، 2022</small>
               </span>
             </a>
-          </div>
-        </section>
-
-        <section className="chapter wrap" id="studio">
-          <div className="photo-strip">
-            <figure className="polaroid rv">
-              <img
-                src="/photo-desk.webp"
-                alt="دفتر مفتوح بخط عربي وقلم ذهبي وفنجان قهوة على مكتب الكاتبة"
-                loading="lazy"
-                width={760}
-                height={1018}
-              />
-              <figcaption>حيث تبدأ الأفكار</figcaption>
-            </figure>
-            <figure className="polaroid rv d1">
-              <img
-                src="/photo-typewriter.webp"
-                alt="آلة كاتبة كلاسيكية في ضوء ذهبي دافئ"
-                loading="lazy"
-                width={760}
-                height={760}
-              />
-              <figcaption>قصص تُكتب لتبقى</figcaption>
-            </figure>
-            <figure className="polaroid rv d2">
-              <img
-                src="/photo-mic.webp"
-                alt="ميكروفون استوديو وسماعات في إضاءة دافئة"
-                loading="lazy"
-                width={760}
-                height={1018}
-              />
-              <figcaption>ومنها ما يُروى صوتًا</figcaption>
-            </figure>
           </div>
         </section>
 

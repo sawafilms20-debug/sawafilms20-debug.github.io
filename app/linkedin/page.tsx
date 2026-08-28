@@ -40,9 +40,9 @@ export default function LinkedInPage() {
 
       <header className="page-head wrap">
         <h1 className="hero-title rv d1">
-          خبرتك تظهر في عملك كل يوم
+          خبرتك تظهر في عملك
           <br />
-          خلي حسابك يظهرها أيضًا
+          <span className="hl-gold">يجب أن يعكسها حسابك على LinkedIn</span>
         </h1>
         <p className="page-lead rv d2">
           الشخص الذي يجلس معك قد يفهم قيمتك خلال اجتماع واحد
@@ -50,7 +50,8 @@ export default function LinkedInPage() {
           أما الشخص الذي يصل إلى حسابك لأول مرة، فيبني صورته من المحتوى الذي يراه أمامه
         </p>
         <p className="page-lead strong rv d3">
-          أساعدك على بناء حساب ومحتوى يوضح خبرتك ويمنح الناس أسبابًا أكثر لتذكّر اسمك
+          <b className="kw">بناء العلامة الشخصية على LinkedIn</b>: حساب ومحتوى يوضحان
+          خبرتك ويمنحان الناس أسبابًا أكثر لتذكّر اسمك
         </p>
       </header>
 
@@ -60,8 +61,8 @@ export default function LinkedInPage() {
             <h2 className="ch-title">
               نبدأ من <em>سؤال واحد</em>
             </h2>
-            <p className="page-lead strong">بماذا تريد أن يعرفك السوق؟</p>
-            <p className="page-lead">من هنا نحدد:</p>
+            <p className="page-lead strong q">بماذا تريد أن يعرفك السوق؟</p>
+            <p className="page-lead">من هنا أحدد:</p>
           </div>
           <ul className="icon-list cols2">
             <li className="rv">
