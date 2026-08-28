@@ -18,12 +18,12 @@ export default function SiteFooter() {
           <span className="foot-tag">كاتبة محتوى تسويقي مختصة باستراتيجيات المحتوى للخبراء العرب</span>
         </div>
         <nav className="foot-nav" aria-label="روابط الموقع">
-          <Link href="/linkedin">LinkedIn</Link>
-          <Link href="/articles">المقالات</Link>
-          <Link href="/scripts">سكريبتات الفيديو</Link>
+          <Link href="/linkedin">بناء علامتك الشخصية على LinkedIn</Link>
+          <Link href="/articles">خدمة كتابة المقالات</Link>
+          <Link href="/scripts">خدمة كتابة سيناريو الفيديو</Link>
+          <Link href="/blog">المدونة</Link>
           <Link href="/about">عني</Link>
           <Link href="/contact">تواصل معي</Link>
-          <Link href="/blog">المدونة</Link>
         </nav>
         <div className="foot-social">
           <a

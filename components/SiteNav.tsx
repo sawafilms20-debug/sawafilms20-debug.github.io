@@ -22,9 +22,10 @@ export default function SiteNav({ solid = false }: { solid?: boolean }) {
           <img src="/logo-raheeq.webp" alt="رحيق" width={360} height={470} />
         </Link>
         <div className="nav-links" id="nav-menu">
-          <Link href="/linkedin" onClick={close}>LinkedIn</Link>
-          <Link href="/articles" onClick={close}>المقالات</Link>
-          <Link href="/scripts" onClick={close}>سكريبتات الفيديو</Link>
+          <Link href="/linkedin" onClick={close}>بناء علامتك الشخصية على LinkedIn</Link>
+          <Link href="/articles" onClick={close}>خدمة كتابة المقالات</Link>
+          <Link href="/scripts" onClick={close}>خدمة كتابة سيناريو الفيديو</Link>
+          <Link href="/blog" onClick={close}>المدونة</Link>
           <Link href="/about" onClick={close}>عني</Link>
         </div>
         <div className="nav-end">
