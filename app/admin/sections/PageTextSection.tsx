@@ -4,6 +4,7 @@ import { useEffect, useId, useMemo, useState } from "react";
 import { rpc, RpcError } from "../rpc";
 import { EmptyState, Loading, relativeTime } from "../ui";
 import { ImageField } from "../MediaPicker";
+import { RichText, emphasisOf } from "../RichText";
 import type { SectionProps } from "../types";
 
 /* "الصفحات" — every string the public site renders, offered for editing.
@@ -47,8 +48,6 @@ type PageDetail = {
    never touched, and clearing a field has to clear both or the row survives. */
 type Draft = { ar: string; en: string };
 
-const RICHTEXT_HINT =
-  "هذا الحقل يحتوي على تنسيق HTML مثل <br> و<em> و<span>. احتفظي به كما هو إلا إذا كنتِ تقصدين تغيير التنسيق نفسه.";
 
 const keyOf = (sectionKey: string, contentKey: string) => `${sectionKey}.${contentKey}`;
 
@@ -113,8 +112,11 @@ export default function PageTextSection({ toast, confirm }: SectionProps) {
         const next: Record<string, Draft> = {};
         for (const s of r.sections) {
           for (const f of s.fields) {
+            /* The box opens with what the site says today, so this is a page
+               to EDIT rather than a form to re-type from scratch. An empty box
+               is not "leave it alone" any more — it means an empty heading. */
             next[keyOf(s.sectionKey, f.contentKey)] = {
-              ar: f.valueAr ?? "",
+              ar: f.valueAr ?? f.defaultText,
               en: f.valueEn ?? "",
             };
           }
@@ -136,14 +138,34 @@ export default function PageTextSection({ toast, confirm }: SectionProps) {
   }, [selected, detailNonce]);
 
   const changed = useMemo(() => {
-    if (!detail) return [] as { sectionKey: string; contentKey: string; ar: string; en: string }[];
-    const out: { sectionKey: string; contentKey: string; ar: string; en: string }[] = [];
+    if (!detail) {
+      return [] as {
+        sectionKey: string;
+        contentKey: string;
+        ar: string;
+        en: string;
+        defaultText: string;
+      }[];
+    }
+    const out: {
+      sectionKey: string;
+      contentKey: string;
+      ar: string;
+      en: string;
+      defaultText: string;
+    }[] = [];
     for (const s of detail.sections) {
       for (const f of s.fields) {
         const d = drafts[keyOf(s.sectionKey, f.contentKey)];
         if (!d) continue;
-        if (d.ar !== (f.valueAr ?? "") || d.en !== (f.valueEn ?? "")) {
-          out.push({ sectionKey: s.sectionKey, contentKey: f.contentKey, ar: d.ar, en: d.en });
+        if (d.ar !== (f.valueAr ?? f.defaultText) || d.en !== (f.valueEn ?? "")) {
+          out.push({
+            sectionKey: s.sectionKey,
+            contentKey: f.contentKey,
+            ar: d.ar,
+            en: d.en,
+            defaultText: f.defaultText,
+          });
         }
       }
     }
@@ -158,7 +180,8 @@ export default function PageTextSection({ toast, confirm }: SectionProps) {
   const setDraft = (k: string, ar: string) =>
     setDrafts((d) => ({ ...d, [k]: { ar, en: ar.trim() ? d[k]?.en ?? "" : "" } }));
 
-  const clearDraft = (k: string) => setDrafts((d) => ({ ...d, [k]: { ar: "", en: "" } }));
+  const clearDraft = (k: string, defaultText: string) =>
+    setDrafts((d) => ({ ...d, [k]: { ar: defaultText, en: "" } }));
 
   const save = async () => {
     if (!detail || !changed.length) return;
@@ -169,8 +192,13 @@ export default function PageTextSection({ toast, confirm }: SectionProps) {
           pageKey: detail.page.key,
           sectionKey: c.sectionKey,
           contentKey: c.contentKey,
-          valueAr: c.ar,
-          valueEn: c.en,
+          /* Restoring the original wording by hand has to mean the same thing
+             as «إرجاع الأصل»: send it empty so the server drops the row and the
+             page falls back to what it was built with. Storing an override
+             identical to the default would work, but it would pin the text — a
+             later copy change in the code would no longer reach the site. */
+          valueAr: c.ar.trim() === c.defaultText.trim() ? "" : c.ar,
+          valueEn: c.ar.trim() === c.defaultText.trim() ? "" : c.en,
         })),
       });
       toast(
@@ -309,7 +337,7 @@ export default function PageTextSection({ toast, confirm }: SectionProps) {
                           field={f}
                           value={drafts[k]?.ar ?? ""}
                           onChange={(v) => setDraft(k, v)}
-                          onClear={() => clearDraft(k)}
+                          onClear={() => clearDraft(k, f.defaultText)}
                           onError={(m) => toast(m, "bad")}
                         />
                       );
@@ -353,11 +381,12 @@ function FieldRow({
   const id = useId();
 
   const hints: string[] = [];
-  if (field.contentType === "richtext") hints.push(RICHTEXT_HINT);
   if (field.contentType === "image") hints.push(`الصورة الأصلية على الموقع: ${field.defaultText}`);
   if (field.overridden && field.updatedAt) hints.push(`آخر تعديل ${relativeTime(field.updatedAt)}`);
 
-  const resettable = field.overridden || value !== "";
+  /* Only offer the reset when there is something to reset. Now that every
+     box opens pre-filled, "not empty" is true of nearly every field. */
+  const resettable = value.trim() !== field.defaultText.trim();
 
   if (field.contentType === "image") {
     return (
@@ -393,13 +422,11 @@ function FieldRow({
       </label>
 
       {field.contentType === "richtext" ? (
-        <textarea
-          id={id}
-          dir="rtl"
-          rows={3}
+        <RichText
           value={value}
-          placeholder={field.defaultText}
-          onChange={(e) => onChange(e.target.value)}
+          onChange={onChange}
+          emphasis={emphasisOf(field.defaultText)}
+          ariaLabel={field.labelAr}
         />
       ) : (
         <input
