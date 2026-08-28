@@ -63,8 +63,8 @@ export default function AboutPage() {
               <img
                 src="/raheeq-about.webp"
                 alt="رحيق كنجو، كاتبة واستراتيجية محتوى للخبراء"
-                width={760}
-                height={950}
+                width={900}
+                height={1764}
                 fetchPriority="high"
               />
             </div>

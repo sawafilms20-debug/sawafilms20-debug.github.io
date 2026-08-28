@@ -1381,6 +1381,13 @@ section.chapter::before{content:"";display:block;width:min(180px,42%);height:1px
 @media(prefers-reduced-motion:reduce){
   .sf,.sf-petals{animation:none}
 }
+@media(max-width:860px){
+  /* the portrait hugs the inline-start edge here, so flowers hanging off that
+     side push past the viewport and get shaved by overflow-x:clip */
+  .sf-2{inset-inline-start:-4%}
+  .sf-4{inset-inline-start:-3%}
+  .sf-5{inset-inline-start:0}
+}
 
 /* ===== hero: the name line rides above the headline, as a gold eyebrow ===== */
 .hero-text .type-row{margin:0 0 8px}
