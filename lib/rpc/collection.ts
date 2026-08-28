@@ -13,6 +13,8 @@ export type FieldSpec = {
   zod: z.ZodTypeAny;
   /** Written on create/update. Omit for computed columns. */
   writable?: boolean;
+  /** Optional on create because the server supplies it (order, visibility). */
+  serverDefaulted?: boolean;
 };
 
 export type CollectionSpec = {
@@ -38,9 +40,16 @@ function writable(spec: CollectionSpec): FieldSpec[] {
   return spec.fields.filter((f) => f.writable !== false);
 }
 
+/* On update every field is optional — that is what a partial edit means. On
+   create the declared schema is enforced, minus the columns the server fills
+   in itself. Using the partial shape for both let a create with a missing NOT
+   NULL column past zod and into Postgres, where it surfaced as a 500 with raw
+   driver text instead of a field-level message. */
 function shape(spec: CollectionSpec, partial: boolean) {
   const obj: Record<string, z.ZodTypeAny> = {};
-  for (const f of writable(spec)) obj[f.column] = partial ? f.zod.optional() : f.zod;
+  for (const f of writable(spec)) {
+    obj[f.column] = partial || f.serverDefaulted ? f.zod.optional() : f.zod;
+  }
   return obj;
 }
 
@@ -75,7 +84,7 @@ export function collectionRouter(spec: CollectionSpec): Router {
   });
 
   const create = adminProcedure({
-    input: z.object(shape(spec, true)),
+    input: z.object(shape(spec, false)),
     handler: async (input) => {
       const fields = writable(spec).filter(
         (f) => (input as Record<string, unknown>)[f.column] !== undefined

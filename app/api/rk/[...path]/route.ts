@@ -17,6 +17,13 @@ import { recordError } from "@/lib/errorLog";
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
+/** Generous for JSON — an article body is the largest thing sent here. */
+const MAX_BODY_BYTES = 2_000_000;
+
+/** A ceiling for anyone who has not signed in, so the public procedures cannot
+ *  be used as a free amplifier. Signed-in work is limited per procedure. */
+const ANON_CALLS_PER_10_MIN = 60;
+
 export async function OPTIONS(req: NextRequest) {
   return new NextResponse(null, {
     status: 204,
@@ -71,6 +78,16 @@ export async function POST(
     if (procedure.auth === "owner" && admin?.role !== "owner") throw errors.forbidden();
     if (procedure.auth !== "public" && !hasDb()) throw errors.noDb();
 
+    if (!admin) {
+      const anon = rateLimit(`anon:${ip}`, ANON_CALLS_PER_10_MIN, 10 * 60 * 1000);
+      if (!anon.ok) {
+        return NextResponse.json(
+          { error: { code: "TOO_MANY", message: "محاولات كثيرة. حاولي بعد قليل." } },
+          { status: 429, headers: { ...cors, "Retry-After": String(anon.retryAfterSec) } }
+        );
+      }
+    }
+
     if (procedure.rateLimit) {
       const scope = procedure.rateLimit.scope || `${routerName}.${procedureName}`;
       // Signed-in callers are limited per account, anonymous ones per address.
@@ -87,11 +104,16 @@ export async function POST(
       }
     }
 
+    // Check the declared length BEFORE reading. Reading first and measuring
+    // afterwards means the process has already buffered whatever was sent.
+    const declared = Number(req.headers.get("content-length") || 0);
+    if (declared > MAX_BODY_BYTES) throw errors.badRequest("الطلب كبير جدًا.");
+
     let body: unknown = undefined;
     const text = await req.text();
     if (text) {
-      // A 2MB body is generous for JSON; anything larger is not a form.
-      if (text.length > 2_000_000) throw errors.badRequest("الطلب كبير جدًا.");
+      // A chunked request has no content-length, so measure again.
+      if (text.length > MAX_BODY_BYTES) throw errors.badRequest("الطلب كبير جدًا.");
       try {
         body = JSON.parse(text);
       } catch {
@@ -133,8 +155,18 @@ export async function POST(
     }
     const message = e instanceof Error ? e.message : "خطأ غير متوقع";
     await recordError(message, e instanceof Error ? e.stack : undefined, `${routerName}.${procedureName}`);
+
+    // A signed-in operator gets the real message — she is the one who has to
+    // act on it. Anyone else gets nothing: driver and API errors name hosts,
+    // schemas and tokens. The detail is in the error log either way.
+    const signedIn = hasDb() && !!(await adminFromToken(req.cookies.get(COOKIE_NAME)?.value).catch(() => null));
     return NextResponse.json(
-      { error: { code: "SERVER_ERROR", message } },
+      {
+        error: {
+          code: "SERVER_ERROR",
+          message: signedIn ? message : "حدث خطأ غير متوقع.",
+        },
+      },
       { status: 500, headers: cors }
     );
   }

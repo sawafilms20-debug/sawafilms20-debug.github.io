@@ -53,10 +53,24 @@ export const mediaRouter: Router = {
       altEn: z.string().max(500).nullable().optional(),
     }),
     handler: async (input) => {
+      // An omitted field is left alone; an explicitly empty one clears the text.
+      // COALESCE on both collapsed those two cases, so alt text could be set
+      // but never removed, and the request still answered 200.
+      const sets: string[] = [];
+      const params: unknown[] = [input.id];
+      if (input.altAr !== undefined) {
+        params.push(input.altAr?.trim() || null);
+        sets.push(`"altAr" = $${params.length}`);
+      }
+      if (input.altEn !== undefined) {
+        params.push(input.altEn?.trim() || null);
+        sets.push(`"altEn" = $${params.length}`);
+      }
+      if (!sets.length) throw errors.badRequest("لا يوجد ما يُحفَظ.");
+
       const row = await one(
-        `UPDATE media_assets SET "altAr" = COALESCE($2, "altAr"), "altEn" = COALESCE($3, "altEn")
-          WHERE id = $1 RETURNING ${COLS}`,
-        [input.id, input.altAr ?? null, input.altEn ?? null]
+        `UPDATE media_assets SET ${sets.join(", ")} WHERE id = $1 RETURNING ${COLS}`,
+        params
       );
       if (!row) throw errors.notFound("الملف غير موجود.");
       return row;

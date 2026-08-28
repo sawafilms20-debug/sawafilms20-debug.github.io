@@ -208,12 +208,14 @@ export const articlesRouter: Router = {
     }),
     handler: async ({ ids, status }) => {
       const rows = await dbq<{ id: number }>(
+        // $2 is cast explicitly: used both as a value and inside a comparison,
+        // Postgres otherwise refuses to deduce one type for the parameter.
         `UPDATE articles
-            SET status = $2,
+            SET status = $2::text,
                 "publishedAt" = CASE
-                  WHEN $2 = 'published' AND "publishedAt" IS NULL THEN now()
+                  WHEN $2::text = 'published' AND "publishedAt" IS NULL THEN now()
                   ELSE "publishedAt" END,
-                "scheduledAt" = CASE WHEN $2 = 'published' THEN NULL ELSE "scheduledAt" END
+                "scheduledAt" = CASE WHEN $2::text = 'published' THEN NULL ELSE "scheduledAt" END
           WHERE id = ANY($1::int[])
           RETURNING id`,
         [ids, status]
@@ -275,7 +277,7 @@ export const articlesRouter: Router = {
     handler: async ({ slug, exceptId }) => {
       if (!slugRx.test(slug)) return { available: false, reason: "format" as const };
       const row = await one(
-        `SELECT id FROM articles WHERE slug = $1 AND ($2::int IS NULL OR id <> $2)`,
+        `SELECT id FROM articles WHERE slug = $1 AND ($2::int IS NULL OR id <> $2::int)`,
         [slug, exceptId ?? null]
       );
       return { available: !row, reason: row ? ("taken" as const) : null };

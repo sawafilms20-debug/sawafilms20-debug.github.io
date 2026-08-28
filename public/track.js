@@ -74,5 +74,35 @@
       },
       true
     );
+
+    /* Runtime errors on the live site, so a page that breaks for visitors shows
+       up in the dashboard instead of only in someone's console. Capped at three
+       reports per page load: one broken handler in a loop would otherwise
+       hammer the endpoint from every visitor at once. */
+    var ERR_ENDPOINT = ENDPOINT.replace(/\/api\/track$/, "/api/error");
+    var errCount = 0;
+    function report(message, stack) {
+      if (errCount >= 3 || !message) return;
+      errCount++;
+      try {
+        fetch(ERR_ENDPOINT, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            message: String(message).slice(0, 2000),
+            stack: stack ? String(stack).slice(0, 4000) : undefined,
+            path: location.pathname,
+          }),
+          keepalive: true,
+        }).catch(function () {});
+      } catch (e) {}
+    }
+    window.addEventListener("error", function (e) {
+      report(e.message, e.error && e.error.stack);
+    });
+    window.addEventListener("unhandledrejection", function (e) {
+      var r = e.reason;
+      report(r && r.message ? r.message : String(r), r && r.stack);
+    });
   } catch (e) {}
 })();

@@ -24,6 +24,10 @@ import { otpauthUrl, randomBase32, totpVerify } from "@/lib/totp";
 const email = z.string().trim().toLowerCase().email().max(320);
 const password = z.string().min(1).max(200);
 
+/* A valid cost-12 bcrypt digest of a value nobody can supply, used only to give
+   the "no such account" path the same work as a real one. Exactly 60 chars. */
+const DUMMY_HASH = "$2a$12$" + "0".repeat(53);
+
 export const authRouter: Router = {
   login: publicProcedure({
     // Keyed on IP inside the dispatcher — never on the submitted email, which
@@ -42,12 +46,12 @@ export const authRouter: Router = {
         input.email || (process.env.ADMIN_EMAIL || "raheeqkanjo@gmail.com").toLowerCase();
       const user = await findByEmail(addr);
 
-      // Always run a comparison, so a missing account and a wrong password
-      // take the same time and the endpoint is not an account oracle.
-      const hash =
-        user?.passwordHash ||
-        "$2a$12$0000000000000000000000000000000000000000000000000000";
-      const passwordOk = await verifyPassword(input.password, hash);
+      // Always run a real comparison, so a missing account and a wrong password
+      // take the same time and the endpoint is not an account oracle. The
+      // placeholder has to be a WELL-FORMED 60-character bcrypt hash: bcryptjs
+      // returns false immediately for anything shorter, which turns the
+      // no-account path into a sub-millisecond answer next to a 250ms one.
+      const passwordOk = await verifyPassword(input.password, user?.passwordHash || DUMMY_HASH);
 
       if (!user || !passwordOk || !user.isActive) {
         throw errors.unauthorized("البريد أو كلمة المرور غير صحيحة.");
@@ -94,7 +98,7 @@ export const authRouter: Router = {
           email: ctx.admin.email,
           name: ctx.admin.name,
           role: ctx.admin.role,
-          twoFactor: !!ctx.admin.totpSecret,
+          twoFactor: ctx.admin.twoFactor,
         },
         dbConnected: hasDb(),
       };
@@ -122,7 +126,7 @@ export const authRouter: Router = {
 
   twoFactorStatus: adminProcedure({
     input: z.object({}).optional(),
-    handler: async (_input, ctx) => ({ enabled: !!ctx.admin.totpSecret }),
+    handler: async (_input, ctx) => ({ enabled: ctx.admin.twoFactor }),
   }),
 
   twoFactorSetup: adminProcedure({

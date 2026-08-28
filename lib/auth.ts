@@ -25,14 +25,19 @@ export type AdminUser = {
   name: string;
   role: AdminRole;
   isActive: boolean;
-  totpSecret: string | null;
+  /* Whether two-factor is on — never the secret itself. A shared type that
+     carries a live credential ends up serialised into some response sooner or
+     later; this one cannot be. */
+  twoFactor: boolean;
   lastLoginAt: string | null;
   createdAt: string;
 };
 
-type AdminRow = AdminUser & { passwordHash: string };
+/** Only for the sign-in path, which genuinely needs both secrets. */
+type AdminRow = Omit<AdminUser, "twoFactor"> & { passwordHash: string; totpSecret: string | null };
 
-const PUBLIC_COLUMNS = `id, email, name, role, "isActive", "totpSecret", "lastLoginAt", "createdAt"`;
+const SAFE_COLUMNS = `id, email, name, role, "isActive",
+  ("totpSecret" IS NOT NULL) AS "twoFactor", "lastLoginAt", "createdAt"`;
 
 export function hashPassword(plain: string): Promise<string> {
   return bcrypt.hash(plain, BCRYPT_COST);
@@ -94,8 +99,11 @@ export async function destroySession(token: string | undefined): Promise<void> {
   await dbq(`DELETE FROM admin_sessions WHERE token = $1`, [token]).catch(() => {});
 }
 
+/** Signs an account out everywhere. Deliberately NOT swallowing its error: a
+ *  password change that reports success while the old sessions survive is worse
+ *  than a password change that visibly failed. */
 export async function destroyAllSessions(adminId: number): Promise<void> {
-  await dbq(`DELETE FROM admin_sessions WHERE "adminId" = $1`, [adminId]).catch(() => {});
+  await dbq(`DELETE FROM admin_sessions WHERE "adminId" = $1`, [adminId]);
 }
 
 /** Resolves a session cookie to a live, enabled admin — re-reading the row
@@ -105,8 +113,9 @@ export async function adminFromToken(token: string | undefined): Promise<AdminUs
   if (!token || !hasDb()) return null;
   if (!/^[a-f0-9]{64}$/.test(token)) return null;
 
-  const row = await one<AdminRow & { expiresAt: string }>(
-    `SELECT u.id, u.email, u.name, u.role, u."isActive", u."totpSecret",
+  const row = await one<AdminUser & { expiresAt: string }>(
+    `SELECT u.id, u.email, u.name, u.role, u."isActive",
+            (u."totpSecret" IS NOT NULL) AS "twoFactor",
             u."lastLoginAt", u."createdAt", s."expiresAt"
        FROM admin_sessions s
        JOIN admin_users u ON u.id = s."adminId"
@@ -119,25 +128,29 @@ export async function adminFromToken(token: string | undefined): Promise<AdminUs
     return null;
   }
   if (!row.isActive) {
-    await destroyAllSessions(row.id);
+    // Best effort: the caller is already being refused, and a failed cleanup
+    // must not turn a correct rejection into a 500.
+    await destroyAllSessions(row.id).catch(() => {});
     return null;
   }
-  const { passwordHash: _ignored, ...user } = row as AdminRow;
-  void _ignored;
-  return user as AdminUser;
+  const { expiresAt: _expiresAt, ...user } = row;
+  void _expiresAt;
+  return user;
 }
 
 /* --------------------------------------------------------------------- users */
 
 export async function findByEmail(email: string): Promise<AdminRow | null> {
   return one<AdminRow>(
-    `SELECT ${PUBLIC_COLUMNS}, "passwordHash" FROM admin_users WHERE email = $1`,
+    `SELECT id, email, name, role, "isActive", "lastLoginAt", "createdAt",
+            "passwordHash", "totpSecret"
+       FROM admin_users WHERE email = $1`,
     [email.trim().toLowerCase()]
   );
 }
 
 export async function listAdmins(): Promise<AdminUser[]> {
-  return dbq<AdminUser>(`SELECT ${PUBLIC_COLUMNS} FROM admin_users ORDER BY id`);
+  return dbq<AdminUser>(`SELECT ${SAFE_COLUMNS} FROM admin_users ORDER BY id`);
 }
 
 export async function touchLogin(id: number): Promise<void> {

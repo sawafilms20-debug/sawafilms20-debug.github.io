@@ -18,15 +18,42 @@ export function hasDb(): boolean {
   return !!process.env.DATABASE_URL;
 }
 
+/* Whether to negotiate TLS.
+
+   Substring-matching the URL for "localhost" gets this wrong the moment a
+   connection string says 127.0.0.1 — the driver then offers SSL to a server
+   that does not speak it and every query fails with "the server does not
+   support SSL connections". Parse the host and decide on that, and let an
+   explicit sslmode in the string win over the guess. */
+function wantsSsl(url: string): boolean {
+  try {
+    const u = new URL(url);
+    const mode = u.searchParams.get("sslmode");
+    if (mode) return mode !== "disable";
+    const host = u.hostname.replace(/^\[|\]$/g, "");
+    if (host === "localhost" || host === "127.0.0.1" || host === "::1") return false;
+    if (host.endsWith(".railway.internal") || host.endsWith(".internal")) return false;
+    // A bare hostname with no dot is a container or service name on a private
+    // network, not something with a public certificate.
+    if (!host.includes(".")) return false;
+    return true;
+  } catch {
+    return true;
+  }
+}
+
 export function pool(): Pool {
   if (!process.env.DATABASE_URL) throw new Error("DATABASE_URL not set");
   if (!global._rkPool) {
     const url = process.env.DATABASE_URL;
-    const internal = url.includes(".railway.internal") || url.includes("localhost");
     global._rkPool = new Pool({
       connectionString: url,
-      ssl: internal ? undefined : { rejectUnauthorized: false },
-      max: 5,
+      // Railway's public proxy presents a certificate this process has no CA
+      // for; the connection is still encrypted, it is just not verified.
+      ssl: wantsSsl(url) ? { rejectUnauthorized: false } : false,
+      // Overridable so a single-connection local server (scripts/dev-postgres.mjs)
+      // can be driven by the same code that talks to Railway.
+      max: Number(process.env.DB_POOL_MAX) || 5,
       idleTimeoutMillis: 30000,
     });
     global._rkPool.on("error", () => {

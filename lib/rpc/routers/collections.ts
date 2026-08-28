@@ -24,8 +24,8 @@ export const servicesSpec: CollectionSpec = {
     { column: "icon", zod: optText(100) },
     { column: "coverImage", zod: optText(500) },
     { column: "priceNote", zod: optText(255) },
-    { column: "displayOrder", zod: z.number().int() },
-    { column: "isActive", zod: z.boolean() },
+    { column: "displayOrder", zod: z.number().int(), serverDefaulted: true },
+    { column: "isActive", zod: z.boolean(), serverDefaulted: true },
   ],
 };
 
@@ -44,8 +44,8 @@ export const testimonialsSpec: CollectionSpec = {
     { column: "company", zod: optText(255) },
     { column: "authorPhoto", zod: optText(500) },
     { column: "sourceUrl", zod: optText(500) },
-    { column: "displayOrder", zod: z.number().int() },
-    { column: "isVisible", zod: z.boolean() },
+    { column: "displayOrder", zod: z.number().int(), serverDefaulted: true },
+    { column: "isVisible", zod: z.boolean(), serverDefaulted: true },
   ],
 };
 
@@ -54,14 +54,14 @@ export const processStepsSpec: CollectionSpec = {
   orderColumn: "displayOrder",
   visibleColumn: "isVisible",
   fields: [
-    { column: "stepNumber", zod: z.number().int().min(1).max(99) },
+    { column: "stepNumber", zod: z.number().int().min(1).max(99), serverDefaulted: true },
     { column: "titleAr", zod: req(255) },
     { column: "titleEn", zod: optText(255) },
     { column: "descriptionAr", zod: long },
     { column: "descriptionEn", zod: long },
     { column: "icon", zod: optText(100) },
-    { column: "displayOrder", zod: z.number().int() },
-    { column: "isVisible", zod: z.boolean() },
+    { column: "displayOrder", zod: z.number().int(), serverDefaulted: true },
+    { column: "isVisible", zod: z.boolean(), serverDefaulted: true },
   ],
   // The numbers shown on the page (01, 02, …) must follow the order the
   // operator dragged them into, or reordering renumbers nothing.
@@ -85,8 +85,8 @@ export const faqSpec: CollectionSpec = {
     { column: "answerAr", zod: req(8000) },
     { column: "answerEn", zod: long },
     { column: "category", zod: optText(100) },
-    { column: "displayOrder", zod: z.number().int() },
-    { column: "isVisible", zod: z.boolean() },
+    { column: "displayOrder", zod: z.number().int(), serverDefaulted: true },
+    { column: "isVisible", zod: z.boolean(), serverDefaulted: true },
   ],
 };
 
@@ -100,8 +100,8 @@ export const statisticsSpec: CollectionSpec = {
     { column: "value", zod: req(50) },
     { column: "suffix", zod: optText(20) },
     { column: "icon", zod: optText(100) },
-    { column: "displayOrder", zod: z.number().int() },
-    { column: "isVisible", zod: z.boolean() },
+    { column: "displayOrder", zod: z.number().int(), serverDefaulted: true },
+    { column: "isVisible", zod: z.boolean(), serverDefaulted: true },
   ],
 };
 

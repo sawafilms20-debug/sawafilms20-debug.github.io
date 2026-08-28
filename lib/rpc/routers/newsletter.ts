@@ -47,8 +47,8 @@ export const newsletterRouter: Router = {
     handler: async ({ id, isActive }) => {
       const row = await one(
         `UPDATE newsletter_subscribers
-            SET "isActive" = $2,
-                "unsubscribedAt" = CASE WHEN $2 THEN NULL ELSE now() END
+            SET "isActive" = $2::boolean,
+                "unsubscribedAt" = CASE WHEN $2::boolean THEN NULL ELSE now() END
           WHERE id = $1 RETURNING ${COLS}`,
         [id, isActive]
       );

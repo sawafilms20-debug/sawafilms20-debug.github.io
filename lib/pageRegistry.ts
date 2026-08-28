@@ -192,7 +192,7 @@ export const PAGES: PageSpec[] = [
       { sectionKey: "method", contentKey: "step3", labelAr: "الخطوة ٣", selector: ".roadmap li:nth-child(3) .rm-label", defaultText: "أبحث حتى تحمل الكتابة مادة قوية", contentType: "text" },
       { sectionKey: "method", contentKey: "step4", labelAr: "الخطوة ٤", selector: ".roadmap li:nth-child(4) .rm-label", defaultText: "أرتب حتى يصبح المعنى واضحًا", contentType: "text" },
       { sectionKey: "method", contentKey: "step5", labelAr: "الخطوة ٥", selector: ".roadmap li:nth-child(5) .rm-label", defaultText: "ثم أكتب بصوت صاحب الخبرة", contentType: "text" },
-      { sectionKey: "workwith", contentKey: "title", labelAr: "عنوان قسم «أعمل مع»", selector: "section.chapter:nth-of-type(1) .ch-title", defaultText: "أعمل <em>مع</em>", contentType: "richtext" },
+      { sectionKey: "workwith", contentKey: "title", labelAr: "عنوان قسم «أعمل مع»", selector: "section.chapter:not(#certs) .ch-title", defaultText: "أعمل <em>مع</em>", contentType: "richtext" },
       { sectionKey: "workwith", contentKey: "audience1", labelAr: "الفئة ١", selector: ".tag-row:nth-of-type(1) li:nth-child(1)", defaultText: "خبراء ومديرين", contentType: "text" },
       { sectionKey: "workwith", contentKey: "audience2", labelAr: "الفئة ٢", selector: ".tag-row:nth-of-type(1) li:nth-child(2)", defaultText: "رواد أعمال", contentType: "text" },
       { sectionKey: "workwith", contentKey: "audience3", labelAr: "الفئة ٣", selector: ".tag-row:nth-of-type(1) li:nth-child(3)", defaultText: "علامات شخصية", contentType: "text" },
@@ -233,7 +233,6 @@ export const PAGES: PageSpec[] = [
       { sectionKey: "hero", contentKey: "ideaVideo", labelAr: "فكرة ٣: موضوع فيديو", selector: ".icon-list li:nth-child(3)", defaultText: "موضوع فيديو", contentType: "text" },
       { sectionKey: "hero", contentKey: "ideaCluster", labelAr: "فكرة ٤: مجموعة أفكار", selector: ".icon-list li:nth-child(4)", defaultText: "أو مجموعة أفكار تحتاج إلى ترتيب", contentType: "text" },
       { sectionKey: "hero", contentKey: "brief", labelAr: "سطر الدعوة تحت القائمة", selector: ".page-lead.strong", defaultText: "احكِ لي عن خبرتك، المشروع والجمهور الذي تريد الوصول إليه", contentType: "text" },
-      { sectionKey: "hero", contentKey: "headArt", labelAr: "الصورة الزخرفية أعلى الصفحة", selector: ".head-art", defaultText: "/art-letter.svg", contentType: "image" },
       { sectionKey: "form", contentKey: "nameLabel", labelAr: "عنوان حقل الاسم", selector: "label[for=\"cf-name\"] > span", defaultText: "الاسم", contentType: "text" },
       { sectionKey: "form", contentKey: "emailLabel", labelAr: "عنوان حقل البريد الإلكتروني", selector: "label[for=\"cf-email\"] > span", defaultText: "البريد الإلكتروني", contentType: "text" },
       { sectionKey: "form", contentKey: "messageLabel", labelAr: "عنوان حقل الرسالة", selector: "label[for=\"cf-message\"] > span", defaultText: "رسالتك", contentType: "text" },
@@ -299,6 +298,11 @@ export const SECTION_LABELS: Record<string, string> = {
   deliverables: "ما تحصل عليه",
   why: "لماذا",
   outcome: "النتيجة",
+  question: "السؤال",
+  ideas: "الأفكار",
+  workwith: "أعمل مع",
+  certs: "الشهادات والتعلّم",
+  types: "الأنواع",
 };
 
 export function sectionLabel(key: string): string {

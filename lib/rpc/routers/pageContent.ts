@@ -2,6 +2,7 @@ import { z } from "zod";
 import { adminProcedure, errors, type Router } from "../core";
 import { dbq, one } from "@/lib/db";
 import { PAGES, findEntry, findPage, sectionLabel } from "@/lib/pageRegistry";
+import { SITE_SETTING_KEYS } from "./settings";
 
 /* The mechanism behind "الصفحات": every string on the public site, offered for
    editing, with the site's own wording as the placeholder.
@@ -160,12 +161,13 @@ export const pageContentRouter: Router = {
   }),
 };
 
+type Override = { selector: string; type: string; value: string };
+
 export type ContentSnapshot = {
   generatedAt: string;
-  pages: Record<
-    string,
-    Array<{ selector: string; type: string; value: string }>
-  >;
+  /** Applied on every page: the logo, footer wording and contact links. */
+  global: Override[];
+  pages: Record<string, Override[]>;
   testimonials: unknown[];
   processSteps: unknown[];
   services: unknown[];
@@ -194,6 +196,19 @@ export async function contentSnapshot(): Promise<ContentSnapshot> {
     });
   }
 
+  const settings = await dbq<{ settingKey: string; settingValue: string | null }>(
+    `SELECT "settingKey", "settingValue" FROM site_settings`
+  );
+  const settingByKey = new Map(settings.map((r) => [r.settingKey, r.settingValue]));
+  const global: Override[] = [];
+  for (const spec of SITE_SETTING_KEYS) {
+    const value = settingByKey.get(spec.key);
+    if (!value) continue;
+    for (const t of spec.targets) {
+      global.push({ selector: t.selector, type: t.type, value: `${t.prefix ?? ""}${value}` });
+    }
+  }
+
   const [testimonials, processSteps, services, faq, statistics] = await Promise.all([
     dbq(`SELECT "quoteAr","authorName","authorTitleAr",company,"authorPhoto","sourceUrl"
            FROM testimonials WHERE "isVisible" ORDER BY "displayOrder", id`),
@@ -209,6 +224,7 @@ export async function contentSnapshot(): Promise<ContentSnapshot> {
 
   return {
     generatedAt: new Date().toISOString(),
+    global,
     pages,
     testimonials,
     processSteps,

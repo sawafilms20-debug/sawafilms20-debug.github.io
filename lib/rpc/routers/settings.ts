@@ -84,14 +84,66 @@ export const seoRouter: Router = {
 
 /* ------------------------------------------------------------ site settings */
 
-export const SITE_SETTING_KEYS = [
-  { key: "logo", label: "الشعار", type: "image" as const },
-  { key: "contactEmail", label: "البريد الإلكتروني", type: "text" as const },
-  { key: "linkedinUrl", label: "رابط LinkedIn", type: "url" as const },
-  { key: "whatsapp", label: "رقم واتساب", type: "text" as const },
-  { key: "footerTagline", label: "سطر التذييل", type: "text" as const },
-  { key: "footerLine", label: "جملة التذييل الختامية", type: "text" as const },
-  { key: "ogImage", label: "صورة المشاركة الافتراضية", type: "image" as const },
+/* Every key here is READ by something: `targets` names the elements the
+   published overlay rewrites, and `ogImage` is consumed by the publish step as
+   the fallback share image. A setting with no consumer is a control that
+   reports success and changes nothing, which is the one thing this screen must
+   never do — so there is no "WhatsApp number" here, because the site does not
+   show one anywhere. */
+export type SiteSettingSpec = {
+  key: string;
+  label: string;
+  type: "text" | "image" | "url";
+  hint?: string;
+  /** Selector + how to apply it, on every page. Empty when consumed elsewhere. */
+  targets: { selector: string; type: "text" | "image" | "url"; prefix?: string }[];
+};
+
+export const SITE_SETTING_KEYS: SiteSettingSpec[] = [
+  {
+    key: "logo",
+    label: "الشعار",
+    type: "image",
+    hint: "يظهر في أعلى كل صفحة وفي التذييل.",
+    targets: [
+      { selector: "nav .mark img", type: "image" },
+      { selector: ".foot-logo", type: "image" },
+    ],
+  },
+  {
+    key: "contactEmail",
+    label: "البريد الإلكتروني",
+    type: "text",
+    hint: "وجهة أيقونة البريد في التذييل.",
+    targets: [
+      { selector: '.foot-social a[href^="mailto:"]', type: "url", prefix: "mailto:" },
+    ],
+  },
+  {
+    key: "linkedinUrl",
+    label: "رابط LinkedIn",
+    type: "url",
+    targets: [{ selector: '.foot-social a[href*="linkedin.com"]', type: "url" }],
+  },
+  {
+    key: "footerTagline",
+    label: "سطر التعريف في التذييل",
+    type: "text",
+    targets: [{ selector: ".foot-tag", type: "text" }],
+  },
+  {
+    key: "footerLine",
+    label: "الجملة الختامية في التذييل",
+    type: "text",
+    targets: [{ selector: ".foot-line", type: "text" }],
+  },
+  {
+    key: "ogImage",
+    label: "صورة المشاركة الافتراضية",
+    type: "image",
+    hint: "تُستخدم لأي صفحة لم تُحدَّد لها صورة مشاركة خاصة.",
+    targets: [],
+  },
 ];
 
 export const siteSettingsRouter: Router = {
@@ -104,7 +156,10 @@ export const siteSettingsRouter: Router = {
       const byKey = new Map(rows.map((r) => [r.settingKey, r]));
       return {
         items: SITE_SETTING_KEYS.map((s) => ({
-          ...s,
+          key: s.key,
+          label: s.label,
+          type: s.type,
+          hint: s.hint ?? null,
           value: byKey.get(s.key)?.settingValue ?? null,
         })),
       };

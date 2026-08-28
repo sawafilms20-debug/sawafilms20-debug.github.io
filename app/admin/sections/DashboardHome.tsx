@@ -1,143 +1,246 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
-import { SITE_URL } from "../config";
-import { type PostFile, type Lead, LEADS_PATH, loadPosts, readJson, relativeTime } from "../lib";
-import { IconBlog, IconProjects, IconLeads } from "../icons";
+import { useCallback, useEffect, useRef, useState } from "react";
+import { rpc, RpcError } from "../rpc";
+import type { SectionProps } from "../types";
+import { EmptyState, Loading, TrendChart, formatDate, relativeTime } from "../ui";
 
-type Section = "blog" | "projects" | "leads" | "analytics";
+type Enquiry = {
+  id: number;
+  name: string;
+  email: string;
+  message: string;
+  status: string;
+  createdAt: string;
+};
 
-export default function DashboardHome({
-  onErr,
-  goTo,
-  counts,
-}: {
-  onErr: (e: string) => void;
-  goTo: (s: Section) => void;
-  counts: { posts: number; drafts: number; projects: number; unread: number };
-}) {
-  const [posts, setPosts] = useState<PostFile[]>([]);
-  const [leads, setLeads] = useState<Lead[]>([]);
+type Scheduled = { id: number; slug: string; titleAr: string; scheduledAt: string };
+
+type Summary = {
+  views30d: number;
+  visitors30d: number;
+  published: number;
+  drafts: number;
+  enquiriesAwaiting: number;
+  enquiriesTotal: number;
+  openErrors: number;
+  series: { d: string; n: string }[];
+  recentEnquiries: Enquiry[];
+  scheduledArticles: Scheduled[];
+};
+
+const STATUS_LABEL: Record<string, string> = {
+  new: "جديدة",
+  read: "مقروءة",
+  replied: "تم الرد",
+  archived: "مؤرشفة",
+};
+
+/* Western digits everywhere in the dashboard, as in the charts and the strip. */
+const en = (n: number) => n.toLocaleString("en");
+
+export default function DashboardHome({ toast, goTo }: SectionProps) {
+  const [data, setData] = useState<Summary | null>(null);
   const [loading, setLoading] = useState(true);
+  const [err, setErr] = useState("");
+  const alive = useRef(true);
 
   const load = useCallback(async () => {
     setLoading(true);
     try {
-      const [p, ld] = await Promise.all([
-        loadPosts().catch(() => [] as PostFile[]),
-        readJson<Lead[]>(LEADS_PATH, []).then((r) => r.data).catch(() => [] as Lead[]),
-      ]);
-      setPosts(p);
-      const ls = Array.isArray(ld) ? ld : [];
-      ls.sort((a, b) => (a.date < b.date ? 1 : -1));
-      setLeads(ls);
-    } catch (e: unknown) {
-      onErr(`تعذّر تحميل البيانات — ${e instanceof Error ? e.message : e}`);
+      const r = await rpc.dashboard.summary<Summary>();
+      if (!alive.current) return;
+      setData(r);
+      setErr("");
+    } catch (e) {
+      if (!alive.current) return;
+      const msg = e instanceof RpcError ? e.message : "تعذّر تحميل ملخّص اللوحة.";
+      setErr(msg);
+      toast(msg, "bad");
     } finally {
-      setLoading(false);
+      if (alive.current) setLoading(false);
     }
-  }, [onErr]);
+  }, [toast]);
 
   useEffect(() => {
+    alive.current = true;
     load();
+    return () => {
+      alive.current = false;
+    };
   }, [load]);
 
-  const cards = [
-    { Icon: IconBlog, n: counts.posts, label: "مقالات منشورة", sub: `${posts.filter((p) => p.status !== "draft" && p.lang === "en").length} EN · ${posts.filter((p) => p.status !== "draft" && p.lang === "ar").length} AR`, go: () => goTo("blog") },
-    { Icon: IconBlog, n: counts.drafts, label: "مسودات", sub: "بانتظار النشر", go: () => goTo("blog") },
-    { Icon: IconProjects, n: counts.projects, label: "مشاريع", sub: "على موقعك", go: () => goTo("projects") },
-    { Icon: IconLeads, n: counts.unread, label: "رسائل جديدة", sub: `${leads.length} إجمالًا`, go: () => goTo("leads") },
-  ];
+  if (!data) {
+    return loading ? (
+      <Loading label="جارٍ تحميل اللوحة…" />
+    ) : (
+      <div className="adm-panel">
+        <p className="adm-err" role="alert">
+          {err || "تعذّر تحميل ملخّص اللوحة."}
+        </p>
+        <button className="btn btn-gold" onClick={load}>
+          إعادة المحاولة
+        </button>
+      </div>
+    );
+  }
+
+  const enquiriesPanel = (
+    <section className="adm-panel">
+      <div className="adm-panel-head">
+        <h2>أحدث الرسائل</h2>
+        <button className="adm-link" onClick={() => goTo("enquiries")}>
+          كل الرسائل ←
+        </button>
+      </div>
+      {data.recentEnquiries.length ? (
+        <div className="adm-list">
+          {data.recentEnquiries.map((e) => (
+            /* .adm-item was written for a div, so the button needs the UA font,
+               alignment and cursor put back — nothing the class already sets. */
+            <button
+              key={e.id}
+              type="button"
+              className="adm-item"
+              style={{ font: "inherit", textAlign: "start", cursor: "pointer" }}
+              onClick={() => goTo("enquiries")}
+            >
+              <span className="adm-item-main">
+                <span className="adm-item-title">{e.name}</span>
+                <span className="adm-item-sub" dir="auto" style={{ WebkitLineClamp: 1 }}>
+                  {e.message}
+                </span>
+              </span>
+              <span className="adm-item-actions">
+                <span className={`adm-chip ${STATUS_LABEL[e.status] ? e.status : ""}`}>
+                  {STATUS_LABEL[e.status] || e.status}
+                </span>
+                <span className="adm-item-meta">{relativeTime(e.createdAt)}</span>
+              </span>
+            </button>
+          ))}
+        </div>
+      ) : (
+        <EmptyState
+          title="لا رسائل بعد"
+          body="كل رسالة تصل من نموذج التواصل على الموقع تظهر هنا، ومن الصندوق تردّين عليها وتؤرشفينها."
+          actionLabel="فتح صندوق الرسائل"
+          onAction={() => goTo("enquiries")}
+        />
+      )}
+    </section>
+  );
+
+  const scheduledPanel = data.scheduledArticles.length ? (
+    <section className="adm-panel">
+      <div className="adm-panel-head">
+        <h2>مجدولة للنشر</h2>
+        <button className="adm-link" onClick={() => goTo("articles")}>
+          كل المقالات ←
+        </button>
+      </div>
+      <div className="adm-list">
+        {data.scheduledArticles.map((a) => (
+          <div key={a.id} className="adm-item">
+            <div className="adm-item-main">
+              <p className="adm-item-title">{a.titleAr}</p>
+              <p className="adm-item-sub" dir="ltr">
+                {a.slug}
+              </p>
+            </div>
+            <div className="adm-item-actions">
+              <span className="adm-chip scheduled">{formatDate(a.scheduledAt)}</span>
+            </div>
+          </div>
+        ))}
+      </div>
+    </section>
+  ) : null;
 
   return (
     <>
-      <div className="adm-stats">
-        {cards.map((c) => (
-          <button className="adm-stat-card" key={c.label} onClick={c.go}>
-            <span className="adm-stat-icon"><c.Icon /></span>
-            <b>{c.n}</b>
-            <span className="adm-stat-label">{c.label}</span>
-            <small>{c.sub}</small>
+      <div className="adm-strip">
+        <StripCell
+          n={data.views30d}
+          label="مشاهدة خلال 30 يومًا"
+          sub={`${en(data.visitors30d)} زائرًا فريدًا`}
+        />
+        <StripCell
+          n={data.enquiriesAwaiting}
+          label="رسالة تنتظر ردًا"
+          sub={`من أصل ${en(data.enquiriesTotal)} رسالة`}
+          urgent={data.enquiriesAwaiting > 0}
+          onClick={() => goTo("enquiries")}
+        />
+        <StripCell n={data.published} label="مقالة منشورة" onClick={() => goTo("articles")} />
+        <StripCell n={data.drafts} label="مسودة" onClick={() => goTo("articles")} />
+      </div>
+
+      <section className="adm-panel">
+        <div className="adm-panel-head">
+          <div>
+            <p className="adm-panel-title">آخر 30 يومًا</p>
+            <h2>حركة الزوار</h2>
+          </div>
+          <button className="adm-link" onClick={load} disabled={loading}>
+            {loading ? "جارٍ التحديث…" : "تحديث"}
           </button>
-        ))}
-      </div>
+        </div>
+        <TrendChart series={data.series} label="المشاهدات" />
+        {err && (
+          <p className="adm-err" role="alert">
+            {err}
+          </p>
+        )}
+      </section>
 
-      <div className="adm-cols">
-        <section>
-          <div className="adm-col-head">
-            <h3>أحدث المقالات</h3>
-            <button className="adm-link" onClick={() => goTo("blog")}>كل المقالات ←</button>
-          </div>
-          <div className="adm-table">
-            {loading ? (
-              [0, 1, 2].map((i) => (
-                <div className="adm-row adm-skel-row" key={i}>
-                  <div className="adm-skel" style={{ width: "50%", height: 15 }} />
-                  <div className="adm-skel" style={{ width: 90, height: 13 }} />
-                </div>
-              ))
-            ) : posts.length === 0 ? (
-              <div className="adm-empty"><p className="adm-muted">لا توجد مقالات بعد.</p></div>
-            ) : (
-              posts.slice(0, 5).map((p) =>
-                p.status !== "draft" ? (
-                  <a key={p.slug} className="adm-row adm-row-link" href={`${SITE_URL}/blog/p/?s=${p.slug}`} target="_blank" rel="noopener">
-                    <PostRow p={p} />
-                  </a>
-                ) : (
-                  <button key={p.slug} className="adm-row adm-row-link" onClick={() => goTo("blog")}>
-                    <PostRow p={p} />
-                  </button>
-                )
-              )
-            )}
-          </div>
-        </section>
+      {scheduledPanel ? (
+        <div className="adm-grid-2">
+          {enquiriesPanel}
+          {scheduledPanel}
+        </div>
+      ) : (
+        enquiriesPanel
+      )}
 
-        <section>
-          <div className="adm-col-head">
-            <h3>أحدث الرسائل</h3>
-            <button className="adm-link" onClick={() => goTo("leads")}>الصندوق ←</button>
-          </div>
-          <div className="adm-table">
-            {loading ? (
-              [0, 1].map((i) => (
-                <div className="adm-row adm-skel-row" key={i}>
-                  <div className="adm-skel" style={{ width: "40%", height: 15 }} />
-                  <div className="adm-skel" style={{ width: "80%", height: 13 }} />
-                </div>
-              ))
-            ) : leads.length === 0 ? (
-              <div className="adm-empty"><p className="adm-muted">لا رسائل بعد. رسائل نموذج التواصل ستظهر هنا.</p></div>
-            ) : (
-              leads.slice(0, 4).map((l) => (
-                <button key={l.id} className={`adm-row adm-row-link ${l.read ? "" : "adm-unread"}`} onClick={() => goTo("leads")}>
-                  <div className="adm-row-main">
-                    <b>{!l.read && <span className="adm-dot" />} {l.name}</b>
-                    <small dir="auto">
-                      {l.message?.length > 60 ? `${l.message.slice(0, 60)}…` : l.message}
-                      {" · "}
-                      {relativeTime(l.date)}
-                    </small>
-                  </div>
-                </button>
-              ))
-            )}
-          </div>
-        </section>
-      </div>
+      {data.openErrors > 0 && (
+        <p className="adm-note">
+          {en(data.openErrors)} خطأ لم يُعالَج بعد على الموقع المنشور.{" "}
+          <button className="adm-link" onClick={() => goTo("errorLog")}>
+            افتحي سجل الأخطاء ←
+          </button>
+        </p>
+      )}
     </>
   );
 }
 
-function PostRow({ p }: { p: PostFile }) {
+function StripCell({
+  n,
+  label,
+  sub,
+  urgent,
+  onClick,
+}: {
+  n: number;
+  label: string;
+  sub?: string;
+  urgent?: boolean;
+  onClick?: () => void;
+}) {
+  const num = <span className="adm-strip-num">{en(n)}</span>;
   return (
-    <div className="adm-row-main">
-      <b>{p.title}</b>
-      <small>
-        <span className={`adm-badge ${p.status}`}>{p.status === "draft" ? "مسودة" : "منشور"}</span>{" "}
-        {p.date} · {p.lang === "en" ? "EN" : "AR"}
-      </small>
+    <div className={`adm-strip-cell ${urgent ? "urgent" : ""}`}>
+      {onClick ? (
+        // The figure itself is the control; on its own it reads as a bare number.
+        <button type="button" onClick={onClick} aria-label={`${en(n)} ${label}`}>
+          {num}
+        </button>
+      ) : (
+        num
+      )}
+      <span className="adm-strip-label">{label}</span>
+      {sub && <span className="adm-strip-label">{sub}</span>}
     </div>
   );
 }

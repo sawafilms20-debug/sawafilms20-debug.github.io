@@ -124,7 +124,14 @@ export function toCsv(rows: Record<string, unknown>[]): string {
   if (!rows.length) return "";
   const headers = Object.keys(rows[0]);
   const cell = (v: unknown) => {
-    const s = v === null || v === undefined ? "" : String(v);
+    // node-postgres returns TIMESTAMPTZ as a Date; String() on one gives a
+    // locale-flavoured JS date string that no spreadsheet parses reliably.
+    const s =
+      v === null || v === undefined
+        ? ""
+        : v instanceof Date
+          ? v.toISOString()
+          : String(v);
     // A leading =, +, - or @ makes a spreadsheet treat the cell as a formula.
     const safe = /^[=+\-@]/.test(s) ? `'${s}` : s;
     return `"${safe.replace(/"/g, '""')}"`;

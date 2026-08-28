@@ -40,6 +40,11 @@ export async function readRepoFile(path: string): Promise<string | null> {
   return r.ok ? r.text() : null;
 }
 
+/** Lists a directory. A missing directory is an empty list; ANY other failure
+ *  throws. Returning [] on an expired token or a 5xx would tell the publish
+ *  step that nothing is published, and it would then compute deletions — or
+ *  skip its safety checks — against a picture of the repository that is simply
+ *  wrong. */
 export async function listDir(
   token: string,
   path: string
@@ -47,7 +52,11 @@ export async function listDir(
   const r = await fetch(`${API}/contents/${path}?ref=${GH_BRANCH}`, {
     headers: headers(token),
   });
-  if (!r.ok) return [];
+  if (r.status === 404) return [];
+  if (!r.ok) {
+    const e = (await r.json().catch(() => ({}))) as { message?: string };
+    throw new Error(`GitHub ${r.status} listing ${path}: ${e.message || r.statusText}`);
+  }
   const items = await r.json();
   return Array.isArray(items) ? items : [];
 }
