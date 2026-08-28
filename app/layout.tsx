@@ -28,8 +28,8 @@ export const metadata: Metadata = {
     images: ["/og-image.jpg"],
   },
   icons: {
-    icon: "/icon.svg",
-    apple: "/apple-touch-icon.png",
+    icon: "/icon.svg?v=3",
+    apple: "/apple-touch-icon.png?v=3",
   },
   appleWebApp: { title: "رحيق كنجو", capable: false },
   twitter: {
