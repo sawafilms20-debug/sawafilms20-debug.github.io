@@ -11,8 +11,8 @@ export default function SiteFooter() {
             className="foot-logo"
             src="/logo-raheeq.webp"
             alt="رحيق كنجو"
-            width={717}
-            height={379}
+            width={360}
+            height={470}
             loading="lazy"
           />
           <span className="foot-tag">كاتبة محتوى تسويقي مختصة باستراتيجيات المحتوى للخبراء العرب</span>

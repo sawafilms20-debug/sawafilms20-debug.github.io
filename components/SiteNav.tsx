@@ -19,7 +19,7 @@ export default function SiteNav({ solid = false }: { solid?: boolean }) {
     <nav id="nav" className={`${solid ? "scrolled" : ""} ${open ? "nav-open" : ""}`.trim() || undefined}>
       <div className="nav-in">
         <Link className="mark" href="/" onClick={close}>
-          <img src="/logo-raheeq.webp" alt="رحيق" width={717} height={379} />
+          <img src="/logo-raheeq.webp" alt="رحيق" width={360} height={470} />
         </Link>
         <div className="nav-links" id="nav-menu">
           <Link href="/linkedin" onClick={close}>LinkedIn</Link>
