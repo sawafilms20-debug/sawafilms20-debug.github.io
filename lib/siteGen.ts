@@ -153,12 +153,12 @@ export function renderPostPage(p: Post, sh: Shell) {
 }
 
 export function renderBlogIndex(posts: Post[], sh: Shell) {
-  const head = `<title>المدونة | ${BRAND}</title>
-<meta name="description" content="مقالات عن الكتابة، السرد، واستراتيجية المحتوى بقلم ${BRAND}."/>
+  const head = `<title>خلينا نحكي محتوى | ${BRAND}</title>
+<meta name="description" content="مدونتي هي مساحة أكبر لأفكاري وتجاربي في المحتوى، القصص، وبناء الحضور الرقمي للخبراء العرب بأبسط طريقة ممكنة."/>
 <link rel="canonical" href="${SITE}/blog/"/>
 <meta property="og:type" content="website"/>
-<meta property="og:title" content="المدونة | ${BRAND}"/>
-<meta property="og:description" content="مقالات عن الكتابة، السرد، واستراتيجية المحتوى."/>
+<meta property="og:title" content="خلينا نحكي محتوى | ${BRAND}"/>
+<meta property="og:description" content="مساحة أكبر لأفكاري وتجاربي في المحتوى، القصص، وبناء الحضور الرقمي للخبراء العرب."/>
 <meta property="og:url" content="${SITE}/blog/"/>
 <meta property="og:image" content="${SITE}/og-image.jpg"/>`;
 
@@ -182,11 +182,42 @@ export function renderBlogIndex(posts: Post[], sh: Shell) {
     .join("\n");
 
   const body = `<main id="main" class="wrap page">
-<h1 class="page-title">مقالات عن الكتابة والسرد</h1>
-<p class="page-lead">أكتب هنا عمّا تعلّمته من سنواتٍ في صناعة المحتوى العربي.</p>
+<h1 class="page-title">خلينا نحكي <em>محتوى</em></h1>
+<p class="page-lead">مدونتي هي مساحة أكبر لأفكاري وتجاربي في المحتوى، القصص، وبناء الحضور الرقمي للخبراء العرب بأبسط طريقة ممكنة</p>
 <div class="blog-grid">
 ${posts.length ? cards : "<p class='page-lead'>لا توجد مقالات بعد.</p>"}
 </div>
+<section class="subscribe">
+  <h2>اشترك وخلينا نحكي محتوى</h2>
+  <form class="sub-form" id="sub-form" novalidate>
+    <label class="sub-field" for="sub-email"><span>بريدك الإلكتروني</span>
+      <input id="sub-email" name="email" type="email" dir="ltr" autocomplete="email" required/>
+    </label>
+    <button class="btn btn-gold" type="submit">اشترك</button>
+    <p class="sub-status" role="status" aria-live="polite"></p>
+  </form>
+</section>
+<script>
+(function(){
+  var f=document.getElementById('sub-form');if(!f)return;
+  var st=f.querySelector('.sub-status'),btn=f.querySelector('button');
+  var api=(location.hostname==='raheeqkanjo.com'||location.hostname==='www.raheeqkanjo.com')
+    ? 'https://rak-production.up.railway.app/api/leads' : '/api/leads';
+  f.addEventListener('submit',function(e){
+    e.preventDefault();
+    var email=(f.email.value||'').trim();
+    if(!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)){st.textContent='الرجاء إدخال بريد إلكتروني صحيح';return;}
+    btn.disabled=true;btn.textContent='جارٍ الاشتراك…';st.textContent='';
+    fetch(api,{method:'POST',headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({name:'مشترك في المدونة',email:email,message:'طلب اشتراك في المدونة',source:'blog-subscribe'})})
+      .then(function(r){
+        if(r.ok){f.reset();btn.textContent='تم الاشتراك ✓';st.textContent='وصلني اشتراكك، سأكتب لك قريبًا';}
+        else{btn.disabled=false;btn.textContent='اشترك';st.textContent='تعذّر الاشتراك، حاول مرة أخرى';}
+      })
+      .catch(function(){btn.disabled=false;btn.textContent='اشترك';st.textContent='تعذّر الاشتراك، تحقق من اتصالك';});
+  });
+})();
+</script>
 </main>`;
 
   return shell({ lang: "ar", head, body, shell: sh });

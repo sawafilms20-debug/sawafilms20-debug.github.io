@@ -1,12 +1,21 @@
 import type { Metadata } from "next";
 import SiteNav from "@/components/SiteNav";
 import SiteFooter from "@/components/SiteFooter";
+import SubscribeForm from "@/components/SubscribeForm";
 import BlogList from "./BlogList";
 
 export const metadata: Metadata = {
-  title: "المدونة | رحيق كنجو",
+  title: "خلينا نحكي محتوى | رحيق كنجو",
   description:
-    "مقالات في صنعة المحتوى: الكتابة التسويقية، السرد القصصي، الغوست رايتنغ، واستراتيجيات المحتوى للخبراء والشركات العربية.",
+    "مدونتي هي مساحة أكبر لأفكاري وتجاربي في المحتوى، القصص، وبناء الحضور الرقمي للخبراء العرب بأبسط طريقة ممكنة.",
+  openGraph: {
+    type: "website",
+    locale: "ar_AR",
+    title: "خلينا نحكي محتوى | رحيق كنجو",
+    description:
+      "مساحة أكبر لأفكاري وتجاربي في المحتوى، القصص، وبناء الحضور الرقمي للخبراء العرب.",
+    images: ["/og-image.jpg"],
+  },
 };
 
 export default function BlogPage() {
@@ -16,14 +25,18 @@ export default function BlogPage() {
       <main id="main" className="wrap page-head">
         <div className="ch-head">
           <h1 className="ch-title">
-            مقالات في <em>صنعة المحتوى</em>
+            خلينا نحكي <em>محتوى</em>
           </h1>
           <p className="page-lead">
-            من دفتر الحرفة: عن الكتابة التسويقية، والسرد الذي يبيع، وبناء العلامات
-            الشخصية بالمحتوى.
+            مدونتي هي مساحة أكبر لأفكاري وتجاربي في المحتوى، القصص، وبناء الحضور الرقمي
+            للخبراء العرب بأبسط طريقة ممكنة
           </p>
         </div>
         <BlogList />
+        <section className="subscribe">
+          <h2>اشترك وخلينا نحكي محتوى</h2>
+          <SubscribeForm />
+        </section>
       </main>
       <SiteFooter />
     </>
