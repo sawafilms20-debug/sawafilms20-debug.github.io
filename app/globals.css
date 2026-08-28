@@ -925,7 +925,7 @@ textarea.cf-in{resize:vertical;line-height:1.8}
   font-size:clamp(22px,3vw,34px);line-height:1.35;margin:10px 0 4px}
 .hero-title-xl{font-size:clamp(28px,4.4vw,52px);line-height:1.28;color:var(--espresso)}
 .hero .hero-choice{font-size:clamp(20px,2.6vw,30px);color:var(--espresso)}
-.choice-word{color:inherit;font-weight:800}
+.choice-word{color:var(--gold-deep);font-weight:800}
 .hero .hero-grid{margin-top:clamp(26px,4vw,44px)}
 .hero-title .line{display:block;white-space:nowrap}
 @media(max-width:560px){.hero-title .line{white-space:normal}}
@@ -1344,8 +1344,14 @@ section.chapter::before{content:"";display:block;width:min(180px,42%);height:1px
 .stage-photo img{
   position:static;width:100%;height:auto;transform:none;
   object-fit:contain;border:0;border-radius:0;box-shadow:none;
-  filter:drop-shadow(0 20px 28px rgba(70,55,30,.26));
+  /* the cutout's bbox slices straight through the coat, so dissolve that edge
+     into the page rather than let it read as a cut. no drop-shadow here: a
+     mask is clipped to the border box, so it would shear the shadow's sides */
+  filter:none;
+  -webkit-mask-image:var(--fade-out);mask-image:var(--fade-out);
 }
+.stage-photo{--fade-out:linear-gradient(180deg,#000 0,#000 54%,rgba(0,0,0,.88) 70%,
+  rgba(0,0,0,.5) 84%,rgba(0,0,0,.16) 94%,transparent 100%)}
 .stage-photo:hover img{transform:none}
 
 .portrait-free{isolation:isolate}
@@ -1378,7 +1384,39 @@ section.chapter::before{content:"";display:block;width:min(180px,42%);height:1px
 
 /* ===== hero: the name line rides above the headline, as a gold eyebrow ===== */
 .hero-text .type-row{margin:0 0 8px}
-/* --gold-text, not --gold-deep: at 18px the brighter gold only clears 3.04:1 */
-.hero-text .type-row,.hero-text .type-row .pre{color:var(--gold-text)}
+.hero-text .type-row,.hero-text .type-row .pre,.hero-text #typed{color:var(--gold-deep)}
+/* the bright gold is 3.04:1 on ivory, which only passes AA as *large* text, so
+   the prefix is pushed to 19.7px/600 to qualify instead of being shrunk to 18px/400 */
+.hero-text .type-row .pre{font-size:.82em;font-weight:600}
 /* the turn in the sentence carries the colour: what they don't see, then what they do */
 .hl-gold{color:var(--gold-deep)}
+
+/* ===== about head: the ideas arrive on a thread, each one seeded in gold ===== */
+.seed-list{
+  list-style:none;padding:0;margin:clamp(18px,2.6vw,26px) 0 0;
+  display:grid;gap:11px;max-width:56ch;position:relative;
+}
+.seed-list::before{                       /* the thread the seeds hang from */
+  content:"";position:absolute;inset-inline-start:4.5px;top:14px;bottom:14px;width:1px;
+  background:linear-gradient(180deg,transparent,var(--gold-soft) 14%,var(--gold-soft) 86%,transparent);
+}
+.seed-list li{
+  position:relative;padding-inline-start:24px;
+  font-size:17px;color:var(--muted);line-height:1.55;
+}
+.seed-list li::before{
+  content:"";position:absolute;inset-inline-start:0;top:.6em;
+  width:10px;height:10px;border-radius:50%;
+  background:var(--gold);box-shadow:0 0 0 3.5px rgba(199,154,59,.15);
+}
+.seed-list li:last-child::before{background:var(--gold-deep);box-shadow:0 0 0 4.5px rgba(199,154,59,.2)}
+
+.page-head .page-lead.strong{
+  position:relative;margin-top:clamp(22px,3vw,30px);padding-inline-start:18px;
+  font-family:var(--font-messiri),serif;font-size:clamp(18px,2vw,21px);
+  color:var(--espresso);line-height:1.5;
+}
+.page-head .page-lead.strong::before{
+  content:"";position:absolute;inset-inline-start:0;top:.12em;bottom:.12em;width:3px;border-radius:3px;
+  background:linear-gradient(180deg,var(--gold),var(--gold-soft));
+}
