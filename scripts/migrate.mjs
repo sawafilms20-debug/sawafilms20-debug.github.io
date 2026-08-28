@@ -12,11 +12,26 @@
    path retries the runner through `migrate()`, and a migration problem must not
    take the whole site down. */
 
-import { MIGRATIONS } from "../lib/migrations.ts";
-
 const url = process.env.DATABASE_URL;
 if (!url) {
   console.log("[rk] no DATABASE_URL — skipping migrations");
+  process.exit(0);
+}
+
+/* Imported dynamically, and only once we know there is work to do. This is a
+   .ts file, which Node can only load where type stripping is available (22.6+).
+   As a STATIC import it threw before the check above ever ran, on a host whose
+   Node was older — and because the start command chained with &&, the server
+   then never started at all. Nothing here is allowed to stop the app booting:
+   migrate() in lib/db.ts runs the same list from inside Next, where the
+   TypeScript is already compiled, so the migrations still get applied on the
+   first request that touches the database. */
+let MIGRATIONS;
+try {
+  ({ MIGRATIONS } = await import("../lib/migrations.ts"));
+} catch (e) {
+  console.error("[rk] could not load the migration list:", e instanceof Error ? e.message : e);
+  console.error("[rk] starting anyway; the first database request will apply them");
   process.exit(0);
 }
 

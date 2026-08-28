@@ -5,7 +5,7 @@
   "scripts": {
     "dev": "next dev",
     "build": "next build",
-    "start": "node scripts/migrate.mjs && next start -H 0.0.0.0 -p ${PORT:-3000}",
+    "start": "node scripts/migrate.mjs; next start -H 0.0.0.0 -p ${PORT:-3000}",
     "typecheck": "tsc --noEmit",
     "db:check": "node scripts/dbcheck.mjs",
     "check": "npm run typecheck && npm run db:check && npm run check:selectors && npm run build",
@@ -35,5 +35,8 @@
     "@types/react-dom": "^19.0.0",
     "node-html-parser": "^9.0.2",
     "typescript": "^5.6.0"
+  },
+  "engines": {
+    "node": ">=22.6"
   }
 }
