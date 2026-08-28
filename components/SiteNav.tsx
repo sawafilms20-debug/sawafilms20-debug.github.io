@@ -22,9 +22,22 @@ export default function SiteNav({ solid = false }: { solid?: boolean }) {
           <img src="/logo-raheeq.webp" alt="رحيق" width={360} height={470} />
         </Link>
         <div className="nav-links" id="nav-menu">
-          <Link href="/linkedin" onClick={close}>بناء علامتك الشخصية على LinkedIn</Link>
-          <Link href="/articles" onClick={close}>خدمة كتابة المقالات</Link>
-          <Link href="/scripts" onClick={close}>خدمة كتابة سيناريو الفيديو</Link>
+          <Link href="/" onClick={close}>الرئيسية</Link>
+          <div className="nav-group">
+            {/* opens on hover and on focus-within, so it needs no javascript and
+                works the same in the static snapshot as it does here */}
+            <button type="button" className="nav-group-btn" aria-haspopup="true">
+              خدمات
+              <svg viewBox="0 0 24 24" aria-hidden="true" className="nav-caret">
+                <path d="m6 9 6 6 6-6" />
+              </svg>
+            </button>
+            <div className="nav-drop">
+              <Link href="/linkedin" onClick={close}>بناء علامتك الشخصية على LinkedIn</Link>
+              <Link href="/articles" onClick={close}>خدمة كتابة المقالات</Link>
+              <Link href="/scripts" onClick={close}>خدمة كتابة سيناريو الفيديو</Link>
+            </div>
+          </div>
           <Link href="/blog" onClick={close}>المدونة</Link>
           <Link href="/about" onClick={close}>عني</Link>
         </div>
