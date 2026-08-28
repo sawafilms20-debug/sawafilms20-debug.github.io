@@ -143,6 +143,9 @@
 
   function apply(data) {
     var key = pageKey();
+    // Site-wide values — logo, footer wording, contact links — live on every
+    // page, so they are applied whether or not this route is in the registry.
+    if (data.global) data.global.forEach(applyOne);
     if (key && data.pages && data.pages[key]) data.pages[key].forEach(applyOne);
     if (key === "home") {
       renderTestimonials(data.testimonials);
@@ -151,13 +154,33 @@
     }
   }
 
+  /* These pages are a static Next export, so React hydrates them from a bundle
+     that still holds the original wording, and anything written into the DOM
+     before hydration commits is reconciled straight back out. So apply, then
+     apply again after hydration has had time to finish.
+
+     Deliberately setTimeout and not requestAnimationFrame: rAF does not fire in
+     a background tab, and a page opened in one would keep the old wording until
+     it was looked at. */
+  var RETRIES = [0, 250, 900, 2000];
+
+  function applyLate(data) {
+    RETRIES.forEach(function (delay) {
+      setTimeout(function () {
+        apply(data);
+      }, delay);
+    });
+  }
+
   function init() {
     fetch("/site-content.json?v=" + Math.floor(Date.now() / 60000), { cache: "no-store" })
       .then(function (r) {
         return r.ok ? r.json() : null;
       })
       .then(function (data) {
-        if (data) apply(data);
+        if (!data) return;
+        if (document.readyState === "complete") applyLate(data);
+        else window.addEventListener("load", function () { applyLate(data); });
       })
       .catch(function () {});
   }

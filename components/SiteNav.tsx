@@ -10,9 +10,24 @@ export default function SiteNav({ solid = false }: { solid?: boolean }) {
 
   useEffect(() => {
     if (!open) return;
+
     const onKey = (e: KeyboardEvent) => e.key === "Escape" && setOpen(false);
+    // Tapping the page behind the panel should close it — on a phone that is
+    // the gesture people reach for before they find the ✕.
+    const onPointer = (e: PointerEvent) => {
+      const target = e.target as Element | null;
+      if (!target?.closest("#nav")) setOpen(false);
+    };
+    // The page under an open menu must not scroll away beneath it.
+    document.documentElement.classList.add("nav-locked");
+
     addEventListener("keydown", onKey);
-    return () => removeEventListener("keydown", onKey);
+    addEventListener("pointerdown", onPointer);
+    return () => {
+      removeEventListener("keydown", onKey);
+      removeEventListener("pointerdown", onPointer);
+      document.documentElement.classList.remove("nav-locked");
+    };
   }, [open]);
 
   return (

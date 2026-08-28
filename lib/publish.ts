@@ -34,6 +34,12 @@ export type PublishResult = {
   articles: number;
   overrides: number;
   files: { path: string; bytes: number; deleted: boolean }[];
+  /** Things the operator should know before or after pressing publish. */
+  warnings: string[];
+  /** Slugs still living as Markdown that the database has never seen. While
+   *  this is non-empty a publish would produce a half-migrated site, so the
+   *  run is refused rather than half-done. */
+  unimported: string[];
 };
 
 const SEO_COLS = `"pageKey","metaTitleAr","metaDescriptionAr","ogImage","noIndex"`;
@@ -50,10 +56,12 @@ type SeoRow = {
  *  pages are visually identical to the hand-built ones. */
 async function readShell(): Promise<Shell> {
   const html = (await readRepoFile("docs/index.html")) || localDocs("index.html") || "";
+  // every /_next stylesheet the snapshot links, in document order
+  const cssHrefs = [
+    ...html.matchAll(/<link rel="stylesheet" href="(\/_next\/static\/css\/[^"]+\.css)"/g),
+  ].map((m) => m[1]);
   return {
-    cssHref:
-      html.match(/<link rel="stylesheet" href="([^"]+\.css)"/)?.[1] ||
-      "/_next/static/css/ae743f717ea69337.css",
+    cssHrefs: cssHrefs.length ? cssHrefs : ["/_next/static/css/ae743f717ea69337.css"],
     htmlClass: html.match(/<html[^>]*class="([^"]*)"/)?.[1] || "",
   };
 }
@@ -66,6 +74,15 @@ function localDocs(rel: string): string | null {
   }
 }
 
+/* node-postgres hands back TIMESTAMPTZ as a Date, not a string. Assuming a
+   string here is the kind of thing that typechecks and then throws
+   ".slice is not a function" the first time anyone presses publish. */
+function isoDay(value: Date | string | null): string {
+  if (!value) return "";
+  const d = value instanceof Date ? value : new Date(value);
+  return Number.isNaN(d.getTime()) ? "" : d.toISOString().slice(0, 10);
+}
+
 async function publishedArticles(): Promise<Post[]> {
   const rows = await dbq<{
     slug: string;
@@ -75,7 +92,7 @@ async function publishedArticles(): Promise<Post[]> {
     bodyAr: string;
     coverImage: string | null;
     tags: string[] | null;
-    publishedAt: string | null;
+    publishedAt: Date | string | null;
   }>(
     `SELECT slug, "titleAr", "titleEn", "excerptAr", "bodyAr", "coverImage", tags, "publishedAt"
        FROM articles
@@ -85,7 +102,7 @@ async function publishedArticles(): Promise<Post[]> {
   return rows.map((r) => ({
     slug: r.slug,
     title: r.titleAr,
-    date: (r.publishedAt || "").slice(0, 10),
+    date: isoDay(r.publishedAt),
     lang: "ar" as const,
     excerpt: r.excerptAr || "",
     tags: Array.isArray(r.tags) ? r.tags : [],
@@ -97,8 +114,12 @@ async function publishedArticles(): Promise<Post[]> {
 
 /* ------------------------------------------------- SEO rewriting, in place */
 
+/* The replacement is passed as a FUNCTION, not a string. As a string, `$&`,
+   `$\'` and `` $` `` in the operator's own wording are replacement patterns and
+   expand into the surrounding document — a meta title containing an apostrophe
+   preceded by a dollar sign rewrites itself into garbage. */
 function replaceTag(html: string, pattern: RegExp, replacement: string): string {
-  return pattern.test(html) ? html.replace(pattern, replacement) : html;
+  return pattern.test(html) ? html.replace(pattern, () => replacement) : html;
 }
 
 /** Rewrites <title>, the description, and the OG/Twitter mirrors of both, plus
@@ -168,6 +189,8 @@ export async function buildPublishTree(): Promise<{
   entries: TreeEntry[];
   articles: number;
   overrides: number;
+  warnings: string[];
+  unimported: string[];
 }> {
   const token = process.env.GITHUB_TOKEN;
   const [posts, shell, snapshot, seoRows] = await Promise.all([
@@ -189,22 +212,51 @@ export async function buildPublishTree(): Promise<{
     });
   }
 
-  // 2. pages whose article was deleted or unpublished must stop being served
+  // 2. pages whose article was deleted or unpublished must stop being served —
+  //    but a page whose Markdown source is still sitting in content/blog/ has
+  //    simply not been imported into the database yet. Deleting those would
+  //    take live articles off the website on the operator's first publish,
+  //    which is not a thing a publish button should be able to do.
+  const warnings: string[] = [];
+  const unimported: string[] = [];
   if (token) {
     const existing = (await listDir(token, "docs/blog"))
       .filter((i) => i.type === "dir" && i.name !== "p")
       .map((i) => i.name);
+    const legacy = new Set(
+      (await listDir(token, "content/blog"))
+        .filter((i) => i.name.endsWith(".md") && i.name.toLowerCase() !== "readme.md")
+        .map((i) => i.name.replace(/\.md$/, ""))
+    );
     const live = new Set(posts.map((p) => p.slug));
-    for (const old of existing) {
-      if (!live.has(old)) {
-        entries.push({
-          path: `docs/blog/${old}/index.html`,
-          mode: "100644",
-          type: "blob",
-          sha: null,
-        });
+    // "Known" is every slug the database holds in ANY state. Comparing against
+    // the PUBLISHED set instead would mark an imported-then-unpublished article
+    // as un-imported, and since importLegacy skips slugs that already exist,
+    // publishing would be blocked permanently with no way out.
+    const known = new Set(
+      (await dbq<{ slug: string }>(`SELECT slug FROM articles`)).map((r) => r.slug)
+    );
+
+    for (const slug of existing) {
+      if (live.has(slug)) continue;
+      if (legacy.has(slug) && !known.has(slug)) {
+        unimported.push(slug);
+        // leave the page exactly as it is
+        continue;
       }
+      entries.push({
+        path: `docs/blog/${slug}/index.html`,
+        mode: "100644",
+        type: "blob",
+        sha: null,
+      });
     }
+
+    for (const slug of legacy) {
+      if (!known.has(slug) && !existing.includes(slug)) unimported.push(slug);
+    }
+  } else {
+    warnings.push("GITHUB_TOKEN غير مضبوط، فلا يمكن معرفة ما هو منشور حاليًا.");
   }
 
   // 3. the blog index, feeds, robots
@@ -262,39 +314,63 @@ export async function buildPublishTree(): Promise<{
 
   // 6. SEO, rewritten into each static page's <head>
   const bySeoKey = new Map(seoRows.map((r) => [r.pageKey, r]));
+  const defaultOgImage =
+    (
+      await dbq<{ settingValue: string | null }>(
+        `SELECT "settingValue" FROM site_settings WHERE "settingKey" = 'ogImage'`
+      )
+    )[0]?.settingValue || null;
   for (const page of PAGES) {
     const seo = bySeoKey.get(page.key);
-    if (!seo || (!seo.metaTitleAr && !seo.metaDescriptionAr && !seo.ogImage && !seo.noIndex)) {
+    // Any row at all is enough. Skipping when every field is empty would mean
+    // un-ticking "hide from search engines" never rewrites the page, leaving
+    // the noindex tag on it for good.
+    if (!seo) continue;
+    if (page.key === "blog") continue; // regenerated above from renderBlogIndex
+
+    // Read the page as it stands IN THE REPOSITORY. The copy in this container
+    // is whatever was baked at build time; committing that over the live page
+    // would silently roll back anything published since.
+    const current = await readRepoFile(page.file);
+    if (current === null) {
+      warnings.push(`تعذّرت قراءة ${page.file} من المستودع، فلم تُحدَّث بيانات SEO لصفحة «${page.label}».`);
       continue;
     }
-    if (page.key === "blog") continue; // regenerated above from renderBlogIndex
-    const current = (await readRepoFile(page.file)) || localDocs(page.file.replace(/^docs\//, ""));
-    if (!current) continue;
-    const next = applySeoToHtml(current, seo);
+    const next = applySeoToHtml(current, {
+      ...seo,
+      ogImage: seo.ogImage || defaultOgImage,
+    });
     if (next !== current) {
       entries.push({ path: page.file, mode: "100644", type: "blob", content: next });
     }
   }
 
   const overrides = Object.values(snapshot.pages).reduce((n, list) => n + list.length, 0);
-  return { entries, articles: posts.length, overrides };
+  return { entries, articles: posts.length, overrides, warnings, unimported };
 }
 
 export async function publish(dryRun = false): Promise<PublishResult> {
-  const { entries, articles, overrides } = await buildPublishTree();
+  const { entries, articles, overrides, warnings, unimported } = await buildPublishTree();
   const files = entries.map((e) => ({
     path: e.path,
     bytes: e.content ? Buffer.byteLength(e.content) : 0,
     deleted: e.sha === null,
   }));
-  if (dryRun) return { commit: null, articles, overrides, files };
+  if (dryRun) return { commit: null, articles, overrides, files, warnings, unimported };
 
   const token = process.env.GITHUB_TOKEN;
   if (!token) throw new Error("GITHUB_TOKEN غير مضبوط على الخادم.");
+  if (unimported.length) {
+    throw new Error(
+      `لا يمكن النشر قبل استيراد المقالات القديمة: ${unimported
+        .map((s2) => `«${s2}»`)
+        .join("، ")}. النشر الآن سيحذفها من فهرس المدونة وخريطة الموقع.`
+    );
+  }
   const commit = await commitTree(
     token,
     entries,
     `Publish: ${articles} article page(s), ${overrides} content override(s)`
   );
-  return { commit, articles, overrides, files };
+  return { commit, articles, overrides, files, warnings, unimported };
 }

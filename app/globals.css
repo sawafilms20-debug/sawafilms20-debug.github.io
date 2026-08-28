@@ -27,8 +27,13 @@ body{
   color:var(--ink);
   line-height:1.7;
   -webkit-font-smoothing:antialiased;
-  overflow-x:hidden;
 }
+/* No overflow-x on the body. `hidden` here makes the BODY a scroll container
+   for the y axis, so the page ends up with two nested scrollers: the viewport
+   scrolls a few pixels and then stops, and the rest of the movement happens
+   inside the body — which is what made scrolling stick and sections read as
+   misplaced on a phone. html{overflow-x:clip} above already contains the ink
+   bleeds, and clip deliberately does not create a scroll container. */
 body::before{
   content:"";position:fixed;inset:0;pointer-events:none;z-index:1;
   background-image:url(/paper-laid.webp);
@@ -41,16 +46,25 @@ body::before{
 .rv{opacity:0;transform:translateY(14px);transition:opacity .6s var(--ease),transform .6s var(--ease)}
 .rv.on{opacity:1;transform:none}
 .rv.d1{transition-delay:.12s}.rv.d2{transition-delay:.24s}.rv.d3{transition-delay:.36s}.rv.d4{transition-delay:.48s}
+/* Reveal-on-scroll is an enhancement. Asked for reduced motion, the content is
+   simply there — the previous rule covered only the testimonials, so every
+   other section still slid in for someone who had asked it not to. */
+@media(prefers-reduced-motion:reduce){
+  .rv{opacity:1;transform:none;transition:none}
+}
 
 /* ====== nav ====== */
-nav{
+/* Scoped to the header nav by id. As a bare `nav {}` rule this also pinned the
+   FOOTER's <nav class="foot-nav"> to the top of the viewport — 158px of links
+   sitting over the page content on every page, at every scroll position. */
+nav#nav{
   position:fixed;top:0;right:0;left:0;z-index:50;
   backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);
   background:rgba(247,242,233,.82);
   border-bottom:1px solid transparent;
   transition:border-color .4s;
 }
-nav.scrolled{border-color:var(--line)}
+nav#nav.scrolled{border-color:var(--line)}
 .nav-in{
   max-width:1140px;margin:0 auto;padding:14px clamp(20px,4vw,48px);
   display:grid;grid-template-columns:1fr auto 1fr;align-items:center;gap:20px;
@@ -77,18 +91,56 @@ nav.scrolled{border-color:var(--line)}
   border-radius:12px;background:var(--paper);color:var(--espresso);cursor:pointer;transition:color .2s,border-color .2s}
 .nav-burger:hover{color:var(--gold-text);border-color:var(--gold-soft)}
 .nav-burger svg{width:21px;height:21px;stroke-width:1.75}
+/* ---- the menu on a phone ----
+   A panel, not a translucent overlay: at .97 alpha with a backdrop blur the
+   portrait behind it still read through the links. It is opaque, it scrolls
+   internally when the list is taller than the screen, and it never grows past
+   the viewport. */
 @media(max-width:860px){
   .nav-burger{display:grid}
-  .nav-links{
-    position:absolute;top:100%;inset-inline:0;display:none;flex-direction:column;align-items:stretch;gap:0;
-    background:rgba(247,242,233,.97);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);
-    border-bottom:1px solid var(--line);padding:8px clamp(20px,4vw,48px) 18px;
-    box-shadow:0 24px 40px -24px rgba(70,55,30,.35);
+  .mark img{height:44px}
+
+  /* Two items on a phone, not three: with .nav-links hidden the grid put
+     .nav-end into the middle `auto` track and still reserved both 1fr tracks,
+     so the bar measured 429px inside a 390px viewport. A fixed element wider
+     than the screen makes the DOCUMENT wider than the screen, which shifts the
+     body box sideways — that was why body copy sat clipped off the start edge
+     in every section down the page, not just in the nav. */
+  .nav-in{
+    display:flex;align-items:center;justify-content:space-between;
+    gap:10px;padding:10px clamp(14px,4vw,20px);
   }
-  nav.nav-open .nav-links{display:flex}
-  .nav-links a{display:block;padding:14px 2px;font-size:16px;border-bottom:1px solid var(--line)}
+  .nav-end{gap:8px;flex:0 0 auto}
+  .nav-cta{padding:0 18px;font-size:14px}
+
+  .nav-links{
+    position:absolute;top:100%;inset-inline:0;
+    display:none;flex-direction:column;align-items:stretch;gap:0;
+    background:var(--ivory);
+    border-bottom:1px solid var(--line);
+    padding:6px clamp(18px,5vw,28px) 14px;
+    box-shadow:0 26px 40px -26px rgba(70,55,30,.45);
+    max-height:calc(100dvh - 100%);
+    overflow-y:auto;overscroll-behavior:contain;
+  }
+  nav#nav.nav-open .nav-links{display:flex}
+
+  /* One alignment for every row. The services used to be centred while their
+     siblings hugged the start edge, which read as a rendering fault. */
+  .nav-links a{
+    display:flex;align-items:center;min-height:52px;
+    padding:0 4px;font-size:16.5px;text-align:start;border-radius:10px;
+    border-bottom:1px solid var(--line);
+  }
+  .nav-links > a:last-child{border-bottom:0}
   .nav-cta{min-height:44px}
+
 }
+
+/* The page behind the open menu must not scroll under it. The class goes on
+   <html> because that is the element that scrolls; locking the body would do
+   nothing now that the body is no longer a scroll container. */
+html.nav-locked{overflow:hidden}
 
 /* ====== slugline ====== */
 .slug{
@@ -372,7 +424,17 @@ section.chapter{padding-top:clamp(70px,10vw,120px)}
   .steps{grid-template-columns:1fr 1fr}
   .steps::before{display:none}
 }
-@media(max-width:560px){.steps{grid-template-columns:1fr}}
+@media(max-width:560px){
+  .steps{grid-template-columns:1fr;gap:clamp(26px,7vw,38px)}
+  /* Stacked, the timeline reads down rather than across. Hiding the rail here
+     left four unconnected dots floating above four headings, which is not the
+     same diagram — the line is what makes them a sequence. */
+  .steps::before{
+    display:block;top:7px;bottom:0;height:auto;
+    inset-inline:auto;inset-inline-start:calc(50% - .75px);width:1.5px;
+    background:linear-gradient(180deg,transparent,var(--gold-soft) 4%,var(--gold-soft) 76%,transparent);
+  }
+}
 
 /* ====== photo strip ====== */
 .photo-strip{
@@ -570,6 +632,19 @@ section.chapter{padding-top:clamp(70px,10vw,120px)}
    Content is capped and centred: a four-column row stretched across a wide
    monitor makes reading one number a trip across the whole screen. */
 
+/* The dashboard shares this stylesheet with the public site, and the site
+   styles bare elements. `nav` in particular is fixed, full-width, z-index 50
+   and backdrop-blurred — applied to the sidebar's <nav> it covered the whole
+   screen and blurred everything under it. Neutralise the element-level rules
+   inside the dashboard rather than avoiding the semantic tags. */
+.adm-app nav,.adm-shell nav{
+  position:static;inset:auto;z-index:auto;background:none;border:none;
+  backdrop-filter:none;-webkit-backdrop-filter:none;transition:none;
+}
+/* body::before lays a fixed paper texture over the page at z-index 1. The
+   dashboard has to sit above it or every panel reads as smudged. */
+.adm-app{position:relative;z-index:2}
+
 .adm-sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
 .adm-muted{color:var(--muted)}
 .adm-ok{color:#2f5e1f;font-weight:700}
@@ -622,7 +697,7 @@ section.chapter{padding-top:clamp(70px,10vw,120px)}
 .adm-side-top{display:flex;align-items:center;justify-content:space-between}
 .adm-brand{font-family:var(--font-messiri),serif;font-size:21px;font-weight:700;color:var(--espresso);padding:4px 8px 4px}
 .adm-brand span{color:var(--gold-deep)}
-.adm-drawer-close{display:none}
+.adm-side .adm-drawer-close{display:none}
 .adm-nav{display:flex;flex-direction:column;gap:2px;flex:1}
 .adm-nav-group{display:flex;flex-direction:column;gap:2px;margin-bottom:6px}
 .adm-nav-group-head{
@@ -674,22 +749,28 @@ section.chapter{padding-top:clamp(70px,10vw,120px)}
 .adm-main-head h1{font-family:var(--font-messiri),serif;font-weight:700;font-size:clamp(25px,3.4vw,34px);color:var(--espresso);margin:0}
 .adm-main-head p{margin:5px 0 0;font-size:14px}
 .adm-main-head-actions{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
-.adm-burger{display:none}
+.adm-main-head .adm-burger{display:none}
 .adm-section{max-width:1160px;margin-inline:auto}
 
 /* ---------- buttons ---------- */
-.adm-app .btn,.adm-login .btn{
+.adm-app .btn,.adm-login .btn,.adm-dialog .btn{
   display:inline-flex;align-items:center;gap:8px;font-family:inherit;font-size:14px;font-weight:700;
   border-radius:12px;padding:10px 18px;cursor:pointer;border:1px solid transparent;
   transition:transform .15s ease-out,opacity .15s ease-out,background-color .15s ease-out;
 }
-.adm-app .btn svg{width:16px;height:16px}
-.adm-app .btn:active{transform:translateY(1px)}
-.adm-app .btn:disabled{opacity:.55;cursor:default;transform:none}
-.adm-app .btn-gold{background:linear-gradient(135deg,var(--gold) 0%,var(--gold-deep) 100%);color:#fffdf8;border:none}
-.adm-app .btn-ghost{background:var(--paper);color:var(--gold-text);border-color:var(--gold-soft)}
-.adm-app .btn-ghost:hover{background:var(--sand)}
-.adm-app .btn-danger{background:#a3352f;color:#fff;border:none}
+.adm-app .btn svg,.adm-dialog .btn svg{width:16px;height:16px}
+.adm-app .btn:active,.adm-login .btn:active,.adm-dialog .btn:active{transform:translateY(1px)}
+.adm-app .btn:disabled,.adm-login .btn:disabled,.adm-dialog .btn:disabled{opacity:.55;cursor:default;transform:none}
+/* The sign-in screen is .adm-shell, not .adm-app — scoping the variants to
+   .adm-app alone left its only button unstyled. */
+.adm-app .btn-gold,.adm-login .btn-gold,.adm-dialog .btn-gold{
+  background:linear-gradient(135deg,var(--gold) 0%,var(--gold-deep) 100%);color:#fffdf8;border:none;
+}
+.adm-app .btn-ghost,.adm-login .btn-ghost,.adm-dialog .btn-ghost{
+  background:var(--paper);color:var(--gold-text);border-color:var(--gold-soft);
+}
+.adm-app .btn-ghost:hover,.adm-dialog .btn-ghost:hover{background:var(--sand)}
+.adm-app .btn-danger,.adm-dialog .btn-danger{background:#a3352f;color:#fff;border:none}
 .adm-link{
   background:none;border:none;font-family:inherit;font-size:13.5px;font-weight:700;color:var(--gold-text);
   cursor:pointer;padding:6px 4px;border-radius:8px;text-decoration:none;
@@ -968,8 +1049,8 @@ section.chapter{padding-top:clamp(70px,10vw,120px)}
   }
   [dir="ltr"] .adm-side{transform:translateX(-100%)}
   .adm-app.drawer-open .adm-side{transform:none}
-  .adm-drawer-close{display:inline-flex}
-  .adm-burger{display:inline-flex}
+  .adm-side .adm-drawer-close{display:inline-flex}
+  .adm-main-head .adm-burger{display:inline-flex}
   .adm-main{padding-top:18px}
   .adm-main-head-actions{width:100%}
   .adm-main-head-actions .btn{flex:1;justify-content:center}
@@ -1221,6 +1302,9 @@ a,button{touch-action:manipulation}
 .steps .step{text-align:center}
 .steps .step::before{inset-inline-start:calc(50% - 7px)}
 .step .ic-chip{margin-inline:auto}
+/* max-width block + centred text still needs the BLOCK centred, or the
+   copy hangs off the start edge under a centred heading. */
+.steps .step p{margin-inline:auto}
 .method-lines{margin-inline:auto}
 .cert-cap{text-align:center;justify-items:center}
 .projects{text-align:center}
@@ -1271,7 +1355,16 @@ section.chapter::before{content:"";display:block;width:min(180px,42%);height:1px
 
 /* Ink weather. Every bleed is anchored to the VIEWPORT edge so it is always
    cropped by the screen and never floats in open space as clipart.
-   Opacity only - no blend modes, the fade is already baked into each file. */
+   Opacity only - no blend modes, the fade is already baked into each file.
+
+   Each host crops its own bleed. These are absolutely positioned with negative
+   inline insets (-10vw and friends), so without a clip they extend the document
+   past the viewport: the canvas grows, and in RTL the whole body box shifts
+   sideways by that amount — which pushed body copy off the start edge in every
+   section down the page. They used to be contained by overflow-x:hidden on the
+   body, but that made the body a second scroll container and broke scrolling
+   itself. Clipping at the host gets the crop without the scroller. */
+.hero,.foot2,#testimonials,#process{overflow:clip}
 .hero{position:relative}
 .hero::before{
   content:"";position:absolute;z-index:-1;pointer-events:none;
@@ -1518,7 +1611,8 @@ p .kw,li .kw{color:var(--gold-text);font-weight:700}
   margin-inline:auto;gap:12px}
 .portrait .channels li{white-space:nowrap}
 @media(max-width:860px){
-  .portrait .channels{flex-wrap:wrap;width:auto;margin-inline:0}
+  .portrait .channels{flex-wrap:wrap;width:auto;margin-inline:0;gap:4px 10px}
+  .portrait .channels a{min-height:44px;padding-inline:4px}
 }
 
 /* ===== the three service headers carry a generated ornament in the empty
@@ -1530,7 +1624,7 @@ p .kw,li .kw{color:var(--gold-text);font-weight:700}
   inset-inline-end:-3%;top:50%;transform:translateY(-50%);
   width:min(44%,470px);opacity:.3;
 }
-@media(max-width:860px){.head-art{width:min(74%,340px);opacity:.14}}
+@media(max-width:860px){.head-art{inset-inline-end:0;width:min(68%,320px);opacity:.14}}
 
 /* ===== /about: the story, told as her own questions ===== */
 .qa-list{
@@ -1611,16 +1705,29 @@ p .kw,li .kw{color:var(--gold-text);font-weight:700}
 }
 .nav-drop a:hover,.nav-drop a:focus-visible{background:var(--sand);color:var(--gold-deep)}
 
+/* The phone layout for the services group has to come AFTER the desktop rules
+   above: a media query adds no specificity, so with the same selectors it is
+   source order that decides, and declaring these earlier left .nav-drop hidden
+   inside the open burger panel — the three services simply were not there. */
 @media(max-width:860px){
-  /* inside the burger panel there is nothing to hover, so the group flattens
-     into the list and the services simply sit under their own label */
   .nav-group{display:block}
-  .nav-group-btn{width:100%;justify-content:center;padding:14px 0;color:var(--muted);
-    font-size:13px;letter-spacing:1px}
+  .nav-group-btn{
+    width:100%;justify-content:flex-start;gap:0;padding:16px 4px 8px;
+    color:var(--muted);font-size:12px;font-weight:700;letter-spacing:.12em;
+    background:none;cursor:default;pointer-events:none;
+  }
   .nav-caret{display:none}
-  .nav-drop{position:static;transform:none;opacity:1;visibility:visible;pointer-events:auto;
-    background:none;border:0;box-shadow:none;backdrop-filter:none;padding:0;gap:0;min-width:0}
-  .nav-drop a{text-align:center;padding:13px 0;border-radius:0}
+  .nav-drop{
+    position:static;transform:none;opacity:1;visibility:visible;pointer-events:auto;
+    background:none;border:0;box-shadow:none;backdrop-filter:none;-webkit-backdrop-filter:none;
+    padding:0;gap:0;min-width:0;display:flex;flex-direction:column;
+  }
+  .nav-drop a{
+    display:flex;align-items:center;min-height:52px;
+    text-align:start;padding:0 4px 0 4px;padding-inline-start:18px;
+    border-radius:10px;border-bottom:1px solid var(--line);
+    font-size:15.5px;color:var(--ink);
+  }
   .nav-group::after{display:none}
 }
 @media(prefers-reduced-motion:reduce){.nav-drop,.nav-caret{transition:none}}

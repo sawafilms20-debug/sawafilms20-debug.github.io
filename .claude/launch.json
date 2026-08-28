@@ -11,8 +11,9 @@
     {
       "name": "docs-static",
       "runtimeExecutable": "node",
-      "runtimeArgs": ["/private/tmp/claude-501/-Users-homamkashlan-Downloads-raheeq-kanjo-website/3d65f2c1-204c-4bea-af70-684b1bca1665/scratchpad/serve-docs.js"],
-      "port": 4580
+      "runtimeArgs": ["scripts/serve-docs.mjs"],
+      "port": 4580,
+      "autoPort": true
     }
   ]
 }
