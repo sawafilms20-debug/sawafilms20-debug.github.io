@@ -25,7 +25,14 @@ export default function ContactPage() {
     <>
       <SiteNav solid />
 
-      <header className="page-head wrap contact-head">
+      <header className="page-head wrap contact-head has-art">
+        <img
+          className="head-art"
+          src="/art-letter.svg"
+          alt=""
+          aria-hidden="true"
+          loading="lazy"
+        />
         <h1 className="hero-title rv d1">لديك فكرة تستحق أن تتحول إلى محتوى؟</h1>
         <p className="page-lead rv d2">يمكن أن تكون:</p>
         <ul className="icon-list cols2 rv d2">

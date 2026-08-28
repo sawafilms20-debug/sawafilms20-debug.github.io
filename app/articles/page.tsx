@@ -35,7 +35,14 @@ export default function ArticlesPage() {
     <>
       <SiteNav solid />
 
-      <header className="page-head wrap">
+      <header className="page-head wrap has-art">
+        <img
+          className="head-art"
+          src="/art-pages.svg"
+          alt=""
+          aria-hidden="true"
+          loading="lazy"
+        />
         <h1 className="hero-title rv d1">بعض الأفكار تحتاج <span className="hl-gold">مساحة</span> أكبر</h1>
         <p className="page-lead rv d2">
           رأي يحتاج حجة

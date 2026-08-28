@@ -38,7 +38,14 @@ export default function LinkedInPage() {
     <>
       <SiteNav solid />
 
-      <header className="page-head wrap">
+      <header className="page-head wrap has-art">
+        <img
+          className="head-art"
+          src="/art-network.svg"
+          alt=""
+          aria-hidden="true"
+          loading="lazy"
+        />
         <h1 className="hero-title rv d1">
           خبرتك تظهر في عملك
           <br />

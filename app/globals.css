@@ -1474,3 +1474,29 @@ p .kw,li .kw{color:var(--gold-text);font-weight:700}
 @media(max-width:860px){
   .portrait .channels{flex-wrap:wrap;width:auto;margin-inline:0}
 }
+
+/* ===== generated ornaments: gold linework that fills the empty half of a
+   page header, and thin bands that carry a section's idea ===== */
+.page-head.has-art{position:relative}
+.page-head.has-art > *:not(.head-art){position:relative;z-index:1}
+.head-art{
+  position:absolute;z-index:0;pointer-events:none;user-select:none;
+  inset-inline-end:-3%;top:50%;transform:translateY(-50%);
+  width:min(44%,470px);opacity:.3;
+}
+/* the header text is centred here, so the watermark sits behind it, not beside */
+.contact-head .head-art{inset-inline-end:50%;transform:translate(50%,-50%);width:min(60%,420px);opacity:.16}
+
+.band-art{
+  display:block;width:min(100%,540px);margin:clamp(14px,2.4vw,24px) auto;
+  opacity:.6;pointer-events:none;user-select:none;
+}
+.band-art.wide{width:min(100%,760px);opacity:.55}
+/* the pain column is narrow and start-aligned, so its band follows the column */
+.pain .band-art{margin-inline:0;width:min(100%,430px)}
+
+@media(max-width:860px){
+  .head-art{width:min(74%,340px);opacity:.14}
+  .contact-head .head-art{opacity:.11}
+  .band-art{width:min(100%,420px)}
+}
