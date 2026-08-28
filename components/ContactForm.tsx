@@ -25,14 +25,12 @@ export default function ContactForm() {
     const fd = new FormData(form);
     if (String(fd.get("website") || "")) return; // honeypot
 
+    // the fields carry required and type="email", and the form no longer sets
+    // noValidate, so the browser blocks an incomplete submit and points at the
+    // offending field itself. No banner needed.
     const name = String(fd.get("name") || "").trim();
     const email = String(fd.get("email") || "").trim();
     const message = String(fd.get("message") || "").trim();
-    if (!name || !message || !/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)) {
-      setError("الرجاء تعبئة الاسم والبريد ورسالة صحيحة");
-      setStatus("err");
-      return;
-    }
 
     setStatus("sending");
     setError("");
@@ -57,7 +55,7 @@ export default function ContactForm() {
   }
 
   return (
-    <form className="contact-form" noValidate onSubmit={onSubmit}>
+    <form className="contact-form" onSubmit={onSubmit}>
       <div className="cf-row">
         <label className="cf-field" htmlFor="cf-name">
           <span>الاسم</span>
