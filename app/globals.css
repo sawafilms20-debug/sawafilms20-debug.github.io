@@ -1238,3 +1238,25 @@ section.chapter::before{content:"";display:block;width:min(180px,42%);height:1px
     text-shadow:0 1px 0 rgba(255,253,248,.9),0 -.5px 0 rgba(90,70,35,.10);
   }
 }
+
+/* ===== hero: headline sits beside the portrait, channels ride under it ===== */
+.hero .hero-grid{grid-template-columns:minmax(0,1.45fr) minmax(0,.55fr);align-items:center}
+.hero .hero-text{text-align:start}
+.hero .hero-title-xl{font-size:clamp(22px,2.85vw,42px);line-height:1.32}
+.hero .hero-choice{font-size:clamp(17px,1.9vw,23px);margin-top:12px}
+.hero .hero-sub{margin-top:18px;max-width:52ch}
+.hero .hero-ctas{margin-top:26px}
+
+/* channel marks: small, quiet, grouped with the portrait as brand identity */
+.hero .channels{display:flex;flex-wrap:wrap;justify-content:center;gap:8px 16px;margin:22px 0 0}
+.hero .channels a{gap:8px;font-size:12.5px;font-weight:600;color:var(--muted)}
+.hero .channels a:hover{color:var(--gold-text);transform:none}
+.hero .channels .ic-chip{width:28px;height:28px;border-radius:9px}
+.hero .channels .ic-chip svg{width:14px;height:14px}
+@media(max-width:860px){
+  .hero .hero-grid{grid-template-columns:1fr}
+  .hero .channels{justify-content:start}
+  /* the column is full width here, so the headline may wrap naturally again */
+  .hero .hero-title-xl .line{white-space:normal}
+  .hero .hero-title-xl{font-size:clamp(26px,6.2vw,38px)}
+}

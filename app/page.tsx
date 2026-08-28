@@ -25,13 +25,15 @@ export default function Home() {
       {/* ======== HERO ======== */}
       <header className="hero">
         <div className="wrap">
-          <h1 className="hero-title hero-title-xl rv d1">
-            <span className="line">لأن الناس لا ترى سنوات خبرتك الطويلة</span>
-            <span className="line">ترى ما اخترت أن تشاركه منها</span>
-          </h1>
-          <p className="hero-choice rv d2">لذلك أنا موجودة هنا من أجل هذا <b className="choice-word">الاختيار</b></p>
           <div className="hero-grid">
             <div className="hero-text">
+              <h1 className="hero-title hero-title-xl rv d1">
+                <span className="line">لأن الناس لا ترى سنوات خبرتك الطويلة</span>
+                <span className="line">ترى ما اخترت أن تشاركه منها</span>
+              </h1>
+              <p className="hero-choice rv d2">
+                لذلك أنا موجودة هنا من أجل هذا <b className="choice-word">الاختيار</b>
+              </p>
               <div className="type-row rv d3">
                 <span className="pre">أنا رحيق كنجو،</span>
                 <span id="typed"></span>
@@ -39,36 +41,8 @@ export default function Home() {
               </div>
               <p className="hero-sub rv d3">
                 أعمل مع الخبراء العرب على تحويل معرفتهم وتجاربهم وآرائهم إلى محتوى يحمل
-                صوتهم ويقرّبهم من الجمهور الذي يريدون الوصول إليه
-              </p>
-              <ul className="channels rv d3">
-                <li>
-                  <Link href="/linkedin">
-                    <span className="ic-chip">
-                      <LinkedInIcon />
-                    </span>
-                    على LinkedIn
-                  </Link>
-                </li>
-                <li>
-                  <Link href="/articles">
-                    <span className="ic-chip">
-                      <FileText />
-                    </span>
-                    في مدونات الموقع
-                  </Link>
-                </li>
-                <li>
-                  <Link href="/scripts">
-                    <span className="ic-chip">
-                      <Clapperboard />
-                    </span>
-                    وفي سكريبتات الفيديو
-                  </Link>
-                </li>
-              </ul>
-              <p className="hero-find rv d4">
-                أبحث عن الفكرة التي تستحق أن تظهر، وأجد لها الزاوية والصوت والشكل المناسب
+                صوتهم ويقرّبهم من الجمهور الذي يريدون الوصول إليه، وأبحث عن الفكرة التي
+                تستحق أن تظهر، وأجد لها الزاوية والصوت والشكل المناسب
               </p>
               <div className="hero-ctas rv d4">
                 <Link className="btn btn-gold" href="/contact">
@@ -90,6 +64,32 @@ export default function Home() {
                   fetchPriority="high"
                 />
               </div>
+              <ul className="channels rv d4">
+                <li>
+                  <Link href="/linkedin">
+                    <span className="ic-chip">
+                      <LinkedInIcon />
+                    </span>
+                    LinkedIn
+                  </Link>
+                </li>
+                <li>
+                  <Link href="/articles">
+                    <span className="ic-chip">
+                      <FileText />
+                    </span>
+                    المقالات
+                  </Link>
+                </li>
+                <li>
+                  <Link href="/scripts">
+                    <span className="ic-chip">
+                      <Clapperboard />
+                    </span>
+                    السكريبت
+                  </Link>
+                </li>
+              </ul>
             </div>
           </div>
         </div>
