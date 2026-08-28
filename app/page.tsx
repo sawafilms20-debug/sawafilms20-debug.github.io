@@ -28,8 +28,7 @@ export default function Home() {
           <div className="hero-grid">
             <div className="hero-text">
               <h1 className="hero-title hero-title-xl rv d1">
-                <span className="line">لأن الناس لا ترى سنوات خبرتك الطويلة</span>
-                <span className="line">ترى ما اخترت أن تشاركه منها</span>
+                لأن الناس لا ترى سنوات خبرتك الطويلة.. ترى ما اخترت أن تشاركه منها
               </h1>
               <p className="hero-choice rv d2">
                 لذلك أنا موجودة هنا من أجل هذا <b className="choice-word">الاختيار</b>
@@ -153,7 +152,7 @@ export default function Home() {
                 width={401}
                 height={420}
               />
-              <h3>LinkedIn</h3>
+              <h3>بناء علامتك الشخصية على LinkedIn</h3>
               <p>
                 أبني حضورًا يعكس خبرتك
                 <br />

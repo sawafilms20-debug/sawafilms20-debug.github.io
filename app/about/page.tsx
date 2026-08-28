@@ -36,7 +36,7 @@ export default function AboutPage() {
       <header className="page-head wrap">
         <div className="hero-grid">
           <div className="hero-text">
-            <h1 className="hero-title rv d1">
+            <h1 className="hero-title hero-title-xl rv d1">
               أنا رحيق كنجو
               <br />
               كاتبة واستراتيجية محتوى أعمل مع الخبراء
@@ -57,32 +57,6 @@ export default function AboutPage() {
             <p className="page-lead strong rv d3">
               دوري أن ألتقط هذه المادة وأمنحها الشكل الذي يناسبها
             </p>
-            <ul className="channels rv d4">
-              <li>
-                <Link href="/linkedin">
-                  <span className="ic-chip">
-                    <LinkedInIcon />
-                  </span>
-                  منشور
-                </Link>
-              </li>
-              <li>
-                <Link href="/articles">
-                  <span className="ic-chip">
-                    <FileText />
-                  </span>
-                  مقال
-                </Link>
-              </li>
-              <li>
-                <Link href="/scripts">
-                  <span className="ic-chip">
-                    <Clapperboard />
-                  </span>
-                  أو سكريبت فيديو
-                </Link>
-              </li>
-            </ul>
           </div>
 
           <div className="portrait rv d2">
@@ -95,6 +69,32 @@ export default function AboutPage() {
                 fetchPriority="high"
               />
             </div>
+              <ul className="channels rv d4">
+                <li>
+                  <Link href="/linkedin">
+                    <span className="ic-chip">
+                      <LinkedInIcon />
+                    </span>
+                    منشور
+                  </Link>
+                </li>
+                <li>
+                  <Link href="/articles">
+                    <span className="ic-chip">
+                      <FileText />
+                    </span>
+                    مقال
+                  </Link>
+                </li>
+                <li>
+                  <Link href="/scripts">
+                    <span className="ic-chip">
+                      <Clapperboard />
+                    </span>
+                    سكريبت فيديو
+                  </Link>
+                </li>
+              </ul>
           </div>
         </div>
       </header>
@@ -105,13 +105,28 @@ export default function AboutPage() {
             <div className="ch-head rv">
               <h2 className="ch-title"><em>طريقتي</em></h2>
             </div>
-            <div className="method-lines">
-              <p className="rv">أستمع حتى أفهم</p>
-              <p className="rv d1">أسأل حتى أصل إلى الفكرة</p>
-              <p className="rv d2">أبحث حتى تحمل الكتابة مادة قوية</p>
-              <p className="rv d3">أرتب حتى يصبح المعنى واضحًا</p>
-              <p className="rv d4">ثم أكتب بصوت صاحب الخبرة</p>
-            </div>
+            <ol className="roadmap">
+              <li className="rm-step rv">
+                <span className="rm-label">أستمع حتى أفهم</span>
+                <span className="rm-node">١</span>
+              </li>
+              <li className="rm-step rv d1">
+                <span className="rm-label">أسأل حتى أصل إلى الفكرة</span>
+                <span className="rm-node">٢</span>
+              </li>
+              <li className="rm-step rv d2">
+                <span className="rm-label">أبحث حتى تحمل الكتابة مادة قوية</span>
+                <span className="rm-node">٣</span>
+              </li>
+              <li className="rm-step rv d3">
+                <span className="rm-label">أرتب حتى يصبح المعنى واضحًا</span>
+                <span className="rm-node">٤</span>
+              </li>
+              <li className="rm-step rv d4">
+                <span className="rm-label">ثم أكتب بصوت صاحب الخبرة</span>
+                <span className="rm-node">٥</span>
+              </li>
+            </ol>
           </div>
         </div>
 
@@ -121,58 +136,58 @@ export default function AboutPage() {
               أعمل <em>مع</em>
             </h2>
           </div>
-          <ul className="icon-list cols2">
-            <li className="rv">
-              <span className="ic-chip">
-                <Briefcase />
-              </span>
-              خبراء ومديرين
-            </li>
-            <li className="rv d1">
-              <span className="ic-chip">
-                <Rocket />
-              </span>
-              رواد أعمال
-            </li>
-            <li className="rv d2">
-              <span className="ic-chip">
-                <Sparkles />
-              </span>
-              علامات شخصية
-            </li>
-            <li className="rv d3">
-              <span className="ic-chip">
-                <Building2 />
-              </span>
-              شركات وفرق محتوى
-            </li>
+          <ul className="tag-row rv d1">
+              <li>
+                <span className="tag-ic">
+                  <Briefcase />
+                </span>
+                خبراء ومديرين
+              </li>
+              <li>
+                <span className="tag-ic">
+                  <Rocket />
+                </span>
+                رواد أعمال
+              </li>
+              <li>
+                <span className="tag-ic">
+                  <Sparkles />
+                </span>
+                علامات شخصية
+              </li>
+              <li>
+                <span className="tag-ic">
+                  <Building2 />
+                </span>
+                شركات وفرق محتوى
+              </li>
           </ul>
-          <p className="list-close rv d4">وعلى مشاريع تشمل:</p>
-          <ul className="icon-list cols2">
-            <li className="rv">
-              <span className="ic-chip">
-                <LinkedInIcon />
-              </span>
-              LinkedIn
-            </li>
-            <li className="rv d1">
-              <span className="ic-chip">
-                <PenTool />
-              </span>
-              Ghostwriting
-            </li>
-            <li className="rv d2">
-              <span className="ic-chip">
-                <FileText />
-              </span>
-              المقالات والمحتوى البحثي
-            </li>
-            <li className="rv d3">
-              <span className="ic-chip">
-                <Clapperboard />
-              </span>
-              سكريبتات الفيديو
-            </li>
+          <p className="list-close rv d2">وعلى مشاريع تشمل</p>
+          <ul className="tag-row rv d1">
+              <li>
+                <span className="tag-ic">
+                  <LinkedInIcon />
+                </span>
+                LinkedIn
+              </li>
+              <li>
+                <span className="tag-ic">
+                  <PenTool />
+                </span>
+                Ghostwriting
+              </li>
+              <li>
+                <span className="tag-ic">
+                  <FileText />
+                </span>
+                المقالات والمحتوى البحثي
+              </li>
+              <li>
+                <span className="tag-ic">
+                  <Clapperboard />
+                </span>
+                سكريبتات الفيديو
+              </li>
           </ul>
         </section>
 
