@@ -59,7 +59,7 @@ export default function LinkedInPage() {
         <section className="chapter wrap">
           <div className="ch-head rv">
             <h2 className="ch-title">
-              نبدأ من <em>سؤال واحد</em>
+              أبدأ من <em>سؤال واحد</em>
             </h2>
             <p className="page-lead strong q">بماذا تريد أن يعرفك السوق؟</p>
             <p className="page-lead">من هنا أحدد:</p>
@@ -90,7 +90,7 @@ export default function LinkedInPage() {
               الزوايا التي تعبّر عن طريقة تفكيرك
             </li>
           </ul>
-          <p className="list-close rv d4">ثم نبني المحتوى حولها</p>
+          <p className="list-close rv d4">ثم أبني المحتوى حولها</p>
         </section>
 
         <section className="chapter wrap">

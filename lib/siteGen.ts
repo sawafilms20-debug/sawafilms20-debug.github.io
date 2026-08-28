@@ -182,6 +182,7 @@ export function renderBlogIndex(posts: Post[], sh: Shell) {
     .join("\n");
 
   const body = `<main id="main" class="wrap page">
+<p class="slug">مدونتي</p>
 <h1 class="page-title">خلينا نحكي <em>محتوى</em></h1>
 <p class="page-lead">مدونتي هي مساحة أكبر لأفكاري وتجاربي في المحتوى، القصص، وبناء الحضور الرقمي للخبراء العرب بأبسط طريقة ممكنة</p>
 <div class="blog-grid">
