@@ -1391,7 +1391,9 @@ section.chapter::before{content:"";display:block;width:min(180px,42%);height:1px
 
 /* ===== hero: the name line rides above the headline, as a gold eyebrow ===== */
 .hero-text .type-row{margin:0 0 8px}
-.hero-text .type-row,.hero-text .type-row .pre,.hero-text #typed{color:var(--gold)}
+/* the name reads dark; only the typed role beside it carries the gold */
+.hero-text .type-row,.hero-text .type-row .pre{color:var(--espresso)}
+.hero-text #typed{color:var(--gold)}
 /* the bright gold is 3.04:1 on ivory, which only passes AA as *large* text, so
    the prefix is pushed to 19.7px/600 to qualify instead of being shrunk to 18px/400 */
 .hero-text .type-row .pre{font-size:.82em;font-weight:600}
@@ -1462,3 +1464,13 @@ p .kw,li .kw{color:var(--gold-text);font-weight:700}
    rest of the page keeps between sections */
 .page-head + main > section.chapter:first-child,
 .page-head + main > .method-band:first-child{padding-top:clamp(12px,2vw,24px)}
+
+/* the three channel marks belong on one line under the portrait: the column is
+   only as wide as the photo, so the row sizes to its content and centres itself
+   rather than being forced to wrap inside it */
+.portrait .channels{flex-wrap:nowrap;width:max-content;max-width:none;
+  margin-inline:auto;gap:12px}
+.portrait .channels li{white-space:nowrap}
+@media(max-width:860px){
+  .portrait .channels{flex-wrap:wrap;width:auto;margin-inline:0}
+}

@@ -40,7 +40,11 @@ export default function AboutPage() {
             <h1 className="hero-title hero-title-xl rv d1">
               أنا رحيق كنجو
               <br />
-              <span className="hl-gold">كاتبة واستراتيجية محتوى أعمل مع الخبراء</span>
+              <span className="hl-gold">
+                كاتبة واستراتيجية محتوى
+                <br />
+                أعمل مع الخبراء
+              </span>
             </h1>
             <p className="page-lead rv d2">
               أكثر ما يجذبني في عملي هو اكتشاف الأفكار التي يعرفها صاحب الخبرة جيدًا،
