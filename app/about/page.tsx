@@ -13,6 +13,7 @@ import FX from "../fx";
 import SiteNav from "@/components/SiteNav";
 import SiteFooter from "@/components/SiteFooter";
 import { LinkedInIcon } from "@/components/icons";
+import Sunflowers from "@/components/Sunflowers";
 
 export const metadata: Metadata = {
   title: "عني | رحيق كنجو",
@@ -59,7 +60,8 @@ export default function AboutPage() {
             </p>
           </div>
 
-          <div className="portrait rv d2">
+          <div className="portrait portrait-free rv d2">
+            <Sunflowers />
             <div className="stage stage-photo">
               <img
                 src="/raheeq-about.webp"

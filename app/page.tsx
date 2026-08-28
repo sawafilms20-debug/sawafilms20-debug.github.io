@@ -27,17 +27,18 @@ export default function Home() {
         <div className="wrap">
           <div className="hero-grid">
             <div className="hero-text">
-              <h1 className="hero-title hero-title-xl rv d1">
-                لأن الناس لا ترى سنوات خبرتك الطويلة.. ترى ما اخترت أن تشاركه منها
-              </h1>
-              <p className="hero-choice rv d2">
-                لذلك أنا موجودة هنا من أجل هذا <b className="choice-word">الاختيار</b>
-              </p>
-              <div className="type-row rv d3">
+              <div className="type-row rv">
                 <span className="pre">أنا رحيق كنجو،</span>
                 <span id="typed"></span>
                 <span className="caret"></span>
               </div>
+              <h1 className="hero-title hero-title-xl rv d1">
+                لأن الناس لا ترى سنوات خبرتك الطويلة..{" "}
+                <span className="hl-gold">ترى ما اخترت أن تشاركه منها</span>
+              </h1>
+              <p className="hero-choice rv d2">
+                لذلك أنا موجودة هنا من أجل هذا <b className="choice-word">الاختيار</b>
+              </p>
               <p className="hero-sub rv d3">
                 أعمل مع الخبراء العرب على تحويل معرفتهم إلى محتوى يحمل صوتهم ويصل
                 إلى جمهورهم

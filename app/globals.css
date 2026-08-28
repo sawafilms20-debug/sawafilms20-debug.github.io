@@ -1245,7 +1245,7 @@ section.chapter::before{content:"";display:block;width:min(180px,42%);height:1px
 .hero .hero-title-xl,.page-head .hero-title-xl{font-size:clamp(30px,4.1vw,56px);line-height:1.24}
 /* at this size the sentences cannot hold one line beside the portrait, so they wrap */
 .hero .hero-title-xl .line{white-space:normal}
-.hero .hero-choice{font-size:clamp(18px,2.1vw,28px);margin-top:14px;line-height:1.4;color:var(--gold-deep)}
+.hero .hero-choice{font-size:clamp(18px,2.1vw,28px);margin-top:14px;line-height:1.4;color:var(--espresso)}
 .hero .hero-sub{margin-top:18px;max-width:52ch}
 .hero .hero-ctas{margin-top:26px}
 
@@ -1338,15 +1338,47 @@ section.chapter::before{content:"";display:block;width:min(180px,42%);height:1px
 .tag-ic{display:inline-grid;place-items:center;color:var(--gold-deep)}
 .tag-ic svg{width:16px;height:16px;stroke-width:1.75}
 
-/* ===== about: a real photo fills the arch, instead of a cutout riding on the plate ===== */
-.stage-photo::before{display:none}
+/* ===== about: the photo stands free, no frame, with sunflowers drifting around it ===== */
+.stage-photo{aspect-ratio:auto;width:clamp(215px,23vw,300px)}
+.stage-photo::before,.stage-photo::after{display:none}
 .stage-photo img{
-  position:absolute;inset:0;width:100%;height:100%;transform:none;
-  object-fit:cover;object-position:50% 22%;
-  border-radius:250px 250px 26px 26px;
-  border:1.5px solid var(--gold-soft);
-  box-shadow:0 34px 70px -26px rgba(120,90,35,.42);
-  filter:none;
+  position:static;width:100%;height:auto;transform:none;
+  object-fit:contain;border:0;border-radius:0;box-shadow:none;
+  filter:drop-shadow(0 20px 28px rgba(70,55,30,.26));
 }
-.stage-photo:hover img{transform:scale(1.015)}
-@media(prefers-reduced-motion:reduce){.stage-photo:hover img{transform:none}}
+.stage-photo:hover img{transform:none}
+
+.portrait-free{isolation:isolate}
+.sunflowers{position:absolute;inset:0;pointer-events:none;z-index:2}
+.sf{position:absolute;width:100%;height:auto;overflow:visible}
+.sf .sf-petals ellipse{fill:var(--gold);opacity:.72}
+.sf .sf-eye{fill:var(--gold-text)}
+.sf-petals{transform-origin:12px 12px;animation:sf-spin 46s linear infinite}
+/* the drift lives on the <svg>, the spin on the petals, so the two never fight */
+.sf{animation:sf-drift 9s ease-in-out infinite}
+
+/* .portrait also holds the channel row, so every flower stays above 74% of it
+   and hangs off the sides of the silhouette rather than sitting on her */
+.sf-1{width:38px;top:-3%;inset-inline-end:-12%;animation-duration:11s}
+.sf-2{width:23px;top:13%;inset-inline-start:-13%;animation-duration:8s;animation-delay:-2s}
+.sf-3{width:30px;top:44%;inset-inline-end:-14%;animation-duration:13s;animation-delay:-5s}
+.sf-4{width:19px;top:63%;inset-inline-start:-11%;animation-duration:9.5s;animation-delay:-1s}
+.sf-5{width:14px;top:29%;inset-inline-start:-5%;animation-duration:12s;animation-delay:-7s;opacity:.75}
+.sf-6{width:25px;top:74%;inset-inline-end:-7%;animation-duration:10.5s;animation-delay:-3.5s}
+.sf-2 .sf-petals,.sf-4 .sf-petals,.sf-6 .sf-petals{animation-direction:reverse;animation-duration:38s}
+
+@keyframes sf-drift{
+  0%,100%{transform:translate3d(0,0,0) rotate(0deg)}
+  50%{transform:translate3d(-5px,-13px,0) rotate(7deg)}
+}
+@keyframes sf-spin{to{transform:rotate(360deg)}}
+@media(prefers-reduced-motion:reduce){
+  .sf,.sf-petals{animation:none}
+}
+
+/* ===== hero: the name line rides above the headline, as a gold eyebrow ===== */
+.hero-text .type-row{margin:0 0 8px}
+/* --gold-text, not --gold-deep: at 18px the brighter gold only clears 3.04:1 */
+.hero-text .type-row,.hero-text .type-row .pre{color:var(--gold-text)}
+/* the turn in the sentence carries the colour: what they don't see, then what they do */
+.hl-gold{color:var(--gold-deep)}
