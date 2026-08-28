@@ -46,7 +46,11 @@ export type Procedure<I = unknown, O = unknown> = {
   handler: (input: I, ctx: Ctx) => Promise<O>;
 };
 
-export type Router = Record<string, Procedure<never, unknown>>;
+/* Routers hold procedures of many different input/output shapes; the dispatch
+   layer treats them uniformly and validates at the edge with zod. */
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+export type AnyProcedure = Procedure<any, any>;
+export type Router = Record<string, AnyProcedure>;
 
 export function publicProcedure<I, O>(
   p: Omit<Procedure<I, O>, "auth">

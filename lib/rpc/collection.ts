@@ -158,12 +158,12 @@ export function collectionRouter(spec: CollectionSpec): Router {
   });
 
   const router: Router = {
-    list: list as Router[string],
-    get: get as Router[string],
-    create: create as Router[string],
-    update: update as Router[string],
-    delete: del as Router[string],
-    reorder: reorder as Router[string],
+    list: list,
+    get: get,
+    create: create,
+    update: update,
+    delete: del,
+    reorder: reorder,
   };
 
   if (spec.visibleColumn) {
@@ -177,7 +177,7 @@ export function collectionRouter(spec: CollectionSpec): Router {
         if (!row) throw errors.notFound();
         return row;
       },
-    }) as Router[string];
+    });
   }
 
   return router;

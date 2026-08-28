@@ -84,6 +84,7 @@ ${NAV}
 ${o.body}
 ${FOOT}
 <script defer src="/track.js"></script>
+<script defer src="/site-content.js"></script>
 </body>
 </html>`;
 }

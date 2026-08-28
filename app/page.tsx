@@ -101,7 +101,6 @@ export default function Home() {
             <h2 className="ch-title rv d1">
               لديك الكثير لتقوله .. لكن <em>لا تعرف من أين تبدأ</em>
             </h2>
-            <img className="band-art rv d1" src="/art-gather.svg" alt="" aria-hidden="true" loading="lazy" />
             <p className="pain-intro rv d2">
               بعد سنوات من العمل، تصبح لديك معرفة يصعب اختصارها في تعريف مهني
             </p>
@@ -209,7 +208,6 @@ export default function Home() {
             <div className="ch-head rv">
               <h2 className="ch-title">أكتب من <em>صوتك</em></h2>
             </div>
-            <img className="band-art wide rv" src="/art-voice.svg" alt="" aria-hidden="true" loading="lazy" />
             <p className="voice-lines rv d1">
               قد يتحدث كثيرون عن الموضوع نفسه
               <br />
@@ -368,7 +366,6 @@ export default function Home() {
                 كيف <em>أعمل</em>؟
               </h2>
             </div>
-            <img className="band-art wide rv" src="/art-route.svg" alt="" aria-hidden="true" loading="lazy" />
             <div className="steps">
               <div className="step rv">
                 <span className="ic-chip step-ic">

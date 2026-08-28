@@ -1338,7 +1338,7 @@ section.chapter::before{content:"";display:block;width:min(180px,42%);height:1px
 .tag-ic{display:inline-grid;place-items:center;color:var(--gold-deep)}
 .tag-ic svg{width:16px;height:16px;stroke-width:1.75}
 
-/* ===== about: the photo stands free, no frame, with sunflowers drifting around it ===== */
+/* ===== about: the photo stands free, with no frame around it ===== */
 .stage-photo{aspect-ratio:auto;width:clamp(215px,23vw,300px)}
 .stage-photo::before,.stage-photo::after{display:none}
 .stage-photo img{
@@ -1353,41 +1353,6 @@ section.chapter::before{content:"";display:block;width:min(180px,42%);height:1px
 .stage-photo{--fade-out:linear-gradient(180deg,#000 0,#000 54%,rgba(0,0,0,.88) 70%,
   rgba(0,0,0,.5) 84%,rgba(0,0,0,.16) 94%,transparent 100%)}
 .stage-photo:hover img{transform:none}
-
-.portrait-free{isolation:isolate}
-.sunflowers{position:absolute;inset:0;pointer-events:none;z-index:2}
-.sf{position:absolute;width:100%;height:auto;overflow:visible}
-.sf .sf-petals ellipse{fill:var(--gold);opacity:.72}
-.sf .sf-eye{fill:var(--gold-text)}
-.sf-petals{transform-origin:12px 12px;animation:sf-spin 46s linear infinite}
-/* the drift lives on the <svg>, the spin on the petals, so the two never fight */
-.sf{animation:sf-drift 9s ease-in-out infinite}
-
-/* .portrait also holds the channel row, so every flower stays above 74% of it
-   and hangs off the sides of the silhouette rather than sitting on her */
-.sf-1{width:38px;top:-3%;inset-inline-end:-12%;animation-duration:11s}
-.sf-2{width:23px;top:13%;inset-inline-start:-13%;animation-duration:8s;animation-delay:-2s}
-.sf-3{width:30px;top:44%;inset-inline-end:-14%;animation-duration:13s;animation-delay:-5s}
-.sf-4{width:19px;top:63%;inset-inline-start:-11%;animation-duration:9.5s;animation-delay:-1s}
-.sf-5{width:14px;top:29%;inset-inline-start:-5%;animation-duration:12s;animation-delay:-7s;opacity:.75}
-.sf-6{width:25px;top:74%;inset-inline-end:-7%;animation-duration:10.5s;animation-delay:-3.5s}
-.sf-2 .sf-petals,.sf-4 .sf-petals,.sf-6 .sf-petals{animation-direction:reverse;animation-duration:38s}
-
-@keyframes sf-drift{
-  0%,100%{transform:translate3d(0,0,0) rotate(0deg)}
-  50%{transform:translate3d(-5px,-13px,0) rotate(7deg)}
-}
-@keyframes sf-spin{to{transform:rotate(360deg)}}
-@media(prefers-reduced-motion:reduce){
-  .sf,.sf-petals{animation:none}
-}
-@media(max-width:860px){
-  /* the portrait hugs the inline-start edge here, so flowers hanging off that
-     side push past the viewport and get shaved by overflow-x:clip */
-  .sf-2{inset-inline-start:-4%}
-  .sf-4{inset-inline-start:-3%}
-  .sf-5{inset-inline-start:0}
-}
 
 /* ===== hero: the name line rides above the headline, as a gold eyebrow ===== */
 .hero-text .type-row{margin:0 0 8px}
@@ -1475,8 +1440,8 @@ p .kw,li .kw{color:var(--gold-text);font-weight:700}
   .portrait .channels{flex-wrap:wrap;width:auto;margin-inline:0}
 }
 
-/* ===== generated ornaments: gold linework that fills the empty half of a
-   page header, and thin bands that carry a section's idea ===== */
+/* ===== the three service headers carry a generated ornament in the empty
+   half behind their text. the other four were removed ===== */
 .page-head.has-art{position:relative}
 .page-head.has-art > *:not(.head-art){position:relative;z-index:1}
 .head-art{
@@ -1484,19 +1449,41 @@ p .kw,li .kw{color:var(--gold-text);font-weight:700}
   inset-inline-end:-3%;top:50%;transform:translateY(-50%);
   width:min(44%,470px);opacity:.3;
 }
-/* the header text is centred here, so the watermark sits behind it, not beside */
-.contact-head .head-art{inset-inline-end:50%;transform:translate(50%,-50%);width:min(60%,420px);opacity:.16}
+@media(max-width:860px){.head-art{width:min(74%,340px);opacity:.14}}
 
-.band-art{
-  display:block;width:min(100%,540px);margin:clamp(14px,2.4vw,24px) auto;
-  opacity:.6;pointer-events:none;user-select:none;
+/* ===== /about: the story, told as her own questions ===== */
+.qa-list{
+  display:grid;gap:clamp(38px,5.5vw,62px);
+  max-width:66ch;margin-inline:auto;
+  /* prose runs long here, so it reads from the start edge. centring a
+     paragraph this size gives every line a different left edge to find */
+  text-align:start;
 }
-.band-art.wide{width:min(100%,760px);opacity:.55}
-/* the pain column is narrow and start-aligned, so its band follows the column */
-.pain .band-art{margin-inline:0;width:min(100%,430px)}
-
-@media(max-width:860px){
-  .head-art{width:min(74%,340px);opacity:.14}
-  .contact-head .head-art{opacity:.11}
-  .band-art{width:min(100%,420px)}
+.qa-q{
+  font-family:var(--font-messiri),serif;font-weight:700;
+  color:var(--gold-deep);font-size:clamp(20px,2.5vw,27px);line-height:1.4;
+  margin:0 0 4px;position:relative;padding-inline-start:16px;
 }
+.qa-q::before{
+  content:"";position:absolute;inset-inline-start:0;top:.18em;bottom:.18em;
+  width:3px;border-radius:3px;
+  background:linear-gradient(180deg,var(--gold),var(--gold-soft));
+}
+.qa p{font-size:17px;line-height:1.8;color:var(--ink);margin:14px 0 0}
+.qa .qa-close{font-weight:700;color:var(--espresso)}
+.qa .qa-quote{
+  font-family:var(--font-messiri),serif;font-weight:600;
+  font-size:clamp(18px,2.2vw,23px);line-height:1.55;color:var(--gold-deep);
+  margin:20px 0 0;padding-inline-start:18px;position:relative;
+}
+.qa .qa-quote::before{content:"«";position:absolute;inset-inline-start:0;top:-.06em;
+  color:var(--gold-soft);font-size:1.5em;line-height:1}
+.qa .qa-quote::after{content:"»";color:var(--gold-soft);margin-inline-start:4px}
+.qa .seed-list{margin-top:18px;max-width:none}
+.qa-list .q-list{
+  list-style:none;padding:0;margin:16px 0 0;display:grid;gap:8px;
+  font-size:16.5px;font-weight:600;color:var(--gold-text);line-height:1.5;
+}
+.qa-list .q-list li{padding-inline-start:16px;position:relative}
+.qa-list .q-list li::before{content:"";position:absolute;inset-inline-start:0;top:.62em;
+  width:6px;height:6px;border-radius:50%;background:var(--gold)}

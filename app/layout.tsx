@@ -72,6 +72,9 @@ export default function RootLayout({
         />
         {/* eslint-disable-next-line @next/next/no-sync-scripts */}
         <script defer src="/track.js" />
+        {/* Applies whatever the dashboard has overridden; a no-op with no overrides. */}
+        {/* eslint-disable-next-line @next/next/no-sync-scripts */}
+        <script defer src="/site-content.js" />
       </body>
     </html>
   );
