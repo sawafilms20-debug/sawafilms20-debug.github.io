@@ -60,12 +60,12 @@ export default function AboutPage() {
           </div>
 
           <div className="portrait rv d2">
-            <div className="stage">
+            <div className="stage stage-photo">
               <img
-                src="/raheeq-cutout.webp"
+                src="/raheeq-about.webp"
                 alt="رحيق كنجو، كاتبة واستراتيجية محتوى للخبراء"
-                width={965}
-                height={1340}
+                width={760}
+                height={950}
                 fetchPriority="high"
               />
             </div>
