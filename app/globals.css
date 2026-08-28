@@ -386,10 +386,52 @@ section.chapter{padding-top:clamp(70px,10vw,120px)}
   border-bottom:1.5px solid var(--gold-soft);padding:10px 0 8px;transition:color .3s,border-color .3s;
 }
 .offer-cta a:hover,.offer:hover .offer-cta span{color:var(--espresso);border-color:var(--gold)}
+/* Two services per row on a phone. Stacked one-per-row the section ran to
+   three full screens on its own; paired, the whole thing fits in about one.
+   Type steps down with the cell — 22px headings inside a 180px column wrap
+   into ribbons. */
 @media(max-width:900px){
+  .offers{grid-template-columns:1fr 1fr}
+  .offer{
+    border-inline-start:1px solid var(--line);border-top:1px solid var(--line);
+    padding:clamp(20px,4.5vw,30px) clamp(12px,3.5vw,20px);gap:10px;
+  }
+  .offer:nth-child(odd){border-inline-start:none}
+  .offer:nth-child(-n+2){border-top:none}
+  .offer h3{font-size:clamp(15.5px,4.2vw,19px);line-height:1.45}
+  .offer p{font-size:clamp(12.5px,3.4vw,14px);line-height:1.75}
+  .offer-cta a,.offer-cta span{font-size:13px;padding:8px 0 6px}
+  .offer-art{height:clamp(74px,19vw,110px)!important}
+
+  /* An odd last card would leave half a row empty, which reads as a fault
+     rather than a choice. It takes the full width instead and turns on its
+     side, so the row stays short. */
+  .offer:last-child:nth-child(odd){
+    grid-column:1/-1;border-inline-start:none;
+    display:grid;grid-template-columns:clamp(78px,22vw,112px) 1fr;
+    column-gap:clamp(12px,4vw,20px);align-content:center;
+    text-align:start;
+  }
+  .offer:last-child:nth-child(odd) .offer-art{
+    grid-row:1/span 3;align-self:center;margin:0!important;max-width:100%;
+  }
+  .offer:last-child:nth-child(odd) h3,
+  .offer:last-child:nth-child(odd) p,
+  .offer:last-child:nth-child(odd) .offer-cta{grid-column:2}
+  .offer:last-child:nth-child(odd) .offer-cta{padding-top:6px}
+}
+
+/* Only genuinely small handsets stack again. 360 and 375 are among the most
+   common widths there are, and falling back there would have undone the point
+   of pairing for a large share of visitors; a 154px cell still holds a line of
+   Arabic. Below ~340 it does not. */
+@media(max-width:339px){
   .offers{grid-template-columns:1fr}
-  .offer{border-inline-start:none;border-top:1px solid var(--line)}
+  .offer,.offer:nth-child(odd){border-inline-start:none}
+  .offer:nth-child(-n+2){border-top:1px solid var(--line)}
   .offer:first-child{border-top:none}
+  .offer:last-child:nth-child(odd){display:flex;text-align:center}
+  .offer:last-child:nth-child(odd) .offer-art{margin:0 auto 10px!important}
 }
 
 /* ====== method ====== */
@@ -491,7 +533,22 @@ section.chapter{padding-top:clamp(70px,10vw,120px)}
 .note footer{margin-top:18px;font-size:13px;color:var(--muted);display:flex;align-items:center;gap:12px}
 .note-avatar{width:44px;height:44px;border-radius:50%;object-fit:cover;flex:0 0 auto;border:1px solid var(--line)}
 .notes-cta{text-align:center;margin-top:44px}
-@media(max-width:860px){.notes{grid-template-columns:1fr;max-width:520px;margin-inline:0}}
+/* Recommendations, two per row for the same reason: six stacked cards was
+   most of the page's length on its own. */
+@media(max-width:860px){
+  .notes{grid-template-columns:1fr 1fr;gap:clamp(10px,3vw,18px);max-width:none;margin-inline:0}
+  .note{padding:22px 14px 16px;border-radius:3px 10px 10px 10px}
+  .note q{font-size:clamp(13.5px,3.7vw,16px);line-height:1.65}
+  .note::before{width:56px;inset-inline-start:calc(50% - 28px);height:20px;top:-10px}
+  .note footer{margin-top:14px;gap:8px}
+  .note-avatar{width:42px;height:42px}
+  .note-who b{font-size:13.5px}
+  .note-who small{font-size:11.5px;line-height:1.5}
+}
+@media(max-width:339px){
+  .notes{grid-template-columns:1fr;max-width:520px}
+  .note q{font-size:16px}
+}
 
 /* ====== contact ====== */
 .contact{padding-block:clamp(80px,11vw,130px)}
