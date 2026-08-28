@@ -39,9 +39,8 @@ export default function Home() {
                 <span className="caret"></span>
               </div>
               <p className="hero-sub rv d3">
-                أعمل مع الخبراء العرب على تحويل معرفتهم وتجاربهم وآرائهم إلى محتوى يحمل
-                صوتهم ويقرّبهم من الجمهور الذي يريدون الوصول إليه، وأبحث عن الفكرة التي
-                تستحق أن تظهر، وأجد لها الزاوية والصوت والشكل المناسب
+                أعمل مع الخبراء العرب على تحويل معرفتهم إلى محتوى يحمل صوتهم ويصل
+                إلى جمهورهم
               </p>
               <div className="hero-ctas rv d4">
                 <Link className="btn btn-gold" href="/contact">
