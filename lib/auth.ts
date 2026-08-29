@@ -11,7 +11,12 @@ import { dbq, one, hasDb } from "./db";
      deploy, signing the operator out while her cookie still looks valid.
    - `requireAdmin` re-reads the admin row on EVERY call. Verifying only the
      token means a disabled account keeps working until the token expires.
-   - Constant-time comparison on anything secret. `===` on a hash leaks timing. */
+   - Constant-time comparison on anything secret. `===` on a hash leaks timing.
+   - The sessions table stores a SHA-256 of the token, never the token. A
+     database dump — a leaked backup, a read-only replica, an insider — would
+     otherwise hand over every live session ready to use. The cookie holds the
+     only copy of the real value, and 256 bits of randomness needs no salt or
+     slow hash: there is no password to guess. */
 
 export const COOKIE_NAME = "rk_sess";
 export const SESSION_DAYS = 30;
@@ -82,12 +87,17 @@ export function newToken(): string {
   return crypto.randomBytes(32).toString("hex"); // 64 chars
 }
 
+/** What goes in the table. The cookie keeps the only copy of the real token. */
+function tokenHash(token: string): string {
+  return crypto.createHash("sha256").update(token).digest("hex");
+}
+
 export async function createSession(adminId: number): Promise<{ token: string; expiresAt: Date }> {
   const token = newToken();
   const expiresAt = new Date(Date.now() + SESSION_DAYS * 24 * 3600 * 1000);
   await dbq(
     `INSERT INTO admin_sessions (token, "adminId", "expiresAt") VALUES ($1, $2, $3)`,
-    [token, adminId, expiresAt]
+    [tokenHash(token), adminId, expiresAt]
   );
   // opportunistic cleanup; cheap and keeps the table from growing forever
   await dbq(`DELETE FROM admin_sessions WHERE "expiresAt" < now()`).catch(() => {});
@@ -96,7 +106,7 @@ export async function createSession(adminId: number): Promise<{ token: string; e
 
 export async function destroySession(token: string | undefined): Promise<void> {
   if (!token) return;
-  await dbq(`DELETE FROM admin_sessions WHERE token = $1`, [token]).catch(() => {});
+  await dbq(`DELETE FROM admin_sessions WHERE token = $1`, [tokenHash(token)]).catch(() => {});
 }
 
 /** Signs an account out everywhere. Deliberately NOT swallowing its error: a
@@ -120,7 +130,7 @@ export async function adminFromToken(token: string | undefined): Promise<AdminUs
        FROM admin_sessions s
        JOIN admin_users u ON u.id = s."adminId"
       WHERE s.token = $1`,
-    [token]
+    [tokenHash(token)]
   );
   if (!row) return null;
   if (new Date(row.expiresAt).getTime() <= Date.now()) {

@@ -56,3 +56,33 @@ export function apiOrigin(): string {
 export function mediaUrl(storageKey: string): string {
   return `${apiOrigin()}/api/media/${storageKey}`;
 }
+
+/* What the bytes actually are, regardless of what the upload claimed.
+
+   `file.type` in a multipart body is just a string the client chose. The
+   serving route echoes the stored content type back, so a file saved as
+   image/png that is really HTML or SVG becomes script on this origin the
+   moment a browser is persuaded to treat it as such. nosniff and the sandbox
+   CSP already stand in the way; this closes the door at the point of entry so
+   the wrong bytes are never stored in the first place.
+
+   Returns null when the bytes match nothing on the allowlist. */
+export function sniffMime(buf: Buffer): string | null {
+  const at = (i: number, sig: number[]) => sig.every((b, k) => buf[i + k] === b);
+  const ascii = (i: number, str: string) =>
+    [...str].every((c, k) => buf[i + k] === c.charCodeAt(0));
+
+  if (buf.length < 12) return null;
+  if (at(0, [0xff, 0xd8, 0xff])) return "image/jpeg";
+  if (at(0, [0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a])) return "image/png";
+  if (ascii(0, "GIF87a") || ascii(0, "GIF89a")) return "image/gif";
+  if (ascii(0, "RIFF") && ascii(8, "WEBP")) return "image/webp";
+  // ISO-BMFF: the brand sits in the ftyp box, and avif files often declare
+  // their brand in the compatible list rather than the major one.
+  if (ascii(4, "ftyp")) {
+    const head = buf.subarray(8, Math.min(buf.length, 64)).toString("latin1");
+    if (/avif|avis/.test(head)) return "image/avif";
+  }
+  if (ascii(0, "%PDF-")) return "application/pdf";
+  return null;
+}

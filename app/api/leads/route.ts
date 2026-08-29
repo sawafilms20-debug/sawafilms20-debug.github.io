@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { GH_OWNER, GH_REPO, GH_BRANCH } from "@/app/admin/config";
 import { dbq, hasDb, migrate } from "@/lib/db";
-import { clientIp, corsHeaders } from "@/lib/net";
+import { clientIp, publicCorsHeaders as corsHeaders } from "@/lib/net";
 import { rateLimit } from "@/lib/rateLimit";
 import { recordError } from "@/lib/errorLog";
 

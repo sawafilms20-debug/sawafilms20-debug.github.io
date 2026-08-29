@@ -3,7 +3,7 @@ import { COOKIE_NAME, adminFromToken } from "@/lib/auth";
 import { hasDb, migrate, tx } from "@/lib/db";
 import { originOk, corsHeaders } from "@/lib/net";
 import { rateLimit } from "@/lib/rateLimit";
-import { ALLOWED_MIME, MAX_UPLOAD_BYTES, mediaUrl, safeStorageKey } from "@/lib/media";
+import { ALLOWED_MIME, MAX_UPLOAD_BYTES, mediaUrl, safeStorageKey, sniffMime } from "@/lib/media";
 import { imageSize } from "@/lib/imageSize";
 
 /* Multipart upload. Separate from the RPC endpoint because that one speaks
@@ -63,6 +63,18 @@ export async function POST(req: NextRequest) {
   }
 
   const buf = Buffer.from(await file.arrayBuffer());
+
+  // The declared type got us this far; the bytes decide. A mismatch means the
+  // upload is not what it says it is, and the stored content type is what the
+  // media route will hand back to a browser later.
+  const actual = sniffMime(buf);
+  if (!actual || actual !== mime) {
+    return NextResponse.json(
+      { error: "محتوى الملف لا يطابق نوعه. الصور وملفات PDF فقط." },
+      { status: 415, headers: cors }
+    );
+  }
+
   const storageKey = safeStorageKey(file.name, mime);
   const dims = imageSize(buf, mime);
 

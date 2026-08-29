@@ -48,6 +48,17 @@ export function corsHeaders(origin: string | null): Record<string, string> {
   };
 }
 
+/* For the two endpoints anyone on the internet may call: /api/leads and
+   /api/track. Neither reads a cookie, so neither should ask the browser to
+   send one. Allow-Credentials is what makes a cross-site response readable
+   with the operator's session attached; an endpoint that has no use for it
+   should not advertise it. */
+export function publicCorsHeaders(origin: string | null): Record<string, string> {
+  const h = corsHeaders(origin);
+  delete h["Access-Control-Allow-Credentials"];
+  return h;
+}
+
 /* How many proxies sit in front of this process and append to
    x-forwarded-for. On Railway that is 1 (its edge). Everything to the LEFT of
    that entry was supplied by the caller and is worthless for rate limiting. */

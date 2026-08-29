@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { hasDb, ensureSchema, q } from "@/lib/db";
-import { clientIp, corsHeaders } from "@/lib/net";
+import { clientIp, publicCorsHeaders as corsHeaders } from "@/lib/net";
 import { rateLimit } from "@/lib/rateLimit";
 
 // Public analytics ingest. The site's track.js posts pageviews + events here;
@@ -56,7 +56,9 @@ async function geo(ip: string): Promise<{ country: string; city: string }> {
   const cached = geoCache.get(ip);
   if (cached && Date.now() - cached.at < 24 * 3600 * 1000) return cached;
   try {
-    const r = await fetch(`http://ip-api.com/json/${ip}?fields=country,city`, {
+    // https, not http: this request carries a visitor's IP address, and on
+    // plaintext every hop between here and the lookup can read it.
+    const r = await fetch(`https://ip-api.com/json/${ip}?fields=country,city`, {
       signal: AbortSignal.timeout(1500),
     });
     if (r.ok) {
