@@ -26,6 +26,52 @@ export const publishRouter: Router = {
     },
   }),
 
+  /** Markdown posts that are live on the site but have never been imported.
+   *
+   *  The articles list is empty on a fresh database even when the blog is not,
+   *  because the posts still live as files. Without this the screen says «لا
+   *  توجد مقالات بعد» to someone who is looking at three of her own articles on
+   *  the site, and the only way to bring them in is buried behind the publish
+   *  button. One cheap directory listing, so the screen can say what is true. */
+  pendingImport: adminProcedure({
+    input: z.object({}).optional(),
+    handler: async () => {
+      const token = process.env.GITHUB_TOKEN;
+      if (!token) {
+        return { slugs: [] as string[], canImport: false, problem: "GITHUB_TOKEN غير مضبوط." };
+      }
+
+      /* listDir throws on anything but a missing directory, which is right for
+         publishing — it must not mistake an expired token for "nothing is
+         published". Here it only means the question cannot be answered, so it
+         is reported rather than raised: an empty screen is confusing, but an
+         error where the article list should be is worse. */
+      let files;
+      try {
+        files = (await listDir(token, "content/blog")).filter(
+          (f) => f.name.endsWith(".md") && f.name.toLowerCase() !== "readme.md"
+        );
+      } catch (e) {
+        return {
+          slugs: [] as string[],
+          canImport: false,
+          problem: e instanceof Error ? e.message : "تعذّر الوصول إلى المستودع.",
+        };
+      }
+      const slugs = files.map((f) => f.name.replace(/\.md$/, ""));
+      if (!slugs.length) return { slugs: [], canImport: true, problem: null };
+
+      const known = new Set(
+        (
+          await dbq<{ slug: string }>(`SELECT slug FROM articles WHERE slug = ANY($1::text[])`, [
+            slugs,
+          ])
+        ).map((r) => r.slug)
+      );
+      return { slugs: slugs.filter((s2) => !known.has(s2)), canImport: true, problem: null };
+    },
+  }),
+
   /** One-time move of the markdown blog and the JSON inbox into the database.
    *  Safe to run twice: existing slugs and messages are skipped. */
   importLegacy: adminProcedure({

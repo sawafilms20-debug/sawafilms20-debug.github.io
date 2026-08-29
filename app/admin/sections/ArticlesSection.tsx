@@ -251,12 +251,53 @@ export default function ArticlesSection({
   const [page, setPage] = useState(1);
   const [refreshNonce, setRefreshNonce] = useState(0);
 
+  /* Markdown posts that are live on the site but not yet in the database. On a
+     fresh database this is the difference between "you have no articles" and
+     "your articles are not here yet", which are very different sentences to
+     read while looking at your own blog. */
+  const [pendingImport, setPendingImport] = useState<string[]>([]);
+  const [importProblem, setImportProblem] = useState<string | null>(null);
+  const [importing, setImporting] = useState(false);
+
   const [items, setItems] = useState<ArticleRow[]>([]);
   const [total, setTotal] = useState(0);
   const [loading, setLoading] = useState(true);
   const [listError, setListError] = useState("");
   const [selected, setSelected] = useState<number[]>([]);
   const [busyId, setBusyId] = useState<number | null>(null);
+
+  useEffect(() => {
+    if (loading || items.length || query || status !== "all") return;
+    let cancelled = false;
+    rpc.publish
+      .pendingImport<{ slugs: string[]; problem: string | null }>()
+      .then((r) => {
+        if (cancelled) return;
+        setPendingImport(r.slugs);
+        setImportProblem(r.problem);
+      })
+      .catch(() => {
+        /* the empty state simply stays generic; nothing here is worth an alarm */
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [loading, items.length, query, status, refreshNonce]);
+
+  const runImport = async () => {
+    setImporting(true);
+    try {
+      const r = await rpc.publish.importLegacy<{ articles: number; enquiries: number }>();
+      toast(`استُوردت ${r.articles} مقالة ✓`);
+      setPendingImport([]);
+      setRefreshNonce((n) => n + 1);
+      onCountsChanged();
+    } catch (e) {
+      toast(e instanceof RpcError ? e.message : "تعذّر استيراد المقالات.", "bad");
+    } finally {
+      setImporting(false);
+    }
+  };
 
   const [editorOpen, setEditorOpen] = useState(false);
   const [editorLoading, setEditorLoading] = useState(false);
@@ -688,12 +729,25 @@ export default function ArticlesSection({
             }}
           />
         ) : (
-          <EmptyState
-            title="لا توجد مقالات بعد"
-            body="هنا تعيش مقالات مدوّنتك: تكتبينها، تجدولينها، وتنشرينها على الموقع. ابدئي بأول مقال."
-            actionLabel="مقال جديد"
-            onAction={openNew}
-          />
+          pendingImport.length ? (
+            <EmptyState
+              title={`${pendingImport.length} مقالات منشورة على موقعك لم تصل إلى اللوحة بعد`}
+              body="كُتبت قبل هذه اللوحة، فهي ما زالت ملفات على المستودع وتظهر للزوار كالمعتاد. استوردِيها مرة واحدة لتصبح قابلة للتحرير من هنا."
+              actionLabel={importing ? "جارٍ الاستيراد…" : "استوردي المقالات"}
+              onAction={importing ? () => {} : runImport}
+            />
+          ) : (
+            <EmptyState
+              title="لا توجد مقالات بعد"
+              body={
+                importProblem
+                  ? `هنا تعيش مقالات مدوّنتك. تعذّر التحقق من وجود مقالات قديمة على المستودع (${importProblem})`
+                  : "هنا تعيش مقالات مدوّنتك: تكتبينها، تجدولينها، وتنشرينها على الموقع. ابدئي بأول مقال."
+              }
+              actionLabel="مقال جديد"
+              onAction={openNew}
+            />
+          )
         )
       ) : (
         <div className="adm-list">
