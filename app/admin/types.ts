@@ -10,17 +10,14 @@ export type SectionId =
   | "services"
   | "testimonials"
   | "processSteps"
-  | "faq"
-  | "statistics"
   | "media"
   | "enquiries"
   | "newsletter"
-  | "analytics"
-  | "articleAnalytics"
   | "seo"
   | "siteSettings"
-  | "adminUsers"
   | "account"
+  /* Reachable from the quick search and nowhere else: an error log is for
+     whoever maintains the site, not for whoever writes it. */
   | "errorLog";
 
 export type ConfirmFn = (

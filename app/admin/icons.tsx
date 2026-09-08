@@ -66,20 +66,6 @@ export const IconSteps = (p: P) => (
   </Svg>
 );
 
-export const IconFaq = (p: P) => (
-  <Svg {...p}>
-    <circle cx="12" cy="12" r="9" />
-    <path d="M9.2 9a3 3 0 0 1 5.6 1c0 2-2.8 2.6-2.8 4" />
-    <path d="M12 17h.01" />
-  </Svg>
-);
-
-export const IconStats = (p: P) => (
-  <Svg {...p}>
-    <path d="M4 20V10M10 20V4M16 20v-7M22 20H2" />
-  </Svg>
-);
-
 export const IconMedia = (p: P) => (
   <Svg {...p}>
     <rect x="3" y="3" width="18" height="18" rx="2.5" />
@@ -99,13 +85,6 @@ export const IconNewsletter = (p: P) => (
   <Svg {...p}>
     <path d="M4 4h16v12H8l-4 4z" />
     <path d="M8 9h8M8 12h5" />
-  </Svg>
-);
-
-export const IconAnalytics = (p: P) => (
-  <Svg {...p}>
-    <path d="M3 3v16a2 2 0 0 0 2 2h16" />
-    <path d="m7 15 4-5 3 3 4-6" />
   </Svg>
 );
 

@@ -6,7 +6,6 @@ import { rpc, RpcError } from "./rpc";
 import { ToastProvider, useConfirm, Dialog } from "./ui";
 import type { Counts, SectionId } from "./types";
 import {
-  IconAnalytics,
   IconArticles,
   IconBug,
   IconClose,
@@ -14,7 +13,6 @@ import {
   IconExport,
   IconEye,
   IconEyeOff,
-  IconFaq,
   IconLeads,
   IconLogout,
   IconMedia,
@@ -26,7 +24,6 @@ import {
   IconSeo,
   IconServices,
   IconSettings,
-  IconStats,
   IconSteps,
   IconTestimonials,
   IconUsers,
@@ -39,13 +36,9 @@ import PageTextSection from "./sections/PageTextSection";
 import ServicesSection from "./sections/ServicesSection";
 import TestimonialsSection from "./sections/TestimonialsSection";
 import ProcessStepsSection from "./sections/ProcessStepsSection";
-import FaqSection from "./sections/FaqSection";
-import StatisticsSection from "./sections/StatisticsSection";
 import MediaSection from "./sections/MediaSection";
 import EnquiriesSection from "./sections/EnquiriesSection";
 import NewsletterSection from "./sections/NewsletterSection";
-import AnalyticsSection from "./sections/AnalyticsSection";
-import ArticleAnalyticsSection from "./sections/ArticleAnalyticsSection";
 import SeoSection from "./sections/SeoSection";
 import SiteSettingsSection from "./sections/SiteSettingsSection";
 import AdminUsersSection from "./sections/AdminUsersSection";
@@ -60,84 +53,70 @@ type NavItem = {
   ownerOnly?: boolean;
 };
 
-type NavGroup = { label: string | null; items: NavItem[]; defaultOpen: boolean };
+type NavGroup = { label: string | null; items: NavItem[] };
 
+/* Twelve destinations, three headings, nothing folded away.
+
+   It was eighteen, in collapsible groups, and the owner could not find her own
+   blog in it. Four of those screens have been merged or dropped rather than
+   renamed: the traffic «نظرة عامة» said the same thing as this dashboard and is
+   now part of it, «الأسئلة الشائعة» and «الأرقام» edited data that no page on
+   the site renders, and the error log belongs to whoever maintains the site.
+
+   The blog is called المدونة here because that is what it is called in the
+   site's own navigation. «المقالات» is the name of a service she sells. */
 const NAV: NavGroup[] = [
   {
     label: null,
-    defaultOpen: true,
     items: [{ id: "dashboard", label: "لوحة التحكم", english: "Dashboard", Icon: IconDashboard }],
   },
   {
-    label: "المحتوى",
-    defaultOpen: true,
+    label: "موقعك",
     items: [
-      { id: "articles", label: "المقالات", english: "Articles", Icon: IconArticles },
-      { id: "pageText", label: "الصفحات", english: "Page text", Icon: IconPages },
+      { id: "articles", label: "المدونة", english: "Blog", Icon: IconArticles },
+      { id: "pageText", label: "نصوص الصفحات", english: "Page text", Icon: IconPages },
       { id: "services", label: "الخدمات", english: "Services", Icon: IconServices },
       { id: "testimonials", label: "التوصيات", english: "Testimonials", Icon: IconTestimonials },
       { id: "processSteps", label: "خطوات العمل", english: "Process steps", Icon: IconSteps },
-      { id: "faq", label: "الأسئلة الشائعة", english: "FAQ", Icon: IconFaq },
-      { id: "statistics", label: "الأرقام", english: "Statistics", Icon: IconStats },
+      { id: "media", label: "الصور", english: "Images", Icon: IconMedia },
     ],
   },
   {
-    label: "الوسائط",
-    defaultOpen: false,
-    items: [{ id: "media", label: "مكتبة الصور", english: "Media library", Icon: IconMedia }],
-  },
-  {
-    label: "الجمهور",
-    defaultOpen: false,
+    label: "من يتواصل معك",
     items: [
       { id: "enquiries", label: "الرسائل", english: "Enquiries", Icon: IconLeads },
-      { id: "newsletter", label: "النشرة البريدية", english: "Newsletter", Icon: IconNewsletter },
-    ],
-  },
-  {
-    label: "التحليلات",
-    defaultOpen: false,
-    items: [
-      { id: "analytics", label: "نظرة عامة", english: "Overview", Icon: IconAnalytics },
-      {
-        id: "articleAnalytics",
-        label: "أداء المقالات",
-        english: "Article performance",
-        Icon: IconArticles,
-      },
+      { id: "newsletter", label: "المشتركون", english: "Subscribers", Icon: IconNewsletter },
     ],
   },
   {
     label: "الإعدادات",
-    defaultOpen: false,
     items: [
-      { id: "seo", label: "تحسين محركات البحث", english: "SEO", Icon: IconSeo },
+      { id: "seo", label: "ظهورك في جوجل", english: "SEO", Icon: IconSeo },
       { id: "siteSettings", label: "إعدادات الموقع", english: "Site settings", Icon: IconSettings },
-      { id: "adminUsers", label: "المستخدمون", english: "Admin users", Icon: IconUsers, ownerOnly: true },
-      { id: "account", label: "أمان حسابي", english: "My account", Icon: IconUsers },
-      { id: "errorLog", label: "سجل الأخطاء", english: "Error log", Icon: IconBug },
+      { id: "account", label: "حسابي", english: "My account", Icon: IconUsers },
     ],
   },
 ];
 
+/* Off the sidebar, still addressable. The quick search is where a maintainer
+   looks for it and the owner never does. */
+const HIDDEN: NavItem[] = [
+  { id: "errorLog", label: "سجل الأخطاء", english: "Error log", Icon: IconBug },
+];
+
 const TITLES: Record<SectionId, { h: string; sub: string }> = {
-  dashboard: { h: "لوحة التحكم", sub: "كل ما على موقعك، في مكان واحد." },
-  articles: { h: "المقالات", sub: "اكتبي وجدولي وانشري مقالات مدوّنتك." },
-  pageText: { h: "الصفحات", sub: "كل نص مكتوب على الموقع، قابل للتعديل من هنا." },
+  dashboard: { h: "لوحة التحكم", sub: "زوّار موقعك، ورسائلك، وما ينتظر النشر." },
+  articles: { h: "المدونة", sub: "اكتبي مقالًا جديدًا، أو عدّلي مقالًا منشورًا." },
+  pageText: { h: "نصوص الصفحات", sub: "كل نص مكتوب على الموقع، قابل للتعديل من هنا." },
   services: { h: "الخدمات", sub: "الخدمات التي تظهر على الصفحة الرئيسية." },
   testimonials: { h: "التوصيات", sub: "توصيات العملاء، بالترتيب الذي تظهر به." },
   processSteps: { h: "خطوات العمل", sub: "قسم «كيف أعمل؟» على الصفحة الرئيسية." },
-  faq: { h: "الأسئلة الشائعة", sub: "أسئلة وأجوبة تظهر على الموقع." },
-  statistics: { h: "الأرقام", sub: "الأرقام البارزة، إن استخدمتِها." },
-  media: { h: "مكتبة الصور", sub: "الصور والملفات المرفوعة، جاهزة لإعادة الاستخدام." },
+  media: { h: "الصور", sub: "الصور المرفوعة، جاهزة لإعادة الاستخدام." },
   enquiries: { h: "الرسائل", sub: "رسائل نموذج التواصل، من الوصول حتى الرد." },
-  newsletter: { h: "النشرة البريدية", sub: "المشتركون في نشرتك." },
-  analytics: { h: "التحليلات", sub: "من يزور موقعك، من أين، وكيف يتفاعل." },
-  articleAnalytics: { h: "أداء المقالات", sub: "أي مقال يُقرأ، وكم مرة." },
-  seo: { h: "تحسين محركات البحث", sub: "عنوان ووصف وصورة كل صفحة في نتائج البحث." },
+  newsletter: { h: "المشتركون", sub: "المشتركون في نشرتك البريدية." },
+  seo: { h: "ظهورك في جوجل", sub: "عنوان ووصف وصورة كل صفحة في نتائج البحث." },
   siteSettings: { h: "إعدادات الموقع", sub: "الشعار، روابط التواصل، وبيانات الاتصال." },
-  adminUsers: { h: "المستخدمون", sub: "من يملك صلاحية الدخول إلى هذه اللوحة." },
-  account: { h: "أمان حسابي", sub: "كلمة مرورك والتحقق بخطوتين." },
+  account: { h: "حسابي", sub: "كلمة المرور، التحقق بخطوتين، ومن يدخل إلى اللوحة." },
   errorLog: { h: "سجل الأخطاء", sub: "أخطاء وقعت على الموقع المنشور." },
 };
 
@@ -158,9 +137,6 @@ export default function AdminApp() {
   });
   const [newNonce, setNewNonce] = useState(0);
   const [pendingNew, setPendingNew] = useState<SectionId | null>(null);
-  const [openGroups, setOpenGroups] = useState<Record<string, boolean>>(() =>
-    Object.fromEntries(NAV.map((g) => [g.label || "_", g.defaultOpen]))
-  );
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [paletteOpen, setPaletteOpen] = useState(false);
   const [publishing, setPublishing] = useState(false);
@@ -338,10 +314,7 @@ export default function AdminApp() {
     services: "خدمة جديدة",
     testimonials: "توصية جديدة",
     processSteps: "خطوة جديدة",
-    faq: "سؤال جديد",
-    statistics: "رقم جديد",
     media: "رفع صورة",
-    adminUsers: "مستخدم جديد",
   };
 
   return (
@@ -362,42 +335,28 @@ export default function AdminApp() {
           </div>
 
           <nav className="adm-nav" aria-label="أقسام لوحة التحكم">
-            {visibleNav.map((group) => {
-              const key = group.label || "_";
-              const open = openGroups[key];
-              return (
-                <div className="adm-nav-group" key={key}>
-                  {group.label && (
+            {visibleNav.map((group) => (
+              <div className="adm-nav-group" key={group.label || "_"}>
+                {group.label && <p className="adm-nav-group-head">{group.label}</p>}
+                {group.items.map((n) => {
+                  const b = badgeFor(n.id);
+                  return (
                     <button
-                      className="adm-nav-group-head"
-                      aria-expanded={open}
-                      onClick={() => setOpenGroups((g) => ({ ...g, [key]: !g[key] }))}
+                      key={n.id}
+                      className={`adm-nav-item ${section === n.id ? "active" : ""}`}
+                      aria-current={section === n.id ? "page" : undefined}
+                      onClick={() => goTo(n.id)}
                     >
-                      {group.label}
-                      <i className={`adm-caret ${open ? "open" : ""}`} aria-hidden="true" />
+                      <span className="adm-nav-icon">
+                        <n.Icon />
+                      </span>
+                      <span className="adm-nav-label">{n.label}</span>
+                      {b && <span className={`adm-nav-badge ${b.kind}`}>{b.n}</span>}
                     </button>
-                  )}
-                  {(open || !group.label) &&
-                    group.items.map((n) => {
-                      const b = badgeFor(n.id);
-                      return (
-                        <button
-                          key={n.id}
-                          className={`adm-nav-item ${section === n.id ? "active" : ""}`}
-                          aria-current={section === n.id ? "page" : undefined}
-                          onClick={() => goTo(n.id)}
-                        >
-                          <span className="adm-nav-icon">
-                            <n.Icon />
-                          </span>
-                          <span className="adm-nav-label">{n.label}</span>
-                          {b && <span className={`adm-nav-badge ${b.kind}`}>{b.n}</span>}
-                        </button>
-                      );
-                    })}
-                </div>
-              );
-            })}
+                  );
+                })}
+              </div>
+            ))}
           </nav>
 
           <div className="adm-side-foot">
@@ -467,17 +426,17 @@ export default function AdminApp() {
             {section === "services" && <ServicesSection {...sectionProps} />}
             {section === "testimonials" && <TestimonialsSection {...sectionProps} />}
             {section === "processSteps" && <ProcessStepsSection {...sectionProps} />}
-            {section === "faq" && <FaqSection {...sectionProps} />}
-            {section === "statistics" && <StatisticsSection {...sectionProps} />}
             {section === "media" && <MediaSection {...sectionProps} />}
             {section === "enquiries" && <EnquiriesSection {...sectionProps} />}
             {section === "newsletter" && <NewsletterSection {...sectionProps} />}
-            {section === "analytics" && <AnalyticsSection {...sectionProps} />}
-            {section === "articleAnalytics" && <ArticleAnalyticsSection {...sectionProps} />}
             {section === "seo" && <SeoSection {...sectionProps} />}
             {section === "siteSettings" && <SiteSettingsSection {...sectionProps} />}
-            {section === "adminUsers" && role === "owner" && <AdminUsersSection {...sectionProps} />}
-            {section === "account" && <AccountSection {...sectionProps} />}
+            {section === "account" && (
+              <>
+                <AccountSection {...sectionProps} />
+                {role === "owner" && <AdminUsersSection {...sectionProps} />}
+              </>
+            )}
             {section === "errorLog" && <ErrorLogSection {...sectionProps} />}
           </div>
         </main>
@@ -486,6 +445,7 @@ export default function AdminApp() {
           open={paletteOpen}
           onClose={() => setPaletteOpen(false)}
           groups={visibleNav}
+          extras={HIDDEN}
           onPick={goTo}
         />
 
@@ -516,11 +476,14 @@ function CommandPalette({
   open,
   onClose,
   groups,
+  extras,
   onPick,
 }: {
   open: boolean;
   onClose: () => void;
   groups: { label: string | null; items: NavItem[] }[];
+  /** Sections that exist but are not on the sidebar: found only by name. */
+  extras: NavItem[];
   onPick: (id: SectionId) => void;
 }) {
   const [query, setQuery] = useState("");
@@ -531,10 +494,10 @@ function CommandPalette({
   const results = useMemo(() => {
     const q = query.trim().toLowerCase();
     if (!q) return all;
-    return all.filter(
-      (i) => i.label.toLowerCase().includes(q) || i.english.toLowerCase().includes(q)
-    );
-  }, [all, query]);
+    const match = (i: NavItem) =>
+      i.label.toLowerCase().includes(q) || i.english.toLowerCase().includes(q);
+    return [...all, ...extras].filter(match);
+  }, [all, extras, query]);
 
   useEffect(() => {
     if (open) {

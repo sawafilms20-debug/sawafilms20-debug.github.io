@@ -757,16 +757,12 @@ section.chapter{padding-top:clamp(70px,10vw,120px)}
 .adm-side .adm-drawer-close{display:none}
 .adm-nav{display:flex;flex-direction:column;gap:2px;flex:1}
 .adm-nav-group{display:flex;flex-direction:column;gap:2px;margin-bottom:6px}
+/* A label, not a control. These groups used to collapse, and the owner lost
+   her own blog behind one of them; nothing in this sidebar folds away now. */
 .adm-nav-group-head{
-  display:flex;align-items:center;justify-content:space-between;width:100%;
-  font-family:inherit;font-size:11px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;
-  color:var(--muted);background:none;border:none;cursor:pointer;padding:10px 10px 6px;text-align:start;
+  margin:0;font-size:11px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;
+  color:var(--muted);padding:10px 10px 6px;
 }
-.adm-caret{
-  width:7px;height:7px;border-inline-end:1.6px solid currentColor;border-block-end:1.6px solid currentColor;
-  transform:rotate(45deg);transition:transform .18s ease-out;opacity:.7;
-}
-.adm-caret.open{transform:rotate(-135deg)}
 .adm-nav-item{
   display:flex;align-items:center;gap:11px;width:100%;text-align:start;font-family:inherit;
   font-size:14px;font-weight:600;color:var(--ink);background:none;border:none;cursor:pointer;
@@ -962,6 +958,58 @@ section.chapter{padding-top:clamp(70px,10vw,120px)}
 .adm-rt em{font-style:normal;color:var(--gold-deep)}
 .adm-rt .hl-gold{color:var(--gold-deep)}
 .adm-rt .choice-word,.adm-rt .kw{color:var(--gold-deep);font-weight:800}
+
+.adm-steps{display:flex;flex-wrap:wrap;align-items:center;gap:4px;line-height:2}
+.adm-steps b{
+  display:inline-flex;align-items:center;justify-content:center;width:19px;height:19px;
+  border-radius:50%;background:var(--gold-soft);color:var(--gold-text);
+  font-size:11.5px;font-weight:800;flex:0 0 19px;
+}
+
+/* ---------- article editor ----------
+   The writing box renders what the article will look like, so its type scale
+   follows the published page rather than the form around it. */
+.adm-ed{display:grid;gap:8px}
+.adm-ed-bar{
+  display:flex;align-items:center;gap:5px;flex-wrap:wrap;
+  padding:7px 8px;background:var(--paper);border:1px solid var(--line);border-radius:12px;
+}
+.adm-ed-btn{
+  font-family:inherit;font-size:12.5px;font-weight:700;color:var(--gold-text);
+  background:var(--ivory);border:1px solid var(--gold-soft);border-radius:8px;
+  padding:5px 11px;cursor:pointer;transition:background-color .15s ease-out,color .15s ease-out;
+}
+.adm-ed-btn:hover{background:var(--sand);color:var(--espresso)}
+.adm-ed-btn.on{background:linear-gradient(135deg,var(--gold) 0%,var(--gold-deep) 100%);border-color:transparent;color:#fffdf8}
+.adm-ed-btn b,.adm-ed-btn i{font-weight:800}
+.adm-ed-sep{width:1px;height:18px;background:var(--line);margin:0 3px}
+.adm-ed-plain{
+  font-family:inherit;font-size:12px;font-weight:600;color:var(--muted);
+  background:none;border:none;cursor:pointer;padding:5px 8px;margin-inline-start:auto;
+  border-radius:8px;text-decoration:underline;text-underline-offset:3px;
+}
+.adm-ed-plain:hover{color:var(--espresso)}
+.adm-ed-note{font-size:12px;color:var(--muted);flex:1;min-width:0;line-height:1.6}
+.adm-ed-link{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.adm-ed-link input{flex:1;min-width:180px}
+.adm-ed-box{
+  width:100%;min-height:340px;font-family:inherit;font-size:16px;line-height:1.95;
+  color:var(--ink);background:var(--ivory);border:1.5px solid var(--line);
+  border-radius:12px;padding:16px 18px;transition:border-color .15s ease-out;
+}
+.adm-ed-box:focus{outline:none;border-color:var(--gold)}
+.adm-ed-box > :first-child{margin-top:0}
+.adm-ed-box p{margin:0 0 1em}
+.adm-ed-box h2{font-family:var(--font-messiri),serif;font-size:22px;font-weight:700;color:var(--espresso);margin:1.4em 0 .5em;line-height:1.5}
+.adm-ed-box h3{font-family:var(--font-messiri),serif;font-size:18px;font-weight:700;color:var(--espresso);margin:1.3em 0 .4em;line-height:1.5}
+.adm-ed-box ul,.adm-ed-box ol{margin:0 0 1em;padding-inline-start:1.4em}
+.adm-ed-box li{margin-bottom:.35em}
+.adm-ed-box blockquote{
+  margin:0 0 1em;padding:2px 14px;border-inline-start:3px solid var(--gold);
+  color:var(--gold-text);font-style:normal;
+}
+.adm-ed-box a{color:var(--gold-deep);text-decoration:underline;text-underline-offset:3px}
+.adm-ed-box strong{font-weight:800;color:var(--espresso)}
 
 .adm-bilingual{margin-bottom:16px}
 .adm-bilingual .adm-field{margin-bottom:6px}

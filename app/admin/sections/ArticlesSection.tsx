@@ -4,6 +4,8 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { SITE_URL } from "../config";
 import { rpc, RpcError } from "../rpc";
 import { ImageField } from "../MediaPicker";
+import { ArticleEditor } from "../ArticleEditor";
+import { markdownToHtml } from "../markdown";
 import {
   BilingualField,
   Dialog,
@@ -171,70 +173,6 @@ function readingMinutes(words: number): number {
 
 function minutesLabel(n: number): string {
   return n >= 3 && n <= 10 ? `${n} دقائق` : `${n} دقيقة`;
-}
-
-/* --------------------------------------------------------------- markdown */
-
-const HTML_ESCAPES: Record<string, string> = {
-  "&": "&amp;",
-  "<": "&lt;",
-  ">": "&gt;",
-  '"': "&quot;",
-};
-
-function escapeHtml(s: string): string {
-  return s.replace(/[&<>"]/g, (c) => HTML_ESCAPES[c] ?? c);
-}
-
-function safeHref(href: string): boolean {
-  return /^(https?:\/\/|mailto:|\/|#)/i.test(href);
-}
-
-function inlineMd(s: string): string {
-  return s
-    .replace(/`([^`]+)`/g, "<code>$1</code>")
-    .replace(/\*\*([^*]+)\*\*/g, "<strong>$1</strong>")
-    .replace(/(^|[^*])\*([^*\n]+)\*/g, "$1<em>$2</em>")
-    .replace(/\[([^\]]+)\]\(([^)\s]+)\)/g, (_m, text: string, href: string) =>
-      safeHref(href) ? `<a href="${href}" target="_blank" rel="noopener">${text}</a>` : text
-    );
-}
-
-/* Enough markdown to judge a draft by, and no dependency: headings, emphasis,
-   links, lists, quotes, paragraphs. Everything is escaped first, so a stray
-   angle bracket in the writing shows up as text instead of markup. */
-function markdownToHtml(src: string): string {
-  const normalized = escapeHtml(src)
-    .replace(/\r\n/g, "\n")
-    .replace(/^(#{1,4}\s+.*)$/gm, "\n$1\n");
-
-  return normalized
-    .split(/\n{2,}/)
-    .map((raw) => {
-      const block = raw.trim();
-      if (!block) return "";
-
-      const heading = /^(#{1,4})\s+(.*)$/.exec(block);
-      if (heading) {
-        const level = heading[1].length;
-        return `<h${level}>${inlineMd(heading[2])}</h${level}>`;
-      }
-
-      const lines = block.split("\n");
-      if (lines.every((l) => /^\s*[-*]\s+/.test(l))) {
-        const li = lines.map((l) => `<li>${inlineMd(l.replace(/^\s*[-*]\s+/, ""))}</li>`).join("");
-        return `<ul>${li}</ul>`;
-      }
-      if (lines.every((l) => /^\s*\d+[.)]\s+/.test(l))) {
-        const li = lines.map((l) => `<li>${inlineMd(l.replace(/^\s*\d+[.)]\s+/, ""))}</li>`).join("");
-        return `<ol>${li}</ol>`;
-      }
-      if (lines.every((l) => /^&gt;\s?/.test(l))) {
-        return `<blockquote>${inlineMd(block.replace(/^&gt;\s?/gm, ""))}</blockquote>`;
-      }
-      return `<p>${inlineMd(lines.join("\n")).replace(/\n/g, "<br />")}</p>`;
-    })
-    .join("");
 }
 
 /* ------------------------------------------------------------------ view */
@@ -671,6 +609,16 @@ export default function ArticlesSection({
 
   return (
     <>
+      {/* Saving an article and publishing the site are two different acts, and
+          nothing on this screen used to say so — «منشور» here only means the
+          dashboard considers it ready. Asked twice where the blog was, this is
+          half the answer; the other half was calling the section المدونة. */}
+      <p className="adm-note adm-steps">
+        <b>١</b> اكتبي المقال واحفظيه · <b>٢</b> اجعلي حالته «منشور» · <b>٣</b> اضغطي «نشر على
+        الموقع» في أعلى الصفحة ليظهر للزوّار على{" "}
+        <span dir="ltr">raheeqkanjo.com/blog</span>
+      </p>
+
       <Toolbar
         search={search}
         onSearch={setSearch}
@@ -947,15 +895,16 @@ export default function ArticlesSection({
             </div>
 
             <Field
-              label="المحتوى"
-              hint={`${words} كلمة · ${minutesLabel(readingMinutes(words))} قراءة تقريبًا · تنسيق Markdown`}
+              label="المقال"
+              hint={`${words} كلمة · ${minutesLabel(readingMinutes(words))} قراءة تقريبًا`}
             >
-              <textarea
-                dir="rtl"
-                rows={20}
+              {/* Remounted per article: the editor decides once, on the text it
+                  was handed, whether it can draw this post at all. */}
+              <ArticleEditor
+                key={draft.id ?? "new"}
                 value={draft.bodyAr}
-                placeholder="## عنوان فرعي&#10;&#10;اكتبي هنا…"
-                onChange={(e) => patch({ bodyAr: e.target.value })}
+                onChange={(md) => patch({ bodyAr: md })}
+                ariaLabel="نص المقال"
               />
             </Field>
 
