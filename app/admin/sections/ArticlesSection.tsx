@@ -6,6 +6,7 @@ import { rpc, RpcError } from "../rpc";
 import { ImageField } from "../MediaPicker";
 import { ArticleEditor } from "../ArticleEditor";
 import { markdownToHtml } from "../markdown";
+import LinkedInInbox from "./LinkedInInbox";
 import {
   BilingualField,
   Dialog,
@@ -183,6 +184,12 @@ export default function ArticlesSection({
   newNonce,
   onCountsChanged,
 }: SectionProps) {
+  /* Two things live on this screen: the blog, and the LinkedIn posts waiting
+     to become part of it. They are separate views rather than another status
+     filter, because a LinkedIn post is not an article yet — it has no slug, no
+     status the site understands, and no row in the articles table. */
+  const [view, setView] = useState<"articles" | "linkedin">("articles");
+  const [liWaiting, setLiWaiting] = useState(0);
   const [status, setStatus] = useState<StatusFilter>("all");
   const [search, setSearch] = useState("");
   const [query, setQuery] = useState("");
@@ -221,6 +228,23 @@ export default function ArticlesSection({
       cancelled = true;
     };
   }, [loading, items.length, query, status, refreshNonce]);
+
+  /* The badge has to be right before she clicks the tab, so the count is read
+     once per refresh. One row is requested; only the totals are used. */
+  useEffect(() => {
+    let cancelled = false;
+    rpc.linkedin
+      .list<{ counts: { new: number } }>({ status: "new", limit: 1 })
+      .then((r) => {
+        if (!cancelled) setLiWaiting(r.counts.new);
+      })
+      .catch(() => {
+        /* the tab simply shows no badge; nothing here is worth an alarm */
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [refreshNonce]);
 
   const runImport = async () => {
     setImporting(true);
@@ -607,8 +631,40 @@ export default function ArticlesSection({
      in, so the dialog header must not flash «مقال جديد» in the meantime. */
   const editingExisting = editorLoading || draft?.id != null;
 
+  const linkedInView = (
+    <LinkedInInbox
+      toast={toast}
+      confirm={confirm}
+      onCountChanged={setLiWaiting}
+      onConverted={(articleId) => {
+        /* The draft exists; the point was never the queue. Land her in the
+           editor for the article she just made, with the blog list behind it. */
+        setView("articles");
+        setRefreshNonce((n) => n + 1);
+        onCountsChanged();
+        void openArticle(articleId);
+      }}
+    />
+  );
+
   return (
     <>
+      <div className="adm-toolbar2">
+        <Segmented<"articles" | "linkedin">
+          value={view}
+          onChange={setView}
+          ariaLabel="ما الذي تعرضينه"
+          options={[
+            { value: "articles", label: "المقالات" },
+            { value: "linkedin", label: "من LinkedIn", count: liWaiting || undefined },
+          ]}
+        />
+      </div>
+
+      {view === "linkedin" ? (
+        linkedInView
+      ) : (
+        <>
       {/* Saving an article and publishing the site are two different acts, and
           nothing on this screen used to say so — «منشور» here only means the
           dashboard considers it ready. Asked twice where the blog was, this is
@@ -777,7 +833,11 @@ export default function ArticlesSection({
       )}
 
       <Pagination page={page} perPage={PER_PAGE} total={total} onPage={setPage} />
+        </>
+      )}
 
+      {/* Outside the view switch: converting a LinkedIn post opens this very
+          editor, and it must survive the switch back to the articles view. */}
       <Dialog
         open={editorOpen}
         onClose={() => void closeEditor()}

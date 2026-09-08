@@ -966,6 +966,37 @@ section.chapter{padding-top:clamp(70px,10vw,120px)}
   font-size:11.5px;font-weight:800;flex:0 0 19px;
 }
 
+/* ---------- LinkedIn inbox ----------
+   A queued post is shown whole, not summarised: deciding whether it is worth
+   republishing means reading it, and a two-line clamp would hide exactly the
+   part she is judging. Long ones scroll inside their own row. */
+.adm-li-item{align-items:flex-start}
+.adm-li-text{
+  margin:6px 0 8px;font-size:14px;line-height:1.9;color:var(--ink);
+  white-space:pre-wrap;overflow-wrap:anywhere;max-height:190px;overflow-y:auto;
+  padding-inline-end:6px;
+}
+.adm-li-preview{
+  margin:10px 0 4px;padding:12px 14px;border:1px solid var(--line);
+  border-radius:12px;background:var(--paper);
+}
+.adm-li-preview h3{
+  font-family:var(--font-messiri),serif;font-size:18px;font-weight:700;
+  color:var(--espresso);margin:2px 0 8px;line-height:1.6;
+}
+.adm-li-preview pre{
+  margin:0;font-family:inherit;font-size:14px;line-height:1.9;color:var(--ink);
+  white-space:pre-wrap;overflow-wrap:anywhere;max-height:260px;overflow-y:auto;
+}
+.adm-li-archive{
+  margin-top:18px;padding-top:16px;border-top:1px solid var(--line);
+}
+.adm-li-archive .adm-muted{font-size:13px;line-height:1.9;margin:4px 0 12px}
+/* The file input itself is unstyleable across browsers, so the label is the
+   button and the input is hidden inside it. */
+.adm-li-file{display:inline-flex;cursor:pointer}
+.adm-li-file input{position:absolute;width:1px;height:1px;opacity:0;pointer-events:none}
+
 /* ---------- article editor ----------
    The writing box renders what the article will look like, so its type scale
    follows the published page rather than the form around it. */

@@ -80,7 +80,7 @@ const EXPECTED_TABLES = [
   "admin_users", "admin_sessions", "articles", "page_content", "services",
   "testimonials", "process_steps", "faq_items", "statistics", "enquiries",
   "newsletter_subscribers", "seo_settings", "site_settings", "media_assets",
-  "media_blobs", "error_logs", "events", "schema_migrations",
+  "media_blobs", "error_logs", "events", "linkedin_posts", "schema_migrations",
 ];
 
 console.log("\nschema");
@@ -760,6 +760,111 @@ await check("the publish snapshot query set runs", async () => {
       throw new Error(`publish query #${i + 1}: ${e.message}`);
     }
   }
+});
+
+/* --------------------------------------------------------------- linkedin */
+
+console.log("\nlinkedin");
+
+const liInsert = `INSERT INTO linkedin_posts
+    ("externalId","postUrl","postedAt",text,"sharedUrl","mediaUrl",visibility,source)
+  VALUES ($1,$2,$3,$4,$5,$6,$7,$8)
+  ON CONFLICT ("externalId") DO NOTHING
+  RETURNING id`;
+
+await check("a post inserts, and the same externalId does not insert twice", async () => {
+  const args = ["url:https://linkedin.com/posts/x", "https://linkedin.com/posts/x",
+                "2026-07-01T09:00:00Z", "نص المنشور", null, null, "PUBLIC", "archive"];
+  const first = await db.query(liInsert, args);
+  assert(first.rows.length === 1, "the first insert returned no row");
+  const again = await db.query(liInsert, args);
+  // This is what makes re-uploading the whole archive safe.
+  assert(again.rows.length === 0, "a duplicate externalId was inserted");
+});
+
+await check("source and status are constrained", async () => {
+  for (const [col, bad] of [["source", "scrape"], ["status", "queued"]]) {
+    let rejected = false;
+    try {
+      await db.query(
+        `INSERT INTO linkedin_posts ("externalId",text,${col === "source" ? "source" : "status"})
+         VALUES ($1,'x',$2)`,
+        [`bad-${col}`, bad]
+      );
+    } catch {
+      rejected = true;
+    }
+    assert(rejected, `an unknown ${col} was accepted`);
+  }
+});
+
+await check("the queue query and its counts run", async () => {
+  const cols = `id, "externalId", "postUrl", "postedAt", text, "sharedUrl",
+                "mediaUrl", visibility, source, status, "articleId",
+                "createdAt", "updatedAt"`;
+  const { rows } = await db.query(
+    `SELECT ${cols} FROM linkedin_posts
+      WHERE status = $1::text
+      ORDER BY "postedAt" DESC NULLS LAST, id DESC
+      LIMIT $2`,
+    ["new", 50]
+  );
+  assert(rows.length >= 1, "the queue came back empty");
+  assert(rows[0].externalId !== undefined, "externalId not readable as camelCase");
+  assert(rows[0].postUrl !== undefined, "postUrl not readable as camelCase");
+
+  const counts = await db.query(
+    `SELECT count(*) FILTER (WHERE status='new')::text       AS neu,
+            count(*) FILTER (WHERE status='converted')::text AS converted,
+            count(*) FILTER (WHERE status='dismissed')::text AS dismissed
+       FROM linkedin_posts`
+  );
+  assert(counts.rows[0].neu === "1", `expected one waiting post, got ${counts.rows[0].neu}`);
+});
+
+await check("converting writes the article and links the post, in one transaction", async () => {
+  const { rows: post } = await db.query(
+    `SELECT id FROM linkedin_posts WHERE "externalId" = $1`,
+    ["url:https://linkedin.com/posts/x"]
+  );
+  const { rows: owner } = await db.query(`SELECT id FROM admin_users LIMIT 1`);
+  const { rows: article } = await db.query(
+    `INSERT INTO articles
+       (slug,"titleAr","excerptAr","bodyAr",tags,"readingMinutes",status,"authorId")
+     VALUES ($1,$2,$3,$4,$5,$6,'draft',$7)
+     RETURNING id, slug, "titleAr"`,
+    ["from-linkedin", "من LinkedIn", "مقتطف", "نص", JSON.stringify(["كتابة"]), 1, owner[0].id]
+  );
+  await db.query(
+    `UPDATE linkedin_posts SET status = 'converted', "articleId" = $2 WHERE id = $1`,
+    [post[0].id, article[0].id]
+  );
+  const { rows } = await db.query(
+    `SELECT status, "articleId" FROM linkedin_posts WHERE id = $1`, [post[0].id]
+  );
+  assert(rows[0].status === "converted", "status did not move to converted");
+  assert(rows[0].articleId === article[0].id, "articleId was not recorded");
+});
+
+await check("a converted post cannot be dismissed out from under its article", async () => {
+  const { rows } = await db.query(
+    `UPDATE linkedin_posts SET status = $2::text
+      WHERE "externalId" = $1 AND status <> 'converted'
+      RETURNING id`,
+    ["url:https://linkedin.com/posts/x", "dismissed"]
+  );
+  assert(rows.length === 0, "a converted post was moved back to the queue");
+});
+
+await check("deleting the article leaves the post, with no article", async () => {
+  await db.query(`DELETE FROM articles WHERE slug = 'from-linkedin'`);
+  const { rows } = await db.query(
+    `SELECT status, "articleId" FROM linkedin_posts WHERE "externalId" = $1`,
+    ["url:https://linkedin.com/posts/x"]
+  );
+  assert(rows.length === 1, "the post was deleted along with its article");
+  // ON DELETE SET NULL, not CASCADE: her LinkedIn post is not the article's.
+  assert(rows[0].articleId === null, "articleId should be null after the article went");
 });
 
 /* ----------------------------------------------------------------- report */

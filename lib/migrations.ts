@@ -390,4 +390,45 @@ export const MIGRATIONS: Migration[] = [
       ALTER TABLE events ADD COLUMN IF NOT EXISTS event_data JSONB;
     `,
   },
+
+  {
+    id: "015_linkedin_posts",
+    sql: `
+      -- LinkedIn posts waiting to become articles.
+      --
+      -- Kept apart from the articles table on purpose: a row here is raw
+      -- material, not a draft. It has no slug, no status the site
+      -- understands and no place in the blog index, and it must be possible
+      -- to dismiss one without leaving a half-written article behind.
+      -- Converting copies it into articles and records which it became.
+      CREATE TABLE IF NOT EXISTS linkedin_posts (
+        id            SERIAL PRIMARY KEY,
+        -- The permalink where there is one, otherwise a hash of the text. The
+        -- unique constraint is what makes re-uploading the whole archive, or
+        -- pasting the same post twice, a no-op instead of a duplicate.
+        "externalId"  VARCHAR(255) NOT NULL UNIQUE,
+        "postUrl"     VARCHAR(500),
+        "postedAt"    TIMESTAMPTZ,
+        text          TEXT NOT NULL,
+        "sharedUrl"   VARCHAR(500),
+        "mediaUrl"    VARCHAR(500),
+        visibility    VARCHAR(32),
+        source        VARCHAR(16) NOT NULL DEFAULT 'paste'
+                        CHECK (source IN ('paste','archive')),
+        status        VARCHAR(16) NOT NULL DEFAULT 'new'
+                        CHECK (status IN ('new','converted','dismissed')),
+        -- SET NULL, not CASCADE: deleting the article she made from a post must
+        -- not delete the post it came from.
+        "articleId"   INT REFERENCES articles(id) ON DELETE SET NULL,
+        "createdAt"   TIMESTAMPTZ NOT NULL DEFAULT now(),
+        "updatedAt"   TIMESTAMPTZ NOT NULL DEFAULT now()
+      );
+      CREATE INDEX IF NOT EXISTS idx_linkedin_status
+        ON linkedin_posts(status, "postedAt" DESC NULLS LAST);
+
+      DROP TRIGGER IF EXISTS trg_linkedin_posts_updated ON linkedin_posts;
+      CREATE TRIGGER trg_linkedin_posts_updated BEFORE UPDATE ON linkedin_posts
+        FOR EACH ROW EXECUTE FUNCTION rk_set_updated_at();
+    `,
+  },
 ];
