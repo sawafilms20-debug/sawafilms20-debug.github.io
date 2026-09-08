@@ -4,6 +4,7 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import { rpc, RpcError } from "../rpc";
 import { linkedInToArticle } from "@/lib/linkedin";
 import { Dialog, EmptyState, Field, Loading, Segmented, slugify } from "../ui";
+import { findSharesCsv, isZip } from "../zip";
 import type { ConfirmFn } from "../types";
 
 /* LinkedIn posts, waiting to become articles.
@@ -44,12 +45,15 @@ export default function LinkedInInbox({
   confirm,
   onConverted,
   onCountChanged,
+  openPasteOnMount,
 }: {
   toast: (m: string, kind?: "ok" | "bad") => void;
   confirm: ConfirmFn;
   /** The queue's job ends at the draft; the blog list takes it from there. */
   onConverted: (articleId: number) => void;
   onCountChanged: (waiting: number) => void;
+  /** Arrived from /admin#linkedin-paste — the bookmark that skips four taps. */
+  openPasteOnMount?: boolean;
 }) {
   const [tab, setTab] = useState<Tab>("new");
   const [items, setItems] = useState<Post[]>([]);
@@ -58,7 +62,7 @@ export default function LinkedInInbox({
   const [nonce, setNonce] = useState(0);
   const [busyId, setBusyId] = useState<number | null>(null);
 
-  const [pasteOpen, setPasteOpen] = useState(false);
+  const [pasteOpen, setPasteOpen] = useState(!!openPasteOnMount);
   const [convert, setConvert] = useState<{ post: Post; slug: string; title: string } | null>(null);
 
   const refresh = useCallback(() => setNonce((n) => n + 1), []);
@@ -307,10 +311,31 @@ function PasteDialog({
     }
   };
 
+  /* One click instead of "find the box, then press ⌘V". Reading the clipboard
+     needs a user gesture, which this is; Firefox refuses outright, so the
+     failure says what to do rather than what went wrong. */
+  const fromClipboard = async () => {
+    try {
+      const clip = await navigator.clipboard.readText();
+      if (!clip.trim()) {
+        toast("الحافظة فارغة — انسخي المنشور من LinkedIn أولًا.", "bad");
+        return;
+      }
+      setText(clip);
+    } catch {
+      toast("متصفحك لا يسمح بالقراءة من الحافظة. الصقي داخل الصندوق بـ ⌘V.", "bad");
+    }
+  };
+
   const uploadCsv = async (file: File) => {
     setBusy(true);
     try {
-      const csv = await file.text();
+      const bytes = new Uint8Array(await file.arrayBuffer());
+      // LinkedIn emails a zip. Opening it here saves unzipping and then
+      // finding one CSV among forty — which on a phone is most of the work.
+      const csv = isZip(bytes)
+        ? await findSharesCsv(bytes)
+        : new TextDecoder().decode(bytes);
       const r = await rpc.linkedin.importArchive<{
         found: number;
         added: number;
@@ -323,7 +348,10 @@ function PasteDialog({
       );
       onDone();
     } catch (e) {
-      toast(e instanceof RpcError ? e.message : "تعذّرت قراءة الملف.", "bad");
+      toast(
+        e instanceof RpcError || e instanceof Error ? e.message : "تعذّرت قراءة الملف.",
+        "bad"
+      );
     } finally {
       setBusy(false);
     }
@@ -349,8 +377,16 @@ function PasteDialog({
       <Field
         label="نص المنشور"
         required
-        hint="افتحي منشورك على LinkedIn، اضغطي «…» ثم Copy link to post، والصقي النص هنا."
+        hint="افتحي منشورك على LinkedIn، حدّدي النص وانسخيه، ثم اضغطي الزر أعلاه."
       >
+        <div className="adm-ed-bar">
+          <button type="button" className="adm-ed-btn" onClick={fromClipboard}>
+            الصقي ما نسختِه
+          </button>
+          <span className="adm-ed-note">
+            أو الصقي داخل الصندوق مباشرة بـ <span dir="ltr">⌘V</span>
+          </span>
+        </div>
         <textarea
           dir="rtl"
           rows={12}
@@ -388,14 +424,14 @@ function PasteDialog({
         <p className="adm-panel-title">أو استوردي منشوراتك كلها دفعة واحدة</p>
         <p className="adm-muted">
           من LinkedIn: <span dir="ltr">Settings &amp; Privacy → Data privacy → Get a copy of
-          your data → Posts</span>. يصلك ملف مضغوط خلال دقائق؛ استخرجي منه{" "}
-          <span dir="ltr">Shares.csv</span> وارفعيه هنا.
+          your data → Posts</span>. يصلك ملف مضغوط خلال دقائق — ارفعيه كما هو، دون فكّ
+          الضغط؛ سأجد ملف المنشورات بداخله.
         </p>
         <label className="btn btn-ghost adm-li-file">
-          اختاري ملف Shares.csv
+          {busy ? "جارٍ القراءة…" : "اختاري الملف الذي وصلك"}
           <input
             type="file"
-            accept=".csv,text/csv"
+            accept=".zip,.csv,text/csv,application/zip"
             disabled={busy}
             onChange={(e) => {
               const f = e.target.files?.[0];

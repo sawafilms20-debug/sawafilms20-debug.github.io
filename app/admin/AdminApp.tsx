@@ -125,9 +125,28 @@ type Me = {
   dbConnected: boolean;
 };
 
+/* A deep link, so the phone can hold a shortcut to one screen.
+   /admin#linkedin        → the LinkedIn queue
+   /admin#linkedin-paste  → the queue with the paste box already open */
+const HASH_ROUTES: Record<string, SectionId> = {
+  "#linkedin": "articles",
+  "#linkedin-paste": "articles",
+  "#blog": "articles",
+  "#messages": "enquiries",
+};
+
+/** Read once, at load. Later navigation is by the sidebar, not the URL. */
+function initialHash(): string {
+  if (typeof window === "undefined") return "";
+  return HASH_ROUTES[window.location.hash] ? window.location.hash : "";
+}
+
 export default function AdminApp() {
   const [me, setMe] = useState<Me | null>(null);
-  const [section, setSection] = useState<SectionId>("dashboard");
+  const [hash] = useState(initialHash);
+  const [section, setSection] = useState<SectionId>(
+    () => HASH_ROUTES[initialHash()] ?? "dashboard"
+  );
   const [toasts, setToasts] = useState<{ id: number; message: string; kind: "ok" | "bad" }[]>([]);
   const [counts, setCounts] = useState<Counts>({
     articles: 0,
@@ -306,6 +325,8 @@ export default function AdminApp() {
     newNonce,
     onCountsChanged: refreshCounts,
     role,
+    // Consumed on the section's first render; the sidebar takes over after.
+    intent: hash ? hash.slice(1) : null,
   };
 
   const newButton: Partial<Record<SectionId, string>> = {

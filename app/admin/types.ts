@@ -36,6 +36,9 @@ export type SectionProps = {
   /** Ask the shell to refresh sidebar badges after a write. */
   onCountsChanged: () => void;
   role: "owner" | "editor";
+  /** What the URL asked for, read once on load — e.g. "linkedin-paste" from
+   *  /admin#linkedin-paste, the bookmark that lands straight in the paste box. */
+  intent?: string | null;
 };
 
 export type Counts = {
