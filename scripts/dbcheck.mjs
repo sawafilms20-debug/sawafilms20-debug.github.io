@@ -867,6 +867,31 @@ await check("deleting the article leaves the post, with no article", async () =>
   assert(rows[0].articleId === null, "articleId should be null after the article went");
 });
 
+await check("the article list reports which rows came from LinkedIn", async () => {
+  const { rows: owner } = await db.query(`SELECT id FROM admin_users LIMIT 1`);
+  const { rows: written } = await db.query(
+    `INSERT INTO articles (slug,"titleAr","bodyAr",status,"authorId")
+     VALUES ('hand-written','بخط يدها','نص','draft',$1) RETURNING id`, [owner[0].id]);
+  const { rows: imported } = await db.query(
+    `INSERT INTO articles (slug,"titleAr","bodyAr",status,"authorId")
+     VALUES ('from-li','من LinkedIn','نص','draft',$1) RETURNING id`, [owner[0].id]);
+  await db.query(
+    `INSERT INTO linkedin_posts ("externalId",text,status,"articleId")
+     VALUES ('sha:listflag','منشور','converted',$1)`, [imported[0].id]);
+
+  // The exact LIST_COLS expression from lib/rpc/routers/articles.ts.
+  const { rows } = await db.query(
+    `SELECT a.id, a.slug, a.status,
+            EXISTS (SELECT 1 FROM linkedin_posts lp WHERE lp."articleId" = a.id) AS "fromLinkedIn"
+       FROM articles a
+      WHERE a.status = 'draft' AND a."scheduledAt" IS NULL
+      ORDER BY COALESCE(a."publishedAt", a."scheduledAt", a."createdAt") DESC, a.id DESC`
+  );
+  const byId = new Map(rows.map((r) => [r.id, r.fromLinkedIn]));
+  assert(byId.get(imported[0].id) === true, "an imported article was not flagged");
+  assert(byId.get(written[0].id) === false, "a hand-written article was flagged as imported");
+});
+
 /* ----------------------------------------------------------------- report */
 
 console.log(`\n${passed} passed, ${failures.length} failed`);

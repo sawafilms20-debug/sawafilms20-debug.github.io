@@ -22,7 +22,7 @@ export type SectionId =
 
 export type ConfirmFn = (
   message: string,
-  opts?: { confirmLabel?: string; danger?: boolean }
+  opts?: { confirmLabel?: string; cancelLabel?: string; danger?: boolean }
 ) => Promise<boolean>;
 
 export type SectionProps = {

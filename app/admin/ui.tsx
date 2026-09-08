@@ -126,16 +126,24 @@ export function useConfirm() {
   const [state, setState] = useState<{
     message: string;
     confirmLabel: string;
+    cancelLabel: string;
     danger: boolean;
     resolve: (v: boolean) => void;
   } | null>(null);
 
+  /* `cancelLabel` exists because declining is sometimes the better action, not
+     the absence of one: "publish it as it is" / "open the editor" is a real
+     choice between two doors, and labelling the second one «إلغاء» hides it. */
   const confirm = useCallback(
-    (message: string, opts?: { confirmLabel?: string; danger?: boolean }) =>
+    (
+      message: string,
+      opts?: { confirmLabel?: string; cancelLabel?: string; danger?: boolean }
+    ) =>
       new Promise<boolean>((resolve) =>
         setState({
           message,
           confirmLabel: opts?.confirmLabel || "تأكيد",
+          cancelLabel: opts?.cancelLabel || "إلغاء",
           danger: opts?.danger ?? true,
           resolve,
         })
@@ -170,7 +178,7 @@ export function useConfirm() {
               setState(null);
             }}
           >
-            إلغاء
+            {state.cancelLabel}
           </button>
         </>
       }

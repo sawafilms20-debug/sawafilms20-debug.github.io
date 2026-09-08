@@ -48,6 +48,8 @@ type ArticleRow = {
   scheduledAt: string | null;
   createdAt: string;
   updatedAt: string;
+  /** Imported from a LinkedIn post rather than written here. */
+  fromLinkedIn?: boolean;
 };
 
 type ArticleFull = ArticleRow & {
@@ -514,8 +516,31 @@ export default function ArticlesSection({
     if (ok) closeNow();
   };
 
+  /* A LinkedIn import is social writing, not an article. Straight off the
+     importer it still has the hook as its title, the emoji, and whatever
+     shorthand the feed forgives — publishing it in one tap from this list,
+     unread, is the one accident this screen can cause. So the toggle asks, and
+     the answer it offers first is the editor. Once she has opened and saved it,
+     updatedAt moves and the question stops being asked. */
+  const untouchedImport = (row: ArticleRow) =>
+    !!row.fromLinkedIn &&
+    row.status === "draft" &&
+    Math.abs(new Date(row.updatedAt).getTime() - new Date(row.createdAt).getTime()) < 2000;
+
   const toggleRowStatus = async (row: ArticleRow) => {
     const next = row.status === "published" ? "draft" : "published";
+
+    if (next === "published" && untouchedImport(row)) {
+      const publishAnyway = await confirm(
+        `«${row.titleAr}» جاء من LinkedIn ولم تفتحيه بعد. يُنشر كما هو؟`,
+        { confirmLabel: "انشريه كما هو", cancelLabel: "افتحي المحرّر", danger: false }
+      );
+      if (!publishAnyway) {
+        void openArticle(row.id);
+        return;
+      }
+    }
+
     setBusyId(row.id);
     try {
       const updated = await rpc.articles.update<ArticleFull>({ id: row.id, status: next });
@@ -804,6 +829,7 @@ export default function ArticlesSection({
                   </p>
                   <div className="adm-item-meta">
                     <span className={`adm-chip ${chip.cls}`}>{chip.label}</span>
+                    {row.fromLinkedIn && <span className="adm-chip">من LinkedIn</span>}
                     <span>{when}</span>
                     <span>{minutesLabel(row.readingMinutes ?? 1)} قراءة</span>
                     {row.category && <span>{row.category}</span>}

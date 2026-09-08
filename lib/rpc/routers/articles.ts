@@ -32,8 +32,13 @@ const COLS = `id, slug, "titleAr", "titleEn", "excerptAr", "excerptEn", "bodyAr"
   "coverImage", category, tags, "readingMinutes", status, "publishedAt", "scheduledAt",
   "authorId", "createdAt", "updatedAt"`;
 
-const LIST_COLS = `id, slug, "titleAr", "titleEn", "excerptAr", "coverImage", category, tags,
-  "readingMinutes", status, "publishedAt", "scheduledAt", "createdAt", "updatedAt"`;
+const LIST_COLS = `a.id, a.slug, a."titleAr", a."titleEn", a."excerptAr", a."coverImage",
+  a.category, a.tags, a."readingMinutes", a.status, a."publishedAt", a."scheduledAt",
+  a."createdAt", a."updatedAt",
+  /* Where the words came from. A post imported from LinkedIn is her social
+     writing, not an article yet — the list uses this to refuse to publish one
+     that has never been opened. */
+  EXISTS (SELECT 1 FROM linkedin_posts lp WHERE lp."articleId" = a.id) AS "fromLinkedIn"`;
 
 export function readingMinutes(text: string): number {
   const words = (text || "").trim().match(/[\p{L}\p{N}]+/gu)?.length || 0;
@@ -69,23 +74,23 @@ export const articlesRouter: Router = {
       const { limit, offset, page, perPage } = pageSlice(input);
       const where: string[] = [];
       const params: unknown[] = [];
-      if (input.status === "draft") where.push(`status = 'draft' AND "scheduledAt" IS NULL`);
-      else if (input.status === "published") where.push(`status = 'published'`);
-      else if (input.status === "scheduled") where.push(`"scheduledAt" IS NOT NULL`);
+      if (input.status === "draft") where.push(`a.status = 'draft' AND a."scheduledAt" IS NULL`);
+      else if (input.status === "published") where.push(`a.status = 'published'`);
+      else if (input.status === "scheduled") where.push(`a."scheduledAt" IS NOT NULL`);
       if (input.search) {
         params.push(`%${input.search}%`);
-        where.push(`("titleAr" ILIKE $${params.length} OR "titleEn" ILIKE $${params.length}
-                     OR slug ILIKE $${params.length})`);
+        where.push(`(a."titleAr" ILIKE $${params.length} OR a."titleEn" ILIKE $${params.length}
+                     OR a.slug ILIKE $${params.length})`);
       }
       const clause = where.length ? `WHERE ${where.join(" AND ")}` : "";
       const items = await dbq(
-        `SELECT ${LIST_COLS} FROM articles ${clause}
-          ORDER BY COALESCE("publishedAt", "scheduledAt", "createdAt") DESC, id DESC
+        `SELECT ${LIST_COLS} FROM articles a ${clause}
+          ORDER BY COALESCE(a."publishedAt", a."scheduledAt", a."createdAt") DESC, a.id DESC
           LIMIT ${limit} OFFSET ${offset}`,
         params
       );
       const total = await one<{ n: string }>(
-        `SELECT count(*)::text AS n FROM articles ${clause}`,
+        `SELECT count(*)::text AS n FROM articles a ${clause}`,
         params
       );
       return { items, total: Number(total?.n || 0), page, perPage };
