@@ -966,6 +966,12 @@ section.chapter{padding-top:clamp(70px,10vw,120px)}
   font-size:11.5px;font-weight:800;flex:0 0 19px;
 }
 
+.adm-steps-list{
+  margin:0 0 18px;padding-inline-start:20px;font-size:14px;line-height:2.1;color:var(--ink);
+}
+.adm-steps-list li{margin-bottom:4px}
+.adm-steps-list b{font-weight:800;color:var(--espresso)}
+
 /* ---------- LinkedIn inbox ----------
    A queued post is shown whole, not summarised: deciding whether it is worth
    republishing means reading it, and a two-line clamp would hide exactly the

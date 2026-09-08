@@ -4,7 +4,7 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import { rpc, RpcError } from "../rpc";
 import { linkedInToArticle } from "@/lib/linkedin";
 import { Dialog, EmptyState, Field, Loading, Segmented, slugify } from "../ui";
-import { LinkedInPasteDialog } from "../LinkedInPaste";
+import { LinkedInArchiveDialog, LinkedInPasteDialog } from "../LinkedInPaste";
 import type { ConfirmFn } from "../types";
 
 /* LinkedIn posts, waiting to become articles.
@@ -60,6 +60,7 @@ export default function LinkedInInbox({
   const [busyId, setBusyId] = useState<number | null>(null);
 
   const [pasteOpen, setPasteOpen] = useState(false);
+  const [archiveOpen, setArchiveOpen] = useState(false);
   const [convert, setConvert] = useState<{ post: Post; slug: string; title: string } | null>(null);
 
   const refresh = useCallback(() => setNonce((n) => n + 1), []);
@@ -137,6 +138,11 @@ export default function LinkedInInbox({
         <button className="btn btn-gold" onClick={() => setPasteOpen(true)}>
           ألصقي منشورًا
         </button>
+        {/* Was a section at the bottom of the paste dialog. Asked where the
+            archive was, the honest answer was "inside another button". */}
+        <button className="btn btn-ghost" onClick={() => setArchiveOpen(true)}>
+          استوردي أرشيف LinkedIn
+        </button>
       </div>
 
       {err && (
@@ -152,8 +158,8 @@ export default function LinkedInInbox({
           <EmptyState
             title="لا منشورات بانتظارك"
             body="المنشور الذي تلصقينه يصير مسودة في المدونة فورًا، فلا يمر من هنا. تمتلئ هذه القائمة حين ترفعين أرشيف LinkedIn — منشوراتك القديمة كلها — لتختاري منها ما يصير مقالًا."
-            actionLabel="ألصقي منشورًا"
-            onAction={() => setPasteOpen(true)}
+            actionLabel="استوردي أرشيف LinkedIn"
+            onAction={() => setArchiveOpen(true)}
           />
         ) : (
           <EmptyState
@@ -239,6 +245,16 @@ export default function LinkedInInbox({
           })}
         </div>
       )}
+
+      <LinkedInArchiveDialog
+        open={archiveOpen}
+        onClose={() => setArchiveOpen(false)}
+        toast={toast}
+        onImported={() => {
+          setTab("new");
+          refresh();
+        }}
+      />
 
       <LinkedInPasteDialog
         open={pasteOpen}

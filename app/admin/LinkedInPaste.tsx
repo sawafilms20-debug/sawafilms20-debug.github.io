@@ -103,32 +103,6 @@ export function LinkedInPasteDialog({
     }
   };
 
-  const uploadArchive = async (file: File) => {
-    setBusy(true);
-    try {
-      const bytes = new Uint8Array(await file.arrayBuffer());
-      // LinkedIn emails a zip. Opening it here saves unzipping and then
-      // finding one CSV among forty — which on a phone is most of the work.
-      const csv = isZip(bytes) ? await findSharesCsv(bytes) : new TextDecoder().decode(bytes);
-      const r = await rpc.linkedin.importArchive<{
-        found: number;
-        added: number;
-        skipped: number;
-      }>({ csv });
-      toast(
-        r.added
-          ? `وصل ${r.added} منشورًا إلى قائمة LinkedIn${r.skipped ? ` (${r.skipped} كانت موجودة)` : ""} ✓`
-          : "كل المنشورات في هذا الملف موجودة عندك بالفعل."
-      );
-      onQueued?.();
-      onClose();
-    } catch (e) {
-      toast(e instanceof Error ? e.message : "تعذّرت قراءة الملف.", "bad");
-    } finally {
-      setBusy(false);
-    }
-  };
-
   return (
     <Dialog
       open={open}
@@ -196,29 +170,103 @@ export function LinkedInPasteDialog({
         </div>
       )}
 
-      <div className="adm-li-archive">
-        <p className="adm-panel-title">أو استوردي منشوراتك القديمة كلها</p>
-        <p className="adm-muted">
-          من LinkedIn: <span dir="ltr">Settings &amp; Privacy → Data privacy → Get a copy of your
-          data → Posts</span>. يصلك ملف مضغوط خلال دقائق — ارفعيه كما هو، دون فكّ الضغط.
-          تصل المنشورات إلى قائمة LinkedIn لا إلى المدونة، فتختارين منها ما يستحق أن يصير
-          مقالًا.
-        </p>
-        <label className="btn btn-ghost adm-li-file">
-          {busy ? "جارٍ القراءة…" : "اختاري الملف الذي وصلك"}
-          <input
-            type="file"
-            accept=".zip,.csv,text/csv,application/zip"
-            disabled={busy}
-            onChange={(e) => {
-              const f = e.target.files?.[0];
-              // Cleared so choosing the same file twice fires change again.
-              e.target.value = "";
-              if (f) void uploadArchive(f);
-            }}
-          />
-        </label>
-      </div>
+    </Dialog>
+  );
+}
+
+/* The archive import, on its own.
+ *
+ * It used to be a section at the bottom of the paste dialog, which meant the
+ * only way to find "import everything I have ever written" was to open the box
+ * for pasting one post. Asked where the archive was, the honest answer was
+ * "hidden inside another button" — so it is a button of its own now. */
+export function LinkedInArchiveDialog({
+  open,
+  onClose,
+  toast,
+  onImported,
+}: {
+  open: boolean;
+  onClose: () => void;
+  toast: (m: string, kind?: "ok" | "bad") => void;
+  onImported: () => void;
+}) {
+  const [busy, setBusy] = useState(false);
+
+  const upload = async (file: File) => {
+    setBusy(true);
+    try {
+      const bytes = new Uint8Array(await file.arrayBuffer());
+      // LinkedIn emails a zip of forty-odd CSVs. Opening it here saves
+      // unzipping and then finding one file among them — which on a phone is
+      // most of the work.
+      const csv = isZip(bytes) ? await findSharesCsv(bytes) : new TextDecoder().decode(bytes);
+      const r = await rpc.linkedin.importArchive<{
+        found: number;
+        added: number;
+        skipped: number;
+      }>({ csv });
+      toast(
+        r.added
+          ? `وصل ${r.added} منشورًا${r.skipped ? ` (${r.skipped} كانت عندك)` : ""} ✓`
+          : "كل المنشورات في هذا الملف موجودة عندك بالفعل."
+      );
+      onImported();
+      onClose();
+    } catch (e) {
+      toast(e instanceof Error ? e.message : "تعذّرت قراءة الملف.", "bad");
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  return (
+    <Dialog
+      open={open}
+      onClose={onClose}
+      title="استيراد أرشيف LinkedIn"
+      subtitle="كل ما نشرتِه على LinkedIn، دفعة واحدة."
+      width={640}
+      footer={
+        <button className="btn btn-ghost" onClick={onClose}>
+          إغلاق
+        </button>
+      }
+    >
+      <ol className="adm-steps-list">
+        <li>
+          على LinkedIn، افتحي{" "}
+          <span dir="ltr">Settings &amp; Privacy → Data privacy → Get a copy of your data</span>.
+        </li>
+        <li>
+          اختاري <b>Posts</b> ثم اطلبي الأرشيف.
+        </li>
+        <li>يصلك بريد فيه ملف مضغوط خلال دقائق (وقد يستغرق حتى يوم).</li>
+        <li>
+          ارفعيه هنا <b>كما هو</b> — دون فكّ الضغط، ودون البحث عن ملف بداخله.
+        </li>
+      </ol>
+
+      <label className="btn btn-gold adm-li-file" style={{ marginTop: 4 }}>
+        {busy ? "جارٍ القراءة…" : "اختاري الملف الذي وصلك"}
+        <input
+          type="file"
+          accept=".zip,.csv,text/csv,application/zip"
+          disabled={busy}
+          onChange={(e) => {
+            const f = e.target.files?.[0];
+            // Cleared so choosing the same file twice fires change again.
+            e.target.value = "";
+            if (f) void upload(f);
+          }}
+        />
+      </label>
+
+      <p className="adm-note" style={{ marginTop: 16 }}>
+        منشورات الأرشيف تصل إلى قائمة «بانتظارك»، لا إلى المدونة — لأن مئتي منشور قديم لا
+        يجب أن تصير مئتي مسودة. تختارين منها ما يستحق أن يصير مقالًا. ورفع أرشيف أحدث لاحقًا
+        يضيف الجديد فقط.
+      </p>
     </Dialog>
   );
 }
