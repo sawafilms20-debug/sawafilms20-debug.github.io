@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import { SITE_URL } from "../config";
 import { rpc, RpcError } from "../rpc";
 import type { SectionProps } from "../types";
 import {
@@ -38,17 +39,19 @@ type Draft = {
   titleEn: string;
   summaryAr: string;
   summaryEn: string;
-  bodyAr: string;
-  bodyEn: string;
-  icon: string;
   coverImage: string | null;
   priceNote: string;
   isActive: boolean;
 };
 
 /* The card's slug is not decoration: it is the route the card links to, and
-   the site only has these three service pages. */
-const ROUTES = ["linkedin", "articles", "scripts"];
+   the site only has these three service pages. Typing it by hand could only
+   ever produce one of these three or a broken link, so it is a choice. */
+const ROUTES: { slug: string; labelAr: string }[] = [
+  { slug: "linkedin", labelAr: "بناء علامتك الشخصية على LinkedIn" },
+  { slug: "articles", labelAr: "خدمة كتابة المقالات" },
+  { slug: "scripts", labelAr: "خدمة كتابة سيناريو الفيديو" },
+];
 
 const blankDraft = (): Draft => ({
   id: null,
@@ -57,9 +60,6 @@ const blankDraft = (): Draft => ({
   titleEn: "",
   summaryAr: "",
   summaryEn: "",
-  bodyAr: "",
-  bodyEn: "",
-  icon: "",
   coverImage: null,
   priceNote: "",
   isActive: true,
@@ -72,9 +72,6 @@ const draftOf = (s: Service): Draft => ({
   titleEn: s.titleEn ?? "",
   summaryAr: s.summaryAr ?? "",
   summaryEn: s.summaryEn ?? "",
-  bodyAr: s.bodyAr ?? "",
-  bodyEn: s.bodyEn ?? "",
-  icon: s.icon ?? "",
   coverImage: s.coverImage,
   priceNote: s.priceNote ?? "",
   isActive: s.isActive,
@@ -199,9 +196,6 @@ export default function ServicesSection({
       titleEn: draft.titleEn.trim() || null,
       summaryAr: draft.summaryAr.trim() || null,
       summaryEn: draft.summaryEn.trim() || null,
-      bodyAr: draft.bodyAr.trim() || null,
-      bodyEn: draft.bodyEn.trim() || null,
-      icon: draft.icon.trim() || null,
       coverImage: draft.coverImage || null,
       priceNote: draft.priceNote.trim() || null,
       isActive: draft.isActive,
@@ -256,7 +250,7 @@ export default function ServicesSection({
                     <span className="adm-chip" dir="ltr">
                       /{s.slug}
                     </span>
-                    {!ROUTES.includes(s.slug) && (
+                    {!ROUTES.some((r) => r.slug === s.slug) && (
                       <span className="adm-chip new">لا صفحة بهذا المعرّف</span>
                     )}
                     {s.priceNote && <span>{s.priceNote}</span>}
@@ -331,65 +325,54 @@ export default function ServicesSection({
             onEn={(v) => patch({ summaryEn: v })}
           />
 
-          <BilingualField
-            label="نصّ الصفحة"
-            multiline
-            rows={10}
-            hint="يُكتب بتنسيق Markdown: ## لعنوان فرعي، و- لعنصر في قائمة، و**نص** للتغميق."
-            valueAr={draft.bodyAr}
-            valueEn={draft.bodyEn}
-            onAr={(v) => patch({ bodyAr: v })}
-            onEn={(v) => patch({ bodyEn: v })}
-          />
+          {/* «نصّ الصفحة» stood here: a Markdown box asking for `##` and `**`,
+              writing to a column the published site never reads. The words on
+              /linkedin, /articles and /scripts come from «نصوص الصفحات». */}
+          <p className="adm-note">
+            هذه البطاقة هي ما يظهر على الصفحة الرئيسية. نصّ صفحة الخدمة نفسها
+            يُحرَّر من «نصوص الصفحات».
+          </p>
 
           <ImageField
             label="صورة البطاقة"
             value={draft.coverImage}
             onChange={(url) => patch({ coverImage: url })}
             onError={(m) => toast(m, "bad")}
-            hint="صورة عريضة تظهر أعلى البطاقة. اتركيها فارغة إن كانت البطاقة بأيقونة فقط."
+            hint="صورة عريضة تظهر أعلى البطاقة. اتركيها فارغة لتبقى البطاقة بأيقونتها الحالية."
           />
 
           <div className="adm-grid-2">
             <Field
-              label="المعرّف (slug)"
+              label="الصفحة التي تفتحها البطاقة"
               required
-              hint="المعرّف يحدّد الصفحة التي تفتحها البطاقة: linkedin أو articles أو scripts. معرّف لا يوافق صفحة موجودة ينتج رابطًا مكسورًا."
+              hint={draft.slug ? `${SITE_URL}/${draft.slug}/` : "اختاري إحدى صفحات الخدمات الثلاث."}
             >
-              <input
-                dir="ltr"
-                list="adm-service-routes"
-                value={draft.slug}
-                placeholder="linkedin"
-                onChange={(e) => patch({ slug: e.target.value })}
-              />
-              <datalist id="adm-service-routes">
+              <select value={draft.slug} onChange={(e) => patch({ slug: e.target.value })}>
+                <option value="">— اختاري صفحة —</option>
                 {ROUTES.map((r) => (
-                  <option key={r} value={r} />
+                  <option key={r.slug} value={r.slug}>
+                    {r.labelAr}
+                  </option>
                 ))}
-              </datalist>
+                {/* A row already pointing somewhere else keeps showing it,
+                    rather than silently snapping to the first choice. */}
+                {draft.slug && !ROUTES.some((r) => r.slug === draft.slug) && (
+                  <option value={draft.slug}>{draft.slug}</option>
+                )}
+              </select>
             </Field>
 
-            <Field label="الأيقونة" hint="اسم أيقونة من مكتبة Lucide، مثل linkedin أو pen-line أو video.">
+            <Field
+              label="ملاحظة السعر"
+              hint="سطر قصير يظهر أسفل البطاقة، مثل «تبدأ من ٥٠٠ ر.س». اتركيه فارغًا لإخفائه."
+            >
               <input
-                dir="ltr"
-                value={draft.icon}
-                placeholder="pen-line"
-                onChange={(e) => patch({ icon: e.target.value })}
+                dir="rtl"
+                value={draft.priceNote}
+                onChange={(e) => patch({ priceNote: e.target.value })}
               />
             </Field>
           </div>
-
-          <Field
-            label="ملاحظة السعر"
-            hint="سطر قصير يظهر أسفل البطاقة، مثل «تبدأ من ٥٠٠ ر.س». اتركيه فارغًا لإخفائه."
-          >
-            <input
-              dir="rtl"
-              value={draft.priceNote}
-              onChange={(e) => patch({ priceNote: e.target.value })}
-            />
-          </Field>
 
           <div className="adm-field">
             <span className="adm-field-label">الظهور على الموقع</span>

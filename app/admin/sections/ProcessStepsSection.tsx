@@ -26,7 +26,6 @@ type Draft = {
   titleEn: string;
   descriptionAr: string;
   descriptionEn: string;
-  icon: string;
   isVisible: boolean;
 };
 
@@ -35,7 +34,6 @@ const BLANK: Draft = {
   titleEn: "",
   descriptionAr: "",
   descriptionEn: "",
-  icon: "",
   isVisible: true,
 };
 
@@ -96,7 +94,6 @@ export default function ProcessStepsSection({ toast, confirm, newNonce }: Sectio
         titleEn: s.titleEn ?? "",
         descriptionAr: s.descriptionAr ?? "",
         descriptionEn: s.descriptionEn ?? "",
-        icon: s.icon ?? "",
         isVisible: s.isVisible,
       },
     });
@@ -115,7 +112,6 @@ export default function ProcessStepsSection({ toast, confirm, newNonce }: Sectio
         titleEn: d.titleEn.trim(),
         descriptionAr: d.descriptionAr.trim(),
         descriptionEn: d.descriptionEn.trim(),
-        icon: d.icon.trim(),
         isVisible: d.isVisible,
       };
       if (editing.id === null) await rpc.processSteps.create<Step>(payload);
@@ -212,7 +208,6 @@ export default function ProcessStepsSection({ toast, confirm, newNonce }: Sectio
                   <p className="adm-item-title">{s.titleAr}</p>
                   {s.descriptionAr && <p className="adm-item-sub">{s.descriptionAr}</p>}
                   <span className="adm-item-meta">
-                    {s.icon && <span dir="auto">أيقونة: {s.icon}</span>}
                     {!s.isVisible && <span>مخفية عن الموقع</span>}
                   </span>
                 </div>
@@ -276,16 +271,6 @@ export default function ProcessStepsSection({ toast, confirm, newNonce }: Sectio
               onEn={(v) => patch({ descriptionEn: v })}
               hint="سطران أو ثلاثة يشرحان ما يحدث في هذه الخطوة."
             />
-            <Field
-              label="اسم الأيقونة"
-              hint="اختياري — اسم الأيقونة كما هو مكتوب في تصميم الموقع، بالحروف اللاتينية."
-            >
-              <input
-                dir="ltr"
-                value={editing.draft.icon}
-                onChange={(e) => patch({ icon: e.target.value })}
-              />
-            </Field>
             <div className="adm-field">
               <span className="adm-field-label">الظهور على الموقع</span>
               <span style={{ display: "flex", alignItems: "center", gap: 10 }}>
