@@ -4,7 +4,7 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import { rpc, RpcError } from "../rpc";
 import { linkedInToArticle } from "@/lib/linkedin";
 import { Dialog, EmptyState, Field, Loading, Segmented, slugify } from "../ui";
-import { findSharesCsv, isZip } from "../zip";
+import { LinkedInPasteDialog } from "../LinkedInPaste";
 import type { ConfirmFn } from "../types";
 
 /* LinkedIn posts, waiting to become articles.
@@ -45,15 +45,12 @@ export default function LinkedInInbox({
   confirm,
   onConverted,
   onCountChanged,
-  openPasteOnMount,
 }: {
   toast: (m: string, kind?: "ok" | "bad") => void;
   confirm: ConfirmFn;
   /** The queue's job ends at the draft; the blog list takes it from there. */
   onConverted: (articleId: number) => void;
   onCountChanged: (waiting: number) => void;
-  /** Arrived from /admin#linkedin-paste — the bookmark that skips four taps. */
-  openPasteOnMount?: boolean;
 }) {
   const [tab, setTab] = useState<Tab>("new");
   const [items, setItems] = useState<Post[]>([]);
@@ -62,7 +59,7 @@ export default function LinkedInInbox({
   const [nonce, setNonce] = useState(0);
   const [busyId, setBusyId] = useState<number | null>(null);
 
-  const [pasteOpen, setPasteOpen] = useState(!!openPasteOnMount);
+  const [pasteOpen, setPasteOpen] = useState(false);
   const [convert, setConvert] = useState<{ post: Post; slug: string; title: string } | null>(null);
 
   const refresh = useCallback(() => setNonce((n) => n + 1), []);
@@ -124,9 +121,10 @@ export default function LinkedInInbox({
   return (
     <>
       <p className="adm-note">
-        LinkedIn لا يسمح لأي موقع بقراءة منشوراتك تلقائيًا — الوصول إلى منشورات حساب شخصي
-        محجوز لشركاء معتمدين. الطريقان اللذان يعملان: الصقي المنشور هنا بعد نشره، أو ارفعي
-        ملف <span dir="ltr">Shares.csv</span> من أرشيف بياناتك لتصل منشوراتك كلها دفعة واحدة.
+        هذه قائمة انتظار، لا المدونة. المنشور الذي تلصقينه يصير مسودة في المدونة مباشرة؛
+        ما يصل إلى هنا هو ما استوردتِه من أرشيف LinkedIn، لتختاري منه ما يستحق أن يصير
+        مقالًا. (LinkedIn لا يسمح لأي موقع بقراءة منشورات حساب شخصي تلقائيًا — الوصول محجوز
+        لشركاء معتمدين.)
       </p>
 
       <div className="adm-toolbar2">
@@ -153,7 +151,7 @@ export default function LinkedInInbox({
         tab === "new" ? (
           <EmptyState
             title="لا منشورات بانتظارك"
-            body="بعد أن تنشري على LinkedIn، انسخي نص المنشور والصقيه هنا — تصلك مسوّدة مقال جاهزة للتعديل خلال ثوانٍ. أو ارفعي ملف Shares.csv من أرشيف LinkedIn لتصل منشوراتك السابقة كلها مرة واحدة."
+            body="المنشور الذي تلصقينه يصير مسودة في المدونة فورًا، فلا يمر من هنا. تمتلئ هذه القائمة حين ترفعين أرشيف LinkedIn — منشوراتك القديمة كلها — لتختاري منها ما يصير مقالًا."
             actionLabel="ألصقي منشورًا"
             onAction={() => setPasteOpen(true)}
           />
@@ -242,12 +240,15 @@ export default function LinkedInInbox({
         </div>
       )}
 
-      <PasteDialog
+      <LinkedInPasteDialog
         open={pasteOpen}
         onClose={() => setPasteOpen(false)}
         toast={toast}
-        onDone={() => {
+        onDrafted={(articleId) => {
           setPasteOpen(false);
+          onConverted(articleId);
+        }}
+        onQueued={() => {
           setTab("new");
           refresh();
         }}
@@ -264,185 +265,6 @@ export default function LinkedInInbox({
         }}
       />
     </>
-  );
-}
-
-/* ------------------------------------------------------------ paste + csv */
-
-function PasteDialog({
-  open,
-  onClose,
-  toast,
-  onDone,
-}: {
-  open: boolean;
-  onClose: () => void;
-  toast: (m: string, kind?: "ok" | "bad") => void;
-  onDone: () => void;
-}) {
-  const [text, setText] = useState("");
-  const [url, setUrl] = useState("");
-  const [busy, setBusy] = useState(false);
-
-  useEffect(() => {
-    if (open) {
-      setText("");
-      setUrl("");
-    }
-  }, [open]);
-
-  // Shown live, so she can see the hook become a title before she commits.
-  const preview = useMemo(() => (text.trim() ? linkedInToArticle(text) : null), [text]);
-
-  const save = async () => {
-    if (!text.trim()) return;
-    setBusy(true);
-    try {
-      const r = await rpc.linkedin.addPaste<{ added: boolean }>({
-        text,
-        ...(url.trim() ? { postUrl: url.trim() } : {}),
-      });
-      toast(r.added ? "أُضيف المنشور إلى القائمة ✓" : "هذا المنشور موجود في القائمة بالفعل.");
-      onDone();
-    } catch (e) {
-      toast(e instanceof RpcError ? e.message : "تعذّرت الإضافة.", "bad");
-    } finally {
-      setBusy(false);
-    }
-  };
-
-  /* One click instead of "find the box, then press ⌘V". Reading the clipboard
-     needs a user gesture, which this is; Firefox refuses outright, so the
-     failure says what to do rather than what went wrong. */
-  const fromClipboard = async () => {
-    try {
-      const clip = await navigator.clipboard.readText();
-      if (!clip.trim()) {
-        toast("الحافظة فارغة — انسخي المنشور من LinkedIn أولًا.", "bad");
-        return;
-      }
-      setText(clip);
-    } catch {
-      toast("متصفحك لا يسمح بالقراءة من الحافظة. الصقي داخل الصندوق بـ ⌘V.", "bad");
-    }
-  };
-
-  const uploadCsv = async (file: File) => {
-    setBusy(true);
-    try {
-      const bytes = new Uint8Array(await file.arrayBuffer());
-      // LinkedIn emails a zip. Opening it here saves unzipping and then
-      // finding one CSV among forty — which on a phone is most of the work.
-      const csv = isZip(bytes)
-        ? await findSharesCsv(bytes)
-        : new TextDecoder().decode(bytes);
-      const r = await rpc.linkedin.importArchive<{
-        found: number;
-        added: number;
-        skipped: number;
-      }>({ csv });
-      toast(
-        r.added
-          ? `وصل ${r.added} منشورًا${r.skipped ? ` (${r.skipped} كانت موجودة)` : ""} ✓`
-          : "كل المنشورات في هذا الملف موجودة عندك بالفعل."
-      );
-      onDone();
-    } catch (e) {
-      toast(
-        e instanceof RpcError || e instanceof Error ? e.message : "تعذّرت قراءة الملف.",
-        "bad"
-      );
-    } finally {
-      setBusy(false);
-    }
-  };
-
-  return (
-    <Dialog
-      open={open}
-      onClose={onClose}
-      title="منشور من LinkedIn"
-      width={760}
-      footer={
-        <>
-          <button className="btn btn-gold" disabled={!text.trim() || busy} onClick={save}>
-            {busy ? "جارٍ الحفظ…" : "أضيفيه إلى القائمة"}
-          </button>
-          <button className="btn btn-ghost" onClick={onClose}>
-            إلغاء
-          </button>
-        </>
-      }
-    >
-      <Field
-        label="نص المنشور"
-        required
-        hint="افتحي منشورك على LinkedIn، حدّدي النص وانسخيه، ثم اضغطي الزر أعلاه."
-      >
-        <div className="adm-ed-bar">
-          <button type="button" className="adm-ed-btn" onClick={fromClipboard}>
-            الصقي ما نسختِه
-          </button>
-          <span className="adm-ed-note">
-            أو الصقي داخل الصندوق مباشرة بـ <span dir="ltr">⌘V</span>
-          </span>
-        </div>
-        <textarea
-          dir="rtl"
-          rows={12}
-          value={text}
-          placeholder="الصقي المنشور كما هو — بالإيموجي والهاشتاقات وكل شيء."
-          onChange={(e) => setText(e.target.value)}
-        />
-      </Field>
-
-      <Field label="رابط المنشور" hint="اختياري — يُستخدم لمنع تكرار المنشور نفسه مرتين.">
-        <input
-          dir="ltr"
-          value={url}
-          placeholder="https://www.linkedin.com/posts/…"
-          onChange={(e) => setUrl(e.target.value)}
-        />
-      </Field>
-
-      {preview && (
-        <div className="adm-li-preview">
-          <p className="adm-panel-title">هكذا سيصل إلى المدونة</p>
-          <h3>{preview.titleAr}</h3>
-          <pre dir="auto">{preview.bodyAr}</pre>
-          {preview.tags.length > 0 && (
-            <p className="adm-item-meta">
-              {preview.tags.map((t) => (
-                <span key={t}>{t}</span>
-              ))}
-            </p>
-          )}
-        </div>
-      )}
-
-      <div className="adm-li-archive">
-        <p className="adm-panel-title">أو استوردي منشوراتك كلها دفعة واحدة</p>
-        <p className="adm-muted">
-          من LinkedIn: <span dir="ltr">Settings &amp; Privacy → Data privacy → Get a copy of
-          your data → Posts</span>. يصلك ملف مضغوط خلال دقائق — ارفعيه كما هو، دون فكّ
-          الضغط؛ سأجد ملف المنشورات بداخله.
-        </p>
-        <label className="btn btn-ghost adm-li-file">
-          {busy ? "جارٍ القراءة…" : "اختاري الملف الذي وصلك"}
-          <input
-            type="file"
-            accept=".zip,.csv,text/csv,application/zip"
-            disabled={busy}
-            onChange={(e) => {
-              const f = e.target.files?.[0];
-              // Cleared so choosing the same file twice fires change again.
-              e.target.value = "";
-              if (f) void uploadCsv(f);
-            }}
-          />
-        </label>
-      </div>
-    </Dialog>
   );
 }
 

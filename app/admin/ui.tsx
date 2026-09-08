@@ -666,20 +666,4 @@ export function formatBytes(n: number): string {
 
 /** Latin slug from an Arabic title: transliteration is not the goal, a stable
  *  readable URL is. Falls back to a dated stub when nothing survives. */
-export function slugify(title: string): string {
-  const map: Record<string, string> = {
-    ا: "a", أ: "a", إ: "i", آ: "a", ب: "b", ت: "t", ث: "th", ج: "j", ح: "h",
-    خ: "kh", د: "d", ذ: "dh", ر: "r", ز: "z", س: "s", ش: "sh", ص: "s", ض: "d",
-    ط: "t", ظ: "z", ع: "a", غ: "gh", ف: "f", ق: "q", ك: "k", ل: "l", م: "m",
-    ن: "n", ه: "h", و: "w", ي: "y", ى: "a", ة: "a", ء: "", ئ: "", ؤ: "",
-  };
-  const out = Array.from(title.toLowerCase())
-    .map((ch) => (map[ch] !== undefined ? map[ch] : /[a-z0-9]/.test(ch) ? ch : " "))
-    .join("")
-    .trim()
-    .replace(/\s+/g, "-")
-    .replace(/-+/g, "-")
-    .replace(/^-|-$/g, "")
-    .slice(0, 60);
-  return out || `post-${new Date().toISOString().slice(0, 10)}`;
-}
+export { slugify } from "@/lib/slug";

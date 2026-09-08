@@ -7,6 +7,7 @@ import { ImageField } from "../MediaPicker";
 import { ArticleEditor } from "../ArticleEditor";
 import { markdownToHtml } from "../markdown";
 import LinkedInInbox from "./LinkedInInbox";
+import { LinkedInPasteDialog } from "../LinkedInPaste";
 import {
   BilingualField,
   Dialog,
@@ -189,10 +190,13 @@ export default function ArticlesSection({
      to become part of it. They are separate views rather than another status
      filter, because a LinkedIn post is not an article yet — it has no slug, no
      status the site understands, and no row in the articles table. */
+  /* #linkedin-paste opens the box over the blog list, because that is where
+     the draft is about to appear; #linkedin opens the queue. */
   const [view, setView] = useState<"articles" | "linkedin">(
-    intent?.startsWith("linkedin") ? "linkedin" : "articles"
+    intent === "linkedin" ? "linkedin" : "articles"
   );
   const [liWaiting, setLiWaiting] = useState(0);
+  const [pasteOpen, setPasteOpen] = useState(intent === "linkedin-paste");
   const [status, setStatus] = useState<StatusFilter>("all");
   const [search, setSearch] = useState("");
   const [query, setQuery] = useState("");
@@ -638,7 +642,6 @@ export default function ArticlesSection({
     <LinkedInInbox
       toast={toast}
       confirm={confirm}
-      openPasteOnMount={intent === "linkedin-paste"}
       onCountChanged={setLiWaiting}
       onConverted={(articleId) => {
         /* The draft exists; the point was never the queue. Land her in the
@@ -695,6 +698,11 @@ export default function ArticlesSection({
             { value: "scheduled", label: "مجدولة" },
           ]}
         />
+        {/* Here and not only under «من LinkedIn»: pasting makes a draft in this
+            very list, so it belongs beside it. The queue is for the archive. */}
+        <button className="btn btn-ghost" onClick={() => setPasteOpen(true)}>
+          ألصقي من LinkedIn
+        </button>
       </Toolbar>
 
       {selected.length > 0 && (
@@ -839,6 +847,19 @@ export default function ArticlesSection({
       <Pagination page={page} perPage={PER_PAGE} total={total} onPage={setPage} />
         </>
       )}
+
+      <LinkedInPasteDialog
+        open={pasteOpen}
+        onClose={() => setPasteOpen(false)}
+        toast={toast}
+        onDrafted={(articleId) => {
+          setPasteOpen(false);
+          setRefreshNonce((n) => n + 1);
+          onCountsChanged();
+          void openArticle(articleId);
+        }}
+        onQueued={() => setLiWaiting((n) => n + 1)}
+      />
 
       {/* Outside the view switch: converting a LinkedIn post opens this very
           editor, and it must survive the switch back to the articles view. */}

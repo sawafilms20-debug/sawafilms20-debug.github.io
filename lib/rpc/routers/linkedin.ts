@@ -3,6 +3,7 @@ import crypto from "crypto";
 import { adminProcedure, errors, type Router } from "../core";
 import { dbq, one, tx } from "@/lib/db";
 import { linkedInToArticle, parseSharesCsv } from "@/lib/linkedin";
+import { nextFreeSlug, slugify } from "@/lib/slug";
 
 /* The LinkedIn inbox.
  *
@@ -159,6 +160,86 @@ export const linkedinRouter: Router = {
         [externalIdFor(input.text, url)]
       );
       return { added: true, item };
+    },
+  }),
+
+  /** Paste, and it is a draft article — no queue, no second step.
+   *
+   *  This is the whole ask: copy the post, and find it in the blog as a draft
+   *  to edit and publish. The queue still exists, but for the archive import,
+   *  where turning two hundred LinkedIn posts into two hundred drafts would
+   *  bury the blog rather than fill it. */
+  pasteAsDraft: adminProcedure({
+    rateLimit: { max: 60, windowMs: 10 * 60 * 1000 },
+    input: z.object({
+      text: z.string().trim().min(1, "الصقي نص المنشور.").max(30000),
+      postUrl: httpUrl,
+    }),
+    handler: async (input, ctx) => {
+      const url = input.postUrl ?? null;
+      const externalId = externalIdFor(input.text, url);
+
+      /* Pasting the same post twice must not make a second draft — it should
+         hand back the one already made, so the second paste is a way of
+         finding it rather than of duplicating it. */
+      const seen = await one<{ articleId: number | null }>(
+        `SELECT "articleId" FROM linkedin_posts WHERE "externalId" = $1`,
+        [externalId]
+      );
+      if (seen?.articleId) {
+        const existing = await one<{ id: number; slug: string; titleAr: string }>(
+          `SELECT id, slug, "titleAr" FROM articles WHERE id = $1`,
+          [seen.articleId]
+        );
+        if (existing) return { article: existing, created: false };
+      }
+
+      const draft = linkedInToArticle(input.text);
+      const titleAr = draft.titleAr || "مسودة من LinkedIn";
+      const base = slugify(titleAr);
+      // Every slug that could collide, in one query rather than a retry loop.
+      const taken = new Set(
+        (
+          await dbq<{ slug: string }>(
+            `SELECT slug FROM articles WHERE slug = $1::text OR slug LIKE $1::text || '-%'`,
+            [base]
+          )
+        ).map((r) => r.slug)
+      );
+      const slug = nextFreeSlug(base, taken);
+      const words = draft.bodyAr.trim().match(/[\p{L}\p{N}]+/gu)?.length ?? 0;
+
+      return tx(async (client) => {
+        const { rows } = await client.query(
+          `INSERT INTO articles
+             (slug,"titleAr","excerptAr","bodyAr",tags,"readingMinutes",status,"authorId")
+           VALUES ($1,$2,$3,$4,$5,$6,'draft',$7)
+           RETURNING id, slug, "titleAr"`,
+          [
+            slug,
+            titleAr,
+            draft.excerptAr || null,
+            draft.bodyAr,
+            JSON.stringify(draft.tags),
+            Math.max(1, Math.round(words / 180)),
+            ctx.admin.id,
+          ]
+        );
+        const article = rows[0] as { id: number; slug: string; titleAr: string };
+
+        /* The LinkedIn row is kept even though it is converted on arrival: it
+           is what makes the same post pasted again find this draft instead of
+           making another, and it records where the words came from. */
+        await client.query(
+          `INSERT INTO linkedin_posts
+             ("externalId","postUrl","postedAt",text,source,status,"articleId")
+           VALUES ($1,$2,now(),$3,'paste','converted',$4)
+           ON CONFLICT ("externalId")
+           DO UPDATE SET status = 'converted', "articleId" = EXCLUDED."articleId"`,
+          [externalId, url, input.text, article.id]
+        );
+        return { article, created: true };
+      });
     },
   }),
 
