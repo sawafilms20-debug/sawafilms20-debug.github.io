@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { rpc, RpcError } from "./rpc";
-import { linkedInToArticle } from "@/lib/linkedin";
+import { linkedInPostUrl, linkedInToArticle } from "@/lib/linkedin";
 import { Dialog, Field } from "./ui";
 import { findSharesCsv, isZip } from "./zip";
 
@@ -37,13 +37,41 @@ export function LinkedInPasteDialog({
   const [text, setText] = useState("");
   const [url, setUrl] = useState("");
   const [busy, setBusy] = useState(false);
+  const [fetching, setFetching] = useState(false);
+  const [truncated, setTruncated] = useState(false);
 
   useEffect(() => {
     if (open) {
       setText("");
       setUrl("");
+      setTruncated(false);
     }
   }, [open]);
+
+  /* A link is one tap on LinkedIn — «…» then Copy link to post — where copying
+     the whole post is a select-and-drag. The server reads the text off the
+     post's own public page, so this needs nothing from her browser. */
+  const readFromUrl = async (link: string) => {
+    setFetching(true);
+    setTruncated(false);
+    try {
+      const r = await rpc.linkedin.readPost<{
+        text: string;
+        truncated: boolean;
+        postUrl: string;
+      }>({ url: link });
+      setText(r.text);
+      setUrl(r.postUrl);
+      setTruncated(r.truncated);
+      if (r.truncated) {
+        toast("وصل النص مقطوعًا — راجعيه، أو الصقي المنشور كاملًا بدل الرابط.", "bad");
+      }
+    } catch (e) {
+      toast(e instanceof RpcError ? e.message : "تعذّرت قراءة المنشور.", "bad");
+    } finally {
+      setFetching(false);
+    }
+  };
 
   // Shown live, so she sees the hook become a title before she commits.
   const preview = useMemo(() => (text.trim() ? linkedInToArticle(text) : null), [text]);
@@ -56,6 +84,12 @@ export function LinkedInPasteDialog({
       const clip = await navigator.clipboard.readText();
       if (!clip.trim()) {
         toast("الحافظة فارغة — انسخي المنشور من LinkedIn أولًا.", "bad");
+        return;
+      }
+      // A bare link is the fast path: read the post rather than storing a URL
+      // as if it were the article.
+      if (linkedInPostUrl(clip)) {
+        await readFromUrl(clip);
         return;
       }
       setText(clip);
@@ -112,7 +146,11 @@ export function LinkedInPasteDialog({
       width={760}
       footer={
         <>
-          <button className="btn btn-gold" disabled={!text.trim() || busy} onClick={saveAsDraft}>
+          <button
+            className="btn btn-gold"
+            disabled={!text.trim() || busy || fetching}
+            onClick={saveAsDraft}
+          >
             {busy ? "جارٍ الحفظ…" : "احفظيه كمسودة"}
           </button>
           <button className="adm-link" disabled={!text.trim() || busy} onClick={queueForLater}>
@@ -125,9 +163,9 @@ export function LinkedInPasteDialog({
       }
     >
       <Field
-        label="نص المنشور"
+        label="المنشور"
         required
-        hint="افتحي منشورك على LinkedIn، حدّدي النص وانسخيه، ثم اضغطي الزر أعلاه."
+        hint="على LinkedIn: «…» فوق المنشور ثم Copy link to post، والصقي الرابط هنا — أقرأ النص بنفسي. أو الصقي النص كاملًا إن فضّلتِ."
       >
         <div className="adm-ed-bar">
           <button type="button" className="adm-ed-btn" onClick={fromClipboard}>
@@ -140,9 +178,16 @@ export function LinkedInPasteDialog({
         <textarea
           dir="rtl"
           rows={11}
-          value={text}
-          placeholder="الصقي المنشور كما هو — بالإيموجي والهاشتاقات وكل شيء."
-          onChange={(e) => setText(e.target.value)}
+          value={fetching ? "جارٍ قراءة المنشور من LinkedIn…" : text}
+          disabled={fetching}
+          placeholder="الصقي رابط المنشور — أو المنشور كاملًا بالإيموجي والهاشتاقات."
+          onChange={(e) => {
+            const v = e.target.value;
+            setText(v);
+            setTruncated(false);
+            // Pasted a link and nothing else: fetch it instead of keeping it.
+            if (linkedInPostUrl(v)) void readFromUrl(v);
+          }}
         />
       </Field>
 
@@ -154,6 +199,13 @@ export function LinkedInPasteDialog({
           onChange={(e) => setUrl(e.target.value)}
         />
       </Field>
+
+      {truncated && (
+        <p className="adm-err" role="alert">
+          LinkedIn أعطى مقتطفًا لا المنشور كاملًا. راجعي النص أعلاه قبل الحفظ، أو انسخي
+          المنشور بنفسك والصقيه بدل الرابط.
+        </p>
+      )}
 
       {preview && (
         <div className="adm-li-preview">

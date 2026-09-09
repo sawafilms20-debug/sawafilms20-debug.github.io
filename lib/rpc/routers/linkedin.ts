@@ -2,7 +2,12 @@ import { z } from "zod";
 import crypto from "crypto";
 import { adminProcedure, errors, type Router } from "../core";
 import { dbq, one, tx } from "@/lib/db";
-import { linkedInToArticle, parseSharesCsv } from "@/lib/linkedin";
+import {
+  linkedInPostUrl,
+  linkedInToArticle,
+  parseSharesCsv,
+  postTextFromHtml,
+} from "@/lib/linkedin";
 import { nextFreeSlug, slugify } from "@/lib/slug";
 
 /* The LinkedIn inbox.
@@ -132,6 +137,82 @@ export const linkedinRouter: Router = {
           archived: Number(counts?.archived || 0),
         },
       };
+    },
+  }),
+
+  /** Reads one post from its own public page, so she pastes a link instead of
+   *  a wall of text — and nothing has to reach into her browser or her account.
+   *
+   *  Deliberately narrow. It fetches exactly the URL she names, only over
+   *  https, only on linkedin.com or their own shortener, and it will not follow
+   *  a redirect off those hosts: an admin-authenticated procedure that fetches
+   *  an arbitrary URL is an SSRF hole pointed at whatever else the container
+   *  can reach. */
+  readPost: adminProcedure({
+    rateLimit: { max: 30, windowMs: 10 * 60 * 1000 },
+    input: z.object({ url: z.string().trim().min(1).max(500) }),
+    handler: async (input) => {
+      const url = linkedInPostUrl(input.url);
+      if (!url) {
+        throw errors.badRequest(
+          "هذا ليس رابط منشور على LinkedIn. من المنشور: «…» ثم Copy link to post."
+        );
+      }
+
+      let res: Response;
+      try {
+        res = await fetch(url, {
+          redirect: "manual",
+          signal: AbortSignal.timeout(12_000),
+          headers: {
+            // Served the anonymous page, which is the one carrying the tags.
+            "User-Agent":
+              "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 " +
+              "(KHTML, like Gecko) Chrome/128.0 Safari/537.36",
+            "Accept-Language": "ar,en;q=0.8",
+          },
+        });
+      } catch {
+        throw errors.badRequest("تعذّر الوصول إلى LinkedIn. حاولي بعد قليل.");
+      }
+
+      /* One hop, and only onto a host this function would have accepted in the
+         first place — that is what makes the allow-list mean anything. */
+      if (res.status >= 300 && res.status < 400) {
+        const next = linkedInPostUrl(res.headers.get("location") || "");
+        if (!next) throw errors.badRequest("رابط المنشور يحوّل إلى مكان غير متوقع.");
+        try {
+          res = await fetch(next, {
+            redirect: "error",
+            signal: AbortSignal.timeout(12_000),
+            headers: {
+              "User-Agent":
+                "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 " +
+                "(KHTML, like Gecko) Chrome/128.0 Safari/537.36",
+            },
+          });
+        } catch {
+          throw errors.badRequest("تعذّر الوصول إلى LinkedIn. حاولي بعد قليل.");
+        }
+      }
+
+      if (!res.ok) {
+        throw errors.badRequest(
+          res.status === 999
+            ? "LinkedIn رفض الطلب. جرّبي نسخ نص المنشور بدل الرابط."
+            : `تعذّرت قراءة المنشور (${res.status}).`
+        );
+      }
+
+      // A post page is a few hundred KB; anything far past that is not one.
+      const html = (await res.text()).slice(0, 2_000_000);
+      const found = postTextFromHtml(html);
+      if (!found) {
+        throw errors.badRequest(
+          "لم أجد نص المنشور في الصفحة. جرّبي نسخ النص بدل الرابط."
+        );
+      }
+      return { text: found.text, truncated: found.truncated, postUrl: url };
     },
   }),
 

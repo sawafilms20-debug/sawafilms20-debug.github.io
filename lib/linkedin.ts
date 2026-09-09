@@ -386,3 +386,86 @@ export function parseSharesCsv(csv: string): ShareRow[] {
     // It is not hers to republish, so it never reaches the queue.
     .filter((r) => r.text.length > 0);
 }
+
+/* ------------------------------------------------------- a post from its URL */
+
+/* LinkedIn serves an individual post to anonymous visitors with the full text
+   in its Open Graph tags — the same tags every chat app reads to draw a link
+   preview, published for exactly that purpose. So a link is enough: the server
+   reads the post itself and she never has to copy the words, and nothing has
+   to touch her browser or her account.
+   
+   Her profile is a different matter and answers HTTP 999 to any server, which
+   is why this can read a post she names but can never go looking for one. */
+
+/** Post URLs only. Anything else is refused before a request is made. */
+export function linkedInPostUrl(input: string): string | null {
+  const raw = (input || "").trim();
+  if (!raw) return null;
+  let u: URL;
+  try {
+    u = new URL(raw);
+  } catch {
+    return null;
+  }
+  if (u.protocol !== "https:") return null;
+  /* Credentials and a port have no business in a link to a post, and both are
+     ways to make a URL parse as one host here and connect to another there. */
+  if (u.username || u.password || u.port) return null;
+
+  const host = u.hostname.replace(/^www\./, "").toLowerCase();
+  // lnkd.in is LinkedIn's own shortener and redirects onto linkedin.com.
+  if (host === "lnkd.in") {
+    if (!/^\/[A-Za-z0-9_-]+\/?$/.test(u.pathname)) return null;
+  } else if (host === "linkedin.com") {
+    // The two shapes LinkedIn's own "copy link" produces, and nothing else:
+    // a profile or a feed is not a post and must not be fetched as one.
+    const isPost =
+      /^\/feed\/update\/urn:li:(activity|share|ugcPost):\d+\/?$/.test(u.pathname) ||
+      /^\/posts\/[A-Za-z0-9._%-]+\/?$/.test(u.pathname);
+    if (!isPost) return null;
+  } else return null;
+
+  // Tracking parameters are noise and make two links to one post look different.
+  u.search = "";
+  u.hash = "";
+  return u.toString();
+}
+
+const COMMENT_SUFFIX = /\s*\|\s*\d+\s+comments?\s+on\s+LinkedIn\s*$/i;
+
+/**
+ * The post's own words, out of the markup LinkedIn serves to a link preview.
+ *
+ * `truncated` matters: og:description is a preview field, and a long post can
+ * arrive cut off. Better to say so and let her paste the text than to save
+ * half an article and call it done.
+ */
+export function postTextFromHtml(html: string): { text: string; truncated: boolean } | null {
+  const pick = (re: RegExp) => {
+    const m = re.exec(html);
+    return m ? decodeEntities(m[1]) : null;
+  };
+  const text =
+    pick(/<meta property="og:description" content="([^"]*)"/i) ??
+    pick(/<meta name="description" content="([^"]*)"/i);
+  if (!text) return null;
+
+  const cleaned = text.replace(COMMENT_SUFFIX, "").replace(/\r\n?/g, "\n").trim();
+  if (!cleaned) return null;
+  return { text: cleaned, truncated: /[…]$|\.\.\.$/.test(cleaned) };
+}
+
+const ENTITIES: Record<string, string> = {
+  amp: "&", lt: "<", gt: ">", quot: '"', apos: "'", "#39": "'", nbsp: " ",
+};
+
+function decodeEntities(s: string): string {
+  return s.replace(/&(#x?[0-9a-f]+|[a-z]+);/gi, (m, body: string) => {
+    const key = body.toLowerCase();
+    if (ENTITIES[key]) return ENTITIES[key];
+    if (key.startsWith("#x")) return String.fromCodePoint(parseInt(key.slice(2), 16));
+    if (key.startsWith("#")) return String.fromCodePoint(parseInt(key.slice(1), 10));
+    return m;
+  });
+}
