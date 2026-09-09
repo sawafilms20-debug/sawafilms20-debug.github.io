@@ -531,14 +531,17 @@ export default function ArticlesSection({
     const next = row.status === "published" ? "draft" : "published";
 
     if (next === "published" && untouchedImport(row)) {
-      const publishAnyway = await confirm(
+      const answer = await confirm(
         `«${row.titleAr}» جاء من LinkedIn ولم تفتحيه بعد. يُنشر كما هو؟`,
-        { confirmLabel: "انشريه كما هو", cancelLabel: "افتحي المحرّر", danger: false }
+        { confirmLabel: "انشريه كما هو", altLabel: "افتحي المحرّر", danger: false }
       );
-      if (!publishAnyway) {
+      // Escape means she changed her mind — not "open the editor". A dialog
+      // that opens something when you dismiss it is a dialog you cannot leave.
+      if (answer === "alt") {
         void openArticle(row.id);
         return;
       }
+      if (!answer) return;
     }
 
     setBusyId(row.id);

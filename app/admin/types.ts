@@ -20,10 +20,19 @@ export type SectionId =
      whoever maintains the site, not for whoever writes it. */
   | "errorLog";
 
+/** `true` confirmed · `"alt"` the second action · `false` cancelled or dismissed. */
+export type ConfirmAnswer = boolean | "alt";
+
 export type ConfirmFn = (
   message: string,
-  opts?: { confirmLabel?: string; cancelLabel?: string; danger?: boolean }
-) => Promise<boolean>;
+  opts?: {
+    confirmLabel?: string;
+    cancelLabel?: string;
+    /** Adds a second action. Escape and the ✕ never trigger it. */
+    altLabel?: string;
+    danger?: boolean;
+  }
+) => Promise<ConfirmAnswer>;
 
 export type SectionProps = {
   /** Show a transient message. `bad` renders as an error and does not auto-dismiss. */

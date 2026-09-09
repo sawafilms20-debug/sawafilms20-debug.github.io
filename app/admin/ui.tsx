@@ -13,6 +13,7 @@ import {
 } from "react";
 import { createPortal } from "react-dom";
 import { IconChevron, IconClose, IconDrag, IconSearch } from "./icons";
+import type { ConfirmAnswer } from "./types";
 
 /* Shared dashboard primitives.
 
@@ -127,23 +128,35 @@ export function useConfirm() {
     message: string;
     confirmLabel: string;
     cancelLabel: string;
+    altLabel: string | null;
     danger: boolean;
-    resolve: (v: boolean) => void;
+    resolve: (v: ConfirmAnswer) => void;
   } | null>(null);
 
-  /* `cancelLabel` exists because declining is sometimes the better action, not
-     the absence of one: "publish it as it is" / "open the editor" is a real
-     choice between two doors, and labelling the second one «إلغاء» hides it. */
+  /* Three answers, not two.
+     
+     `cancelLabel` renames the way out; `altLabel` adds a SECOND thing the
+     dialog can do — "archive it instead of deleting" — and that distinction
+     matters more than it looks. Overloading cancel with an action means
+     Escape, the ✕ and the backdrop all perform it, so backing out of a delete
+     would have quietly archived the post. Dismissing is always "cancel", and
+     an action always needs its own button. */
   const confirm = useCallback(
     (
       message: string,
-      opts?: { confirmLabel?: string; cancelLabel?: string; danger?: boolean }
+      opts?: {
+        confirmLabel?: string;
+        cancelLabel?: string;
+        altLabel?: string;
+        danger?: boolean;
+      }
     ) =>
-      new Promise<boolean>((resolve) =>
+      new Promise<ConfirmAnswer>((resolve) =>
         setState({
           message,
           confirmLabel: opts?.confirmLabel || "تأكيد",
           cancelLabel: opts?.cancelLabel || "إلغاء",
+          altLabel: opts?.altLabel || null,
           danger: opts?.danger ?? true,
           resolve,
         })
@@ -156,6 +169,8 @@ export function useConfirm() {
       open
       width={460}
       title="تأكيد"
+      /* Escape, the ✕ and the backdrop all mean cancel — never the alternative
+         action, however convenient that would have been to wire up. */
       onClose={() => {
         state.resolve(false);
         setState(null);
@@ -171,6 +186,17 @@ export function useConfirm() {
           >
             {state.confirmLabel}
           </button>
+          {state.altLabel && (
+            <button
+              className="btn btn-ghost"
+              onClick={() => {
+                state.resolve("alt");
+                setState(null);
+              }}
+            >
+              {state.altLabel}
+            </button>
+          )}
           <button
             className="adm-link"
             onClick={() => {

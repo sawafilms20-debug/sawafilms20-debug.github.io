@@ -107,14 +107,17 @@ export default function LinkedInInbox({
   };
 
   const remove = async (post: Post) => {
-    const ok = await confirm(
+    const answer = await confirm(
       "حذف نهائي. لن يمنع شيء وصول المنشور نفسه مرة أخرى لاحقًا — الأرشفة تُبقيه وتُخفيه.",
-      { confirmLabel: "احذفيه نهائيًا", cancelLabel: "أرشفيه بدل الحذف", danger: true }
+      { confirmLabel: "احذفيه نهائيًا", altLabel: "أرشفيه بدل الحذف", danger: true }
     );
-    if (!ok) {
+    // Only the button archives. Escape means she changed her mind, and must
+    // leave the post exactly as it was.
+    if (answer === "alt") {
       void setArchived(post, true);
       return;
     }
+    if (!answer) return;
     setBusyId(post.id);
     try {
       await rpc.linkedin.remove({ id: post.id });
