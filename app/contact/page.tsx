@@ -7,6 +7,7 @@ import ContactForm from "@/components/ContactForm";
 import { LinkedInIcon } from "@/components/icons";
 
 export const metadata: Metadata = {
+  alternates: { canonical: "/contact/" },
   title: "تواصل معي | رحيق كنجو",
   description:
     "لديك فكرة تستحق أن تتحول إلى محتوى؟ احكِ لي عن خبرتك، المشروع والجمهور الذي تريد الوصول إليه.",

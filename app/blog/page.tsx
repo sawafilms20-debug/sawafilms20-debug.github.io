@@ -5,6 +5,7 @@ import SubscribeForm from "@/components/SubscribeForm";
 import BlogList from "./BlogList";
 
 export const metadata: Metadata = {
+  alternates: { canonical: "/blog/" },
   title: "خلينا نحكي محتوى | رحيق كنجو",
   description:
     "مدونتي هي مساحة أكبر لأفكاري وتجاربي في المحتوى، القصص، وبناء الحضور الرقمي للخبراء العرب بأبسط طريقة ممكنة.",
@@ -16,7 +17,15 @@ export const metadata: Metadata = {
       "مساحة أكبر لأفكاري وتجاربي في المحتوى، القصص، وبناء الحضور الرقمي للخبراء العرب.",
     images: ["/og-image.jpg"],
   },
+  twitter: {
+    card: "summary_large_image",
+    title: "خلينا نحكي محتوى | رحيق كنجو",
+    description:
+      "مساحة أكبر لأفكاري وتجاربي في المحتوى، القصص، وبناء الحضور الرقمي للخبراء العرب.",
+    images: ["/og-image.jpg"],
+  },
 };
+
 
 export default function BlogPage() {
   return (

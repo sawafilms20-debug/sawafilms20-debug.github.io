@@ -17,6 +17,7 @@ import SiteNav from "@/components/SiteNav";
 import SiteFooter from "@/components/SiteFooter";
 
 export const metadata: Metadata = {
+  alternates: { canonical: "/articles/" },
   title: "كتابة المقالات | رحيق كنجو",
   description:
     "أعمل مع الخبراء على تحويل معرفتهم وآرائهم إلى مقالات واضحة وعميقة تحمل أسماءهم: مقالات متخصصة، Thought Leadership، رأي وتحليل، وSEO.",

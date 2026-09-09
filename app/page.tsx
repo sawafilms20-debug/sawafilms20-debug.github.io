@@ -1,3 +1,4 @@
+import type { Metadata } from "next";
 import Link from "next/link";
 import {
   Clapperboard,
@@ -14,6 +15,17 @@ import {
 import FX from "./fx";
 import SiteNav from "@/components/SiteNav";
 import SiteFooter from "@/components/SiteFooter";
+
+/* The home page answers on two addresses — "/" and "/index.html", both 200 —
+   so without this Google is free to index them as separate pages and split
+   whatever authority the site has between them. Title and description still
+   come from the root layout; only the canonical is stated here.
+   Next emits this as the bare origin with no trailing slash, where the sitemap
+   writes "/". The two are the same URL by RFC 3986 and Google treats them so;
+   it is not worth a trailingSlash config change to make them look alike. */
+export const metadata: Metadata = {
+  alternates: { canonical: "/" },
+};
 import Projects from "@/components/Projects";
 import { LinkedInIcon } from "@/components/icons";
 

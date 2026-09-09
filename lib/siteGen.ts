@@ -122,6 +122,18 @@ export function renderPostPage(p: Post, sh: Shell) {
     keywords: p.tags.join(", "),
   };
 
+  /* What puts «الرئيسية › المدونة › العنوان» under the search result instead
+     of a bare URL. Cheap, and the article pages are the ones people land on. */
+  const breadcrumb = {
+    "@context": "https://schema.org",
+    "@type": "BreadcrumbList",
+    itemListElement: [
+      { "@type": "ListItem", position: 1, name: "الرئيسية", item: SITE },
+      { "@type": "ListItem", position: 2, name: "المدونة", item: `${SITE}/blog/` },
+      { "@type": "ListItem", position: 3, name: p.title, item: url },
+    ],
+  };
+
   const head = `<title>${esc(p.title)} | ${BRAND}</title>
 <meta name="description" content="${esc(desc)}"/>
 <link rel="canonical" href="${url}"/>
@@ -136,7 +148,8 @@ export function renderPostPage(p: Post, sh: Shell) {
 <meta name="twitter:title" content="${esc(p.title)}"/>
 <meta name="twitter:description" content="${esc(desc)}"/>
 <meta name="twitter:image" content="${esc(image)}"/>
-<script type="application/ld+json">${jsonLdScript(jsonLd)}</script>`;
+<script type="application/ld+json">${jsonLdScript(jsonLd)}</script>
+<script type="application/ld+json">${jsonLdScript(breadcrumb)}</script>`;
 
   const body = `<main id="main" class="wrap">
 <article class="article">
@@ -171,7 +184,38 @@ export function renderBlogIndex(posts: Post[], sh: Shell) {
 <meta property="og:title" content="خلينا نحكي محتوى | ${BRAND}"/>
 <meta property="og:description" content="مساحة أكبر لأفكاري وتجاربي في المحتوى، القصص، وبناء الحضور الرقمي للخبراء العرب."/>
 <meta property="og:url" content="${SITE}/blog/"/>
-<meta property="og:image" content="${SITE}/og-image.jpg"/>`;
+<meta property="og:image" content="${SITE}/og-image.jpg"/>
+<meta name="twitter:card" content="summary_large_image"/>
+<meta name="twitter:title" content="خلينا نحكي محتوى | ${BRAND}"/>
+<meta name="twitter:description" content="مساحة أكبر لأفكاري وتجاربي في المحتوى، القصص، وبناء الحضور الرقمي للخبراء العرب."/>
+<meta name="twitter:image" content="${SITE}/og-image.jpg"/>
+<script type="application/ld+json">${jsonLdScript({
+    "@context": "https://schema.org",
+    "@type": "Blog",
+    name: "خلينا نحكي محتوى",
+    description:
+      "مساحة أكبر لأفكاري وتجاربي في المحتوى، القصص، وبناء الحضور الرقمي للخبراء العرب.",
+    url: `${SITE}/blog/`,
+    inLanguage: "ar",
+    author: { "@type": "Person", name: "Raheek Kanjo", alternateName: BRAND, url: SITE },
+    /* Naming the posts here gives the crawler the whole list from one page,
+       rather than relying on it following ten links to discover them. */
+    blogPost: posts.map((p) => ({
+      "@type": "BlogPosting",
+      headline: p.title,
+      url: `${SITE}/blog/${p.slug}/`,
+      datePublished: p.date,
+      inLanguage: p.lang,
+    })),
+  })}</script>
+<script type="application/ld+json">${jsonLdScript({
+    "@context": "https://schema.org",
+    "@type": "BreadcrumbList",
+    itemListElement: [
+      { "@type": "ListItem", position: 1, name: "الرئيسية", item: SITE },
+      { "@type": "ListItem", position: 2, name: "المدونة", item: `${SITE}/blog/` },
+    ],
+  })}</script>`;
 
   const cards = posts
     .map(

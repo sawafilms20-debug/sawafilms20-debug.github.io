@@ -20,6 +20,7 @@ import SiteNav from "@/components/SiteNav";
 import SiteFooter from "@/components/SiteFooter";
 
 export const metadata: Metadata = {
+  alternates: { canonical: "/linkedin/" },
   title: "خدمات LinkedIn للخبراء | رحيق كنجو",
   description:
     "استراتيجية محتوى، Ghostwriting، تطوير الحساب واستشارات LinkedIn: أساعدك على بناء حساب ومحتوى يوضح خبرتك ويمنح الناس أسبابًا أكثر لتذكّر اسمك.",
@@ -47,12 +48,12 @@ export default function LinkedInPage() {
           loading="lazy"
         />
         <h1 className="hero-title rv d1">
-          خبرتك تظهر في عملك
+          خبرتك تظهر في عملك{" "}
           <br />
           <span className="hl-gold">يجب أن يعكسها حسابك على LinkedIn</span>
         </h1>
         <p className="page-lead rv d2">
-          الشخص الذي يجلس معك قد يفهم قيمتك خلال اجتماع واحد
+          الشخص الذي يجلس معك قد يفهم قيمتك خلال اجتماع واحد{" "}
           <br />
           أما الشخص الذي يصل إلى حسابك لأول مرة، فيبني صورته من المحتوى الذي يراه أمامه
         </p>

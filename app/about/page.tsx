@@ -15,6 +15,7 @@ import SiteFooter from "@/components/SiteFooter";
 import { LinkedInIcon } from "@/components/icons";
 
 export const metadata: Metadata = {
+  alternates: { canonical: "/about/" },
   title: "عني | رحيق كنجو",
   description:
     "أريد أن يصل محتواك إلى المستوى نفسه الذي وصلت إليه خبرتك. أنا رحيق كنجو، كاتبة محتوى تسويقي أعمل مع الخبراء العرب منذ سبع سنوات.",
@@ -37,10 +38,10 @@ export default function AboutPage() {
         <div className="hero-grid">
           <div className="hero-text">
             <h1 className="hero-title hero-title-xl rv d1">
-              أريد أن يصل محتواك
+              أريد أن يصل محتواك{" "}
               <br />
               <span className="hl-gold">
-                إلى المستوى نفسه
+                إلى المستوى نفسه{" "}
                 <br />
                 الذي وصلت إليه خبرتك
               </span>

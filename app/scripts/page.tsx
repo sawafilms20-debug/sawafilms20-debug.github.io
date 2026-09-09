@@ -17,6 +17,7 @@ import SiteFooter from "@/components/SiteFooter";
 import { YouTubeIcon } from "@/components/icons";
 
 export const metadata: Metadata = {
+  alternates: { canonical: "/scripts/" },
   title: "كتابة سكريبتات الفيديو | رحيق كنجو",
   description:
     "أحوّل خبرتك إلى فيديو يمنح المشاهد سببًا للاستمرار من أول ثانية إلى النهاية: فيديوهات قصيرة وتعليمية، محتوى معرفي وتحليلي، وYouTube.",
@@ -44,9 +45,9 @@ export default function ScriptsPage() {
           loading="lazy"
         />
         <h1 className="hero-title rv d1">
-          لديك المعرفة
+          لديك المعرفة{" "}
           <br />
-          والمشاهد لديه زر التمرير
+          والمشاهد لديه زر التمرير{" "}
           <br />
           بين الاثنين يوجد السكريبت
         </h1>
