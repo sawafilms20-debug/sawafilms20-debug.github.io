@@ -642,15 +642,19 @@ export function TrendChart({
   const area = `${pad},${h - pad} ${line} ${pad + (points.length - 1) * step},${h - pad}`;
 
   /* The svg is stretched with preserveAspectRatio="none", so a pixel offset in
-     the box maps to a fraction of the viewBox, never to a viewBox unit. */
+     the box maps to a fraction of the viewBox, never to a viewBox unit.
+
+     No right-to-left branch, and that is deliberate: CSS `direction` does not
+     mirror an SVG's coordinate system, so index 0 is drawn at the left edge on
+     every page — and the caption under it is explicitly `direction: ltr` to
+     match. The chart reads oldest-left everywhere. Flipping the pointer for
+     RTL, which is what this did at first, made every hover name the mirror
+     image of the day under the cursor. */
   const nearest = (clientX: number) => {
     const box = wrap.current?.getBoundingClientRect();
     if (!box || box.width === 0) return null;
     const frac = (clientX - box.left) / box.width;
-    // Right-to-left pages lay the days out the other way round.
-    const rtl = getComputedStyle(wrap.current!).direction === "rtl";
-    const t = rtl ? 1 - frac : frac;
-    const i = Math.round(t * (points.length - 1));
+    const i = Math.round(frac * (points.length - 1));
     return Math.min(points.length - 1, Math.max(0, i));
   };
 
@@ -670,12 +674,13 @@ export function TrendChart({
         onKeyDown={(e) => {
           if (e.key !== "ArrowLeft" && e.key !== "ArrowRight") return;
           e.preventDefault();
-          // Left goes back in time on an RTL page, forward on an LTR one.
-          const rtl = getComputedStyle(e.currentTarget).direction === "rtl";
-          const back = rtl ? e.key === "ArrowRight" : e.key === "ArrowLeft";
+          // The plot is drawn oldest-left, so Left is earlier — on every page.
           setHover((i) => {
-            const from = i ?? points.length - 1;
-            return Math.min(points.length - 1, Math.max(0, from + (back ? -1 : 1)));
+            // Nothing selected yet: start at the newest day, which is where
+            // the eye already is, and let the first Left press move from it.
+            if (i === null) return points.length - 1;
+            const next = i + (e.key === "ArrowLeft" ? -1 : 1);
+            return Math.min(points.length - 1, Math.max(0, next));
           });
         }}
         onBlur={() => setHover(null)}
@@ -724,18 +729,24 @@ export function TrendChart({
           )}
         </svg>
 
-        {active && (
-          <span
-            className="adm-trend-tip"
-            style={{
-              // Positioned in the box's own percentages, not the viewBox's.
-              insetInlineStart: `${(hover! / (points.length - 1)) * 100}%`,
-            }}
-          >
-            <b>{Number(active.n ?? active.views ?? 0).toLocaleString("en")}</b>
-            <span dir="ltr">{active.d}</span>
-          </span>
-        )}
+        {active &&
+          (() => {
+            const pct = (hover! / (points.length - 1)) * 100;
+            /* Centred on the point, except near the ends — a chip centred on
+               the first or last day hangs half outside the panel. */
+            const align = pct < 8 ? "start" : pct > 92 ? "end" : "center";
+            return (
+              <span
+                className={`adm-trend-tip is-${align}`}
+                // `left`, not `inset-inline-start`: the plot is LTR whatever
+                // the page around it is doing.
+                style={{ left: `${pct}%` }}
+              >
+                <b>{Number(active.n ?? active.views ?? 0).toLocaleString("en")}</b>
+                <span dir="ltr">{active.d}</span>
+              </span>
+            );
+          })()}
       </div>
 
       <figcaption>

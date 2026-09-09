@@ -8,12 +8,13 @@
     "start": "node scripts/migrate.mjs; next start -H 0.0.0.0 -p ${PORT:-3000}",
     "typecheck": "tsc --noEmit",
     "db:check": "node scripts/dbcheck.mjs",
-    "check": "npm run typecheck && npm run db:check && npm run check:selectors && npm run build",
+    "check": "npm run typecheck && npm run db:check && npm run email:check && npm run check:selectors && npm run build",
     "dev:db": "node scripts/dev-postgres.mjs",
     "migrate": "node scripts/migrate.mjs",
     "check:selectors": "node scripts/check-selectors.mjs",
     "dev:docs": "node scripts/serve-docs.mjs",
-    "snapshot": "node scripts/snapshot-docs.mjs"
+    "snapshot": "node scripts/snapshot-docs.mjs",
+    "email:check": "node scripts/emailcheck.mjs"
   },
   "dependencies": {
     "bcryptjs": "^3.0.3",

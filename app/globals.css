@@ -968,16 +968,21 @@ section.chapter{padding-top:clamp(70px,10vw,120px)}
 
 /* The trend chart's hover surface. The svg stretches to fill it, so the
    tooltip is positioned in this box's percentages and never in viewBox units. */
-.adm-trend-plot{position:relative;cursor:crosshair;border-radius:10px}
+/* Left-to-right regardless of the page: CSS direction does not mirror an SVG's
+   coordinates, so the plot is drawn oldest-left everywhere and the overlay has
+   to agree with it. */
+.adm-trend-plot{position:relative;cursor:crosshair;border-radius:10px;direction:ltr}
 .adm-trend-plot:focus-visible{outline:2px solid var(--gold);outline-offset:3px}
 .adm-trend-plot svg{display:block;width:100%;height:auto}
 .adm-trend-tip{
-  position:absolute;top:6px;transform:translateX(50%);pointer-events:none;
+  position:absolute;top:6px;transform:translateX(-50%);pointer-events:none;
   display:flex;flex-direction:column;align-items:center;gap:1px;white-space:nowrap;
   background:var(--espresso);color:#fffdf8;border-radius:9px;padding:5px 10px;
   font-size:11.5px;line-height:1.5;box-shadow:0 3px 12px rgba(43,38,34,.22);z-index:2;
 }
-[dir="ltr"] .adm-trend-tip{transform:translateX(-50%)}
+/* At the ends the chip is pinned inside the panel instead of centred. */
+.adm-trend-tip.is-start{transform:translateX(0)}
+.adm-trend-tip.is-end{transform:translateX(-100%)}
 .adm-trend-tip b{font-size:14px;font-weight:800;font-variant-numeric:tabular-nums}
 .adm-trend-tip span{opacity:.75;font-variant-numeric:tabular-nums}
 

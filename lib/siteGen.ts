@@ -1,4 +1,5 @@
 import { marked } from "marked";
+import { EMAIL_PATTERN } from "./email";
 
 /* Server-side generator for real, crawlable blog pages.
    Produces per-post HTML (unique title/description/OG/JSON-LD + the article text
@@ -262,7 +263,10 @@ ${posts.length ? cards : "<p class='page-lead'>لا توجد مقالات بعد
   f.addEventListener('submit',function(e){
     e.preventDefault();
     var email=(f.email.value||'').trim();
-    if(!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)){st.textContent='الرجاء إدخال بريد إلكتروني صحيح';return;}
+    /* The same rule as the rest of the site, injected rather than rewritten:
+       this page is generated HTML and cannot import lib/email.ts, and the
+       hand-copied regex it used to carry accepted name@gmail with no dot. */
+    if(!email||email.length>254||email.indexOf('..')>=0||!(new RegExp(${JSON.stringify(EMAIL_PATTERN)},'u')).test(email)){st.textContent='الرجاء إدخال بريد إلكتروني صحيح — مثل name@example.com';return;}
     btn.disabled=true;btn.textContent='جارٍ الاشتراك…';st.textContent='';
     fetch(api,{method:'POST',headers:{'Content-Type':'application/json'},
       body:JSON.stringify({name:'مشترك في المدونة',email:email,message:'طلب اشتراك في المدونة',source:'blog-subscribe'})})

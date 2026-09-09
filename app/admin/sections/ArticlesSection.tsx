@@ -604,6 +604,25 @@ export default function ArticlesSection({
 
   const bulkSetStatus = async (next: "draft" | "published") => {
     if (!selected.length) return;
+
+    /* The per-row toggle refuses to publish an unread LinkedIn import without
+       asking. Ticking the same rows and pressing «نشر» reached the same place
+       with no question at all, which made that guard decorative. */
+    if (next === "published") {
+      const unread = items.filter((i) => selected.includes(i.id) && untouchedImport(i));
+      if (unread.length) {
+        const answer = await confirm(
+          `${unread.length} من المقالات المحدَّدة جاءت من LinkedIn ولم تفتحيها بعد. تُنشر كما هي؟`,
+          { confirmLabel: "انشريها كما هي", altLabel: "افتحي الأول", danger: false }
+        );
+        if (answer === "alt") {
+          void openArticle(unread[0].id);
+          return;
+        }
+        if (!answer) return;
+      }
+    }
+
     if (next === "draft") {
       const ok = await confirm(
         `سيُخفى ${selected.length} مقال عن الموقع ويعود مسودة. هل تتابعين؟`,

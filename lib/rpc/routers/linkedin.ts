@@ -135,6 +135,37 @@ export const linkedinRouter: Router = {
     },
   }),
 
+  /** One post into the QUEUE rather than the blog — «أو احفظيه في القائمة
+   *  لوقت لاحق». Deleted by accident when the list procedure above was
+   *  rewritten, which left the button in the paste dialog calling a procedure
+   *  that no longer existed and answering «إجراء غير معروف.» */
+  addPaste: adminProcedure({
+    rateLimit: { max: 60, windowMs: 10 * 60 * 1000 },
+    input: z.object({
+      text: z.string().trim().min(1, "الصقي نص المنشور.").max(30000),
+      postUrl: httpUrl,
+      postedAt: z.string().trim().max(40).optional().nullable(),
+    }),
+    handler: async (input) => {
+      const url = input.postUrl ?? null;
+      const added = await insertPost({
+        text: input.text,
+        url,
+        postedAt: parseDate(input.postedAt) ?? new Date().toISOString(),
+        sharedUrl: null,
+        mediaUrl: null,
+        visibility: null,
+        source: "paste",
+      });
+      const item = await one(
+        `SELECT ${COLS} FROM linkedin_posts WHERE "externalId" = $1`,
+        [externalIdFor(input.text, url)]
+      );
+      // `added: false` is not an error — she pasted something already queued.
+      return { added, item };
+    },
+  }),
+
   /** Paste, and it is a draft article — no queue, no second step.
    *
    *  This is the whole ask: copy the post, and find it in the blog as a draft
@@ -333,9 +364,19 @@ export const linkedinRouter: Router = {
       archived: z.boolean(),
     }),
     handler: async ({ id, archived }) => {
+      /* Taking a row off the shelf has to put it somewhere she can see. Rows
+         dismissed before archiving existed still carry status='dismissed', and
+         no tab queries that any more — so clearing archivedAt alone would have
+         made the post real, un-archived and invisible. It goes back to the
+         queue it would be in today. */
       const row = await one(
         `UPDATE linkedin_posts
-            SET "archivedAt" = CASE WHEN $2::boolean THEN now() ELSE NULL END
+            SET "archivedAt" = CASE WHEN $2::boolean THEN now() ELSE NULL END,
+                status = CASE
+                           WHEN $2::boolean THEN status
+                           WHEN status = 'dismissed' THEN 'new'
+                           ELSE status
+                         END
           WHERE id = $1
         RETURNING ${COLS}`,
         [id, archived]
