@@ -185,7 +185,7 @@ export default function LinkedInPage() {
 
         <section className="contact wrap">
           <h2 className="rv">
-            أريد أن تقرأ المنشور وتقول:
+            أريد أن تقرأ المنشور وتقول:{" "}
             <br />
             <em>هذه فكرتي فعلًا</em>
           </h2>

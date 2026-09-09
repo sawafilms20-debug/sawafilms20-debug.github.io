@@ -46,11 +46,11 @@ export default function ArticlesPage() {
         />
         <h1 className="hero-title rv d1">بعض الأفكار تحتاج <span className="hl-gold">مساحة</span> أكبر</h1>
         <p className="page-lead rv d2">
-          رأي يحتاج حجة
+          رأي يحتاج حجة{" "}
           <br />
-          تجربة تحتاج سياقًا
+          تجربة تحتاج سياقًا{" "}
           <br />
-          موضوع يحتاج بحثًا
+          موضوع يحتاج بحثًا{" "}
           <br />
           أو معرفة تستحق أن تتحول إلى مرجع يمكن الرجوع إليه
         </p>
