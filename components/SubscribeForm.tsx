@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { isValidEmail } from "@/lib/email";
 
 /* Blog subscribe. Reuses the existing leads endpoint (the same inbox the contact
    form writes to), so a subscriber shows up in the admin with source
@@ -21,7 +22,7 @@ export default function SubscribeForm() {
     e.preventDefault();
     const form = e.currentTarget;
     const email = String(new FormData(form).get("email") || "").trim();
-    if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)) {
+    if (!isValidEmail(email)) {
       setError("الرجاء إدخال بريد إلكتروني صحيح");
       setStatus("err");
       return;

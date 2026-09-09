@@ -966,6 +966,33 @@ section.chapter{padding-top:clamp(70px,10vw,120px)}
   font-size:11.5px;font-weight:800;flex:0 0 19px;
 }
 
+/* The trend chart's hover surface. The svg stretches to fill it, so the
+   tooltip is positioned in this box's percentages and never in viewBox units. */
+.adm-trend-plot{position:relative;cursor:crosshair;border-radius:10px}
+.adm-trend-plot:focus-visible{outline:2px solid var(--gold);outline-offset:3px}
+.adm-trend-plot svg{display:block;width:100%;height:auto}
+.adm-trend-tip{
+  position:absolute;top:6px;transform:translateX(50%);pointer-events:none;
+  display:flex;flex-direction:column;align-items:center;gap:1px;white-space:nowrap;
+  background:var(--espresso);color:#fffdf8;border-radius:9px;padding:5px 10px;
+  font-size:11.5px;line-height:1.5;box-shadow:0 3px 12px rgba(43,38,34,.22);z-index:2;
+}
+[dir="ltr"] .adm-trend-tip{transform:translateX(-50%)}
+.adm-trend-tip b{font-size:14px;font-weight:800;font-variant-numeric:tabular-nums}
+.adm-trend-tip span{opacity:.75;font-variant-numeric:tabular-nums}
+
+/* contact form: the email field when it is wrong, or probably mistyped */
+.cf-in-bad{border-color:#a3352f}
+.cf-in-bad:focus{border-color:#a3352f}
+.cf-note{
+  display:block;margin-top:6px;font-size:12.5px;line-height:1.7;color:#a3352f;
+}
+.cf-fix{
+  font:inherit;color:var(--gold-deep);background:none;border:none;padding:0;
+  cursor:pointer;text-decoration:underline;text-underline-offset:3px;font-weight:700;
+}
+.cf-fix:hover{color:var(--espresso)}
+
 .adm-steps-list{
   margin:0 0 18px;padding-inline-start:20px;font-size:14px;line-height:2.1;color:var(--ink);
 }

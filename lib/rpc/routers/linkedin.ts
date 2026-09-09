@@ -18,7 +18,7 @@ import { nextFreeSlug, slugify } from "@/lib/slug";
  * Both land in the same queue, and the queue is what the dashboard shows. */
 
 const COLS = `id, "externalId", "postUrl", "postedAt", text, "sharedUrl",
-              "mediaUrl", visibility, source, status, "articleId",
+              "mediaUrl", visibility, source, status, "articleId", "archivedAt",
               "createdAt", "updatedAt"`;
 
 /** Identity for a post, so the same one never arrives twice.
@@ -84,15 +84,25 @@ export const linkedinRouter: Router = {
   list: adminProcedure({
     input: z
       .object({
-        status: z.enum(["new", "converted", "dismissed", "all"]).optional(),
+        status: z.enum(["new", "converted", "archived", "dismissed", "all"]).optional(),
         limit: z.number().int().min(1).max(100).optional(),
       })
       .optional(),
     handler: async (input) => {
       const status = input?.status ?? "new";
       const limit = input?.limit ?? 50;
-      const where = status === "all" ? "TRUE" : `status = $1::text`;
-      const params: unknown[] = status === "all" ? [] : [status];
+
+      /* Archiving is orthogonal to status: a post keeps whatever it became —
+         waiting, or converted into an article — and archiving only decides
+         whether it is still on the shelf. So the live tabs all exclude it and
+         one tab shows nothing else. */
+      const where =
+        status === "archived"
+          ? `"archivedAt" IS NOT NULL`
+          : status === "all"
+            ? "TRUE"
+            : `status = $1::text AND "archivedAt" IS NULL`;
+      const params: unknown[] = status === "archived" || status === "all" ? [] : [status];
       params.push(limit);
 
       const items = await dbq(
@@ -104,13 +114,14 @@ export const linkedinRouter: Router = {
         params
       );
 
-      // Rendered as a badge on the tab, so it has to count the whole queue and
-      // not just the page that was returned.
-      const counts = await one<{ neu: string; converted: string; dismissed: string }>(
-        `SELECT count(*) FILTER (WHERE status='new')::text       AS neu,
-                count(*) FILTER (WHERE status='converted')::text AS converted,
-                count(*) FILTER (WHERE status='dismissed')::text AS dismissed
-           FROM linkedin_posts`
+      // Rendered as badges on the tabs, so they count the whole queue and not
+      // just the page that was returned.
+      const counts = await one<{ neu: string; converted: string; archived: string }>(
+        `SELECT
+           count(*) FILTER (WHERE status='new'       AND "archivedAt" IS NULL)::text AS neu,
+           count(*) FILTER (WHERE status='converted' AND "archivedAt" IS NULL)::text AS converted,
+           count(*) FILTER (WHERE "archivedAt" IS NOT NULL)::text                    AS archived
+         FROM linkedin_posts`
       );
 
       return {
@@ -118,48 +129,9 @@ export const linkedinRouter: Router = {
         counts: {
           new: Number(counts?.neu || 0),
           converted: Number(counts?.converted || 0),
-          dismissed: Number(counts?.dismissed || 0),
+          archived: Number(counts?.archived || 0),
         },
       };
-    },
-  }),
-
-  /** One post, pasted. The fast path, and the only one that works minutes
-   *  after publishing on LinkedIn. */
-  addPaste: adminProcedure({
-    rateLimit: { max: 60, windowMs: 10 * 60 * 1000 },
-    input: z.object({
-      text: z.string().trim().min(1, "الصقي نص المنشور.").max(30000),
-      postUrl: httpUrl,
-      postedAt: z.string().trim().max(40).optional().nullable(),
-    }),
-    handler: async (input) => {
-      const url = input.postUrl ?? null;
-      const added = await insertPost({
-        text: input.text,
-        url,
-        postedAt: parseDate(input.postedAt) ?? new Date().toISOString(),
-        sharedUrl: null,
-        mediaUrl: null,
-        visibility: null,
-        source: "paste",
-      });
-
-      if (!added) {
-        // Not an error: she pasted something already in the queue. Say which,
-        // so she can go and find it rather than pasting again.
-        const existing = await one(
-          `SELECT ${COLS} FROM linkedin_posts WHERE "externalId" = $1`,
-          [externalIdFor(input.text, url)]
-        );
-        return { added: false, item: existing };
-      }
-
-      const item = await one(
-        `SELECT ${COLS} FROM linkedin_posts WHERE "externalId" = $1`,
-        [externalIdFor(input.text, url)]
-      );
-      return { added: true, item };
     },
   }),
 
@@ -349,31 +321,27 @@ export const linkedinRouter: Router = {
     },
   }),
 
-  /** Out of the queue, but not deleted — she can bring it back. */
-  setStatus: adminProcedure({
+  /** Off the list, but kept — and reversible.
+   *
+   *  Deleting was the only way to clear a row, and deleting also throws away
+   *  the record that stops the same post arriving again. Archiving keeps it,
+   *  and works on a converted post too: once it has become an article, the
+   *  row's job on this screen is done. */
+  setArchived: adminProcedure({
     input: z.object({
       id: z.number().int().positive(),
-      status: z.enum(["new", "dismissed"]),
+      archived: z.boolean(),
     }),
-    handler: async ({ id, status }) => {
+    handler: async ({ id, archived }) => {
       const row = await one(
-        `UPDATE linkedin_posts SET status = $2::text
-          WHERE id = $1 AND status <> 'converted'
-          RETURNING ${COLS}`,
-        [id, status]
+        `UPDATE linkedin_posts
+            SET "archivedAt" = CASE WHEN $2::boolean THEN now() ELSE NULL END
+          WHERE id = $1
+        RETURNING ${COLS}`,
+        [id, archived]
       );
-      if (row) return row;
-      // The guard is in the WHERE clause, so a refusal and a missing row look
-      // identical from here. Ask which it was: "not found" is the wrong thing
-      // to read about a post that is sitting on the screen in front of you.
-      const existing = await one<{ status: string }>(
-        `SELECT status FROM linkedin_posts WHERE id = $1`,
-        [id]
-      );
-      if (!existing) throw errors.notFound();
-      throw errors.conflict(
-        "هذا المنشور صار مقالًا — احذفي المقال أولًا إن أردتِ إخراجه من القائمة."
-      );
+      if (!row) throw errors.notFound();
+      return row;
     },
   }),
 

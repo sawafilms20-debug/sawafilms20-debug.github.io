@@ -16,7 +16,8 @@ import { dbq, one } from "@/lib/db";
 const rangeInput = z.object({
   from: z.string().datetime().optional(),
   to: z.string().datetime().optional(),
-  days: z.number().int().min(1).max(730).optional(),
+  /** 0 means since the beginning — no lower bound at all. */
+  days: z.number().int().min(0).max(3650).optional(),
 });
 
 type Range = z.infer<typeof rangeInput>;
@@ -35,6 +36,9 @@ function windowClause(r: Range, params: unknown[]): string {
     return parts.join(" AND ");
   }
   const days = r.days ?? 30;
+  // Every row this site has ever recorded. TRUE rather than a very large
+  // interval, so the planner can skip the range test entirely.
+  if (days === 0) return "TRUE";
   params.push(days);
   return `ts > now() - ($${params.length}::int * interval '1 day')`;
 }

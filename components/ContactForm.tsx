@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { isValidEmail, suggestEmail } from "@/lib/email";
 
 /* Native contact form: posts straight to the admin inbox (content/leads.json)
    through the Railway API. On the GitHub Pages domain it targets the Railway
@@ -18,6 +19,9 @@ function endpoint(): string {
 export default function ContactForm() {
   const [status, setStatus] = useState<"idle" | "sending" | "ok" | "err">("idle");
   const [error, setError] = useState("");
+  const [email, setEmail] = useState("");
+  const [emailError, setEmailError] = useState("");
+  const [suggestion, setSuggestion] = useState<string | null>(null);
 
   async function onSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
@@ -29,8 +33,18 @@ export default function ContactForm() {
     // noValidate, so the browser blocks an incomplete submit and points at the
     // offending field itself. No banner needed.
     const name = String(fd.get("name") || "").trim();
-    const email = String(fd.get("email") || "").trim();
     const message = String(fd.get("message") || "").trim();
+
+    /* type="email" alone is not enough: the HTML grammar accepts an address
+       with no dot in it, so `homam@gmail` reaches the server and comes back
+       as a generic failure after the send. Refuse it here, next to the field. */
+    const value = email.trim();
+    if (!isValidEmail(value)) {
+      setEmailError("هذا البريد غير مكتمل — تأكدي من كتابته كاملًا، مثل name@example.com");
+      document.getElementById("cf-email")?.focus();
+      return;
+    }
+    setEmailError("");
 
     setStatus("sending");
     setError("");
@@ -38,11 +52,13 @@ export default function ContactForm() {
       const res = await fetch(endpoint(), {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ name, email, message, source: "contact-page" }),
+        body: JSON.stringify({ name, email: value, message, source: "contact-page" }),
       });
       const j = (await res.json().catch(() => ({}))) as { error?: string };
       if (res.ok) {
         form.reset();
+        setEmail("");
+        setSuggestion(null);
         setStatus("ok");
       } else {
         setError(j.error || "تعذّر الإرسال، الرجاء المحاولة مرة أخرى");
@@ -65,13 +81,54 @@ export default function ContactForm() {
           <span>البريد الإلكتروني</span>
           <input
             id="cf-email"
-            className="cf-in"
+            className={`cf-in ${emailError ? "cf-in-bad" : ""}`}
             name="email"
             type="email"
             dir="ltr"
             autoComplete="email"
             required
+            aria-invalid={emailError ? true : undefined}
+            aria-describedby={emailError || suggestion ? "cf-email-note" : undefined}
+            value={email}
+            onChange={(e) => {
+              setEmail(e.target.value);
+              if (emailError) setEmailError("");
+              setSuggestion(null);
+            }}
+            /* Checked on leaving the field, never while she is still typing —
+               every address is invalid halfway through. */
+            onBlur={(e) => {
+              const v = e.target.value.trim();
+              if (!v) return;
+              if (!isValidEmail(v)) {
+                setEmailError("هذا البريد غير مكتمل — مثل name@example.com");
+                return;
+              }
+              // Well-formed, but probably mistyped: `gmial.com` passes every
+              // syntax check there is.
+              setSuggestion(suggestEmail(v));
+            }}
           />
+          {(emailError || suggestion) && (
+            <small className="cf-note" id="cf-email-note" role="alert">
+              {emailError || (
+                <>
+                  هل تقصدين{" "}
+                  <button
+                    type="button"
+                    className="cf-fix"
+                    onClick={() => {
+                      setEmail(suggestion!);
+                      setSuggestion(null);
+                    }}
+                  >
+                    <span dir="ltr">{suggestion}</span>
+                  </button>
+                  ؟
+                </>
+              )}
+            </small>
+          )}
         </label>
       </div>
       <label className="cf-field" htmlFor="cf-message">

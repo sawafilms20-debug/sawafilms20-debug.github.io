@@ -431,4 +431,27 @@ export const MIGRATIONS: Migration[] = [
         FOR EACH ROW EXECUTE FUNCTION rk_set_updated_at();
     `,
   },
+
+  {
+    id: "016_linkedin_archive",
+    sql: `
+      -- Putting a post away, without deleting it.
+      --
+      -- Until now the only way to clear a row off the list was to delete it,
+      -- which also throws away the record that stops the same post arriving
+      -- twice. Archiving is orthogonal to status on purpose: a post that has
+      -- already become an article still wants filing away when she is done
+      -- with it, and 'dismissed' would be the wrong word for that.
+      ALTER TABLE linkedin_posts ADD COLUMN IF NOT EXISTS "archivedAt" TIMESTAMPTZ;
+
+      -- Rows dismissed before this column existed were archived by another
+      -- name; give them a date so they appear where they now belong.
+      UPDATE linkedin_posts
+         SET "archivedAt" = "updatedAt"
+       WHERE status = 'dismissed' AND "archivedAt" IS NULL;
+
+      CREATE INDEX IF NOT EXISTS idx_linkedin_archived
+        ON linkedin_posts("archivedAt");
+    `,
+  },
 ];

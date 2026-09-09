@@ -4,6 +4,7 @@ import { dbq, hasDb, migrate } from "@/lib/db";
 import { clientIp, publicCorsHeaders as corsHeaders } from "@/lib/net";
 import { rateLimit } from "@/lib/rateLimit";
 import { recordError } from "@/lib/errorLog";
+import { isValidEmail } from "@/lib/email";
 
 /* The public contact endpoint.
 
@@ -68,7 +69,7 @@ export async function POST(req: Request) {
   const utmSource = clip(body.utm_source, 100) || null;
   const utmCampaign = clip(body.utm_campaign, 100) || null;
 
-  if (!name || !message || !/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)) {
+  if (!name || !message || !isValidEmail(email)) {
     return NextResponse.json(
       { error: "الرجاء إدخال الاسم والبريد ورسالة صحيحة." },
       { status: 422, headers: cors }

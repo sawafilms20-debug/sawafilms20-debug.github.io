@@ -594,6 +594,12 @@ export function TrendChart({
   height?: number;
   label?: string;
 }) {
+  /* A line with no numbers on it is decoration. Hovering — or touching, or
+     tabbing with the arrow keys — names the day and its count, because "which
+     day was that spike?" is the only question this chart gets asked. */
+  const [hover, setHover] = useState<number | null>(null);
+  const wrap = useRef<HTMLDivElement>(null);
+
   const points = series.map((s) => Number(s.n ?? s.views ?? 0));
   const max = Math.max(1, ...points);
   const w = 720;
@@ -609,20 +615,103 @@ export function TrendChart({
   const line = points.map((v, i) => `${pad + i * step},${y(v)}`).join(" ");
   const area = `${pad},${h - pad} ${line} ${pad + (points.length - 1) * step},${h - pad}`;
 
+  /* The svg is stretched with preserveAspectRatio="none", so a pixel offset in
+     the box maps to a fraction of the viewBox, never to a viewBox unit. */
+  const nearest = (clientX: number) => {
+    const box = wrap.current?.getBoundingClientRect();
+    if (!box || box.width === 0) return null;
+    const frac = (clientX - box.left) / box.width;
+    // Right-to-left pages lay the days out the other way round.
+    const rtl = getComputedStyle(wrap.current!).direction === "rtl";
+    const t = rtl ? 1 - frac : frac;
+    const i = Math.round(t * (points.length - 1));
+    return Math.min(points.length - 1, Math.max(0, i));
+  };
+
+  const active = hover === null ? null : series[hover];
+  const activeX = hover === null ? 0 : pad + hover * step;
+
   return (
     <figure className="adm-trend">
-      <svg viewBox={`0 0 ${w} ${h}`} preserveAspectRatio="none" role="img" aria-label={label}>
-        <polygon points={area} fill="var(--gold-soft)" opacity="0.45" />
-        <polyline
-          points={line}
-          fill="none"
-          stroke="var(--gold-deep)"
-          strokeWidth="2"
-          strokeLinejoin="round"
-          strokeLinecap="round"
-          vectorEffect="non-scaling-stroke"
-        />
-      </svg>
+      <div
+        ref={wrap}
+        className="adm-trend-plot"
+        onMouseMove={(e) => setHover(nearest(e.clientX))}
+        onMouseLeave={() => setHover(null)}
+        onTouchStart={(e) => setHover(nearest(e.touches[0].clientX))}
+        onTouchMove={(e) => setHover(nearest(e.touches[0].clientX))}
+        onTouchEnd={() => setHover(null)}
+        onKeyDown={(e) => {
+          if (e.key !== "ArrowLeft" && e.key !== "ArrowRight") return;
+          e.preventDefault();
+          // Left goes back in time on an RTL page, forward on an LTR one.
+          const rtl = getComputedStyle(e.currentTarget).direction === "rtl";
+          const back = rtl ? e.key === "ArrowRight" : e.key === "ArrowLeft";
+          setHover((i) => {
+            const from = i ?? points.length - 1;
+            return Math.min(points.length - 1, Math.max(0, from + (back ? -1 : 1)));
+          });
+        }}
+        onBlur={() => setHover(null)}
+        tabIndex={0}
+        role="img"
+        aria-label={
+          active
+            ? `${active.d}: ${Number(active.n ?? active.views ?? 0).toLocaleString("en")} ${label}`
+            : `${label} — الذروة ${max.toLocaleString("en")}`
+        }
+      >
+        <svg viewBox={`0 0 ${w} ${h}`} preserveAspectRatio="none" aria-hidden="true">
+          <polygon points={area} fill="var(--gold-soft)" opacity="0.45" />
+          <polyline
+            points={line}
+            fill="none"
+            stroke="var(--gold-deep)"
+            strokeWidth="2"
+            strokeLinejoin="round"
+            strokeLinecap="round"
+            vectorEffect="non-scaling-stroke"
+          />
+          {hover !== null && (
+            <>
+              <line
+                x1={activeX}
+                x2={activeX}
+                y1={pad}
+                y2={h - pad}
+                stroke="var(--gold-deep)"
+                strokeWidth="1"
+                opacity="0.4"
+                vectorEffect="non-scaling-stroke"
+              />
+              {/* Stretched horizontally by the same factor as the svg, so the
+                  marker is drawn as a ring that the stretch turns back round. */}
+              <circle
+                cx={activeX}
+                cy={y(points[hover])}
+                r="3"
+                fill="var(--gold-deep)"
+                vectorEffect="non-scaling-stroke"
+                style={{ transformBox: "fill-box", transformOrigin: "center" }}
+              />
+            </>
+          )}
+        </svg>
+
+        {active && (
+          <span
+            className="adm-trend-tip"
+            style={{
+              // Positioned in the box's own percentages, not the viewBox's.
+              insetInlineStart: `${(hover! / (points.length - 1)) * 100}%`,
+            }}
+          >
+            <b>{Number(active.n ?? active.views ?? 0).toLocaleString("en")}</b>
+            <span dir="ltr">{active.d}</span>
+          </span>
+        )}
+      </div>
+
       <figcaption>
         <span>{series[0]?.d}</span>
         <span>

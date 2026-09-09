@@ -24,14 +24,16 @@ type Post = {
   source: "paste" | "archive";
   status: "new" | "converted" | "dismissed";
   articleId: number | null;
+  /** Put away, but kept. Orthogonal to status — a converted post archives too. */
+  archivedAt: string | null;
 };
 
-type Tab = "new" | "converted" | "dismissed";
+type Tab = "new" | "converted" | "archived";
 
 const TABS: { value: Tab; label: string }[] = [
   { value: "new", label: "بانتظارك" },
   { value: "converted", label: "تحوّلت إلى مقالات" },
-  { value: "dismissed", label: "مستبعدة" },
+  { value: "archived", label: "المؤرشفة" },
 ];
 
 const isoDay = (v: string | null) => {
@@ -88,11 +90,14 @@ export default function LinkedInInbox({
     };
   }, [tab, nonce, onCountChanged]);
 
-  const setStatus = async (post: Post, status: "new" | "dismissed") => {
+  /* Deleting used to be the only way to clear a row, and deleting also throws
+     away the record that stops the same post arriving again. This puts it away
+     instead, and takes it back out. */
+  const setArchived = async (post: Post, archived: boolean) => {
     setBusyId(post.id);
     try {
-      await rpc.linkedin.setStatus({ id: post.id, status });
-      toast(status === "dismissed" ? "استُبعد المنشور" : "أُعيد إلى القائمة ✓");
+      await rpc.linkedin.setArchived({ id: post.id, archived });
+      toast(archived ? "أُرشِف المنشور ✓" : "أُعيد من الأرشيف ✓");
       refresh();
     } catch (e) {
       toast(e instanceof RpcError ? e.message : "تعذّر تحديث المنشور.", "bad");
@@ -102,7 +107,14 @@ export default function LinkedInInbox({
   };
 
   const remove = async (post: Post) => {
-    if (!(await confirm("حذف هذا المنشور من القائمة نهائيًا؟", { danger: true }))) return;
+    const ok = await confirm(
+      "حذف نهائي. لن يمنع شيء وصول المنشور نفسه مرة أخرى لاحقًا — الأرشفة تُبقيه وتُخفيه.",
+      { confirmLabel: "احذفيه نهائيًا", cancelLabel: "أرشفيه بدل الحذف", danger: true }
+    );
+    if (!ok) {
+      void setArchived(post, true);
+      return;
+    }
     setBusyId(post.id);
     try {
       await rpc.linkedin.remove({ id: post.id });
@@ -163,11 +175,11 @@ export default function LinkedInInbox({
           />
         ) : (
           <EmptyState
-            title={tab === "converted" ? "لم يتحوّل أي منشور بعد" : "لا منشورات مستبعدة"}
+            title={tab === "converted" ? "لم يتحوّل أي منشور بعد" : "الأرشيف فارغ"}
             body={
               tab === "converted"
                 ? "المنشورات التي تحوّلينها إلى مقالات تظهر هنا، مع رابط إلى المقال الذي صارت إليه."
-                : "المنشور الذي تستبعدينه يبقى هنا، ويمكن إعادته إلى القائمة في أي وقت."
+                : "ما تؤرشفينه يبقى هنا بدل أن يُحذف — ويمكن إعادته إلى مكانه في أي وقت."
             }
             actionLabel="العودة إلى القائمة"
             onAction={() => setTab("new")}
@@ -205,33 +217,24 @@ export default function LinkedInInbox({
                       افتحي المقال
                     </button>
                   ) : (
-                    <>
-                      <button
-                        className="btn btn-gold"
-                        disabled={busyId === post.id}
-                        onClick={() => openConvert(post)}
-                      >
-                        حوّليه إلى مقال
-                      </button>
-                      {post.status === "new" ? (
-                        <button
-                          className="adm-link"
-                          disabled={busyId === post.id}
-                          onClick={() => void setStatus(post, "dismissed")}
-                        >
-                          استبعاد
-                        </button>
-                      ) : (
-                        <button
-                          className="adm-link"
-                          disabled={busyId === post.id}
-                          onClick={() => void setStatus(post, "new")}
-                        >
-                          إعادة
-                        </button>
-                      )}
-                    </>
+                    <button
+                      className="btn btn-gold"
+                      disabled={busyId === post.id}
+                      onClick={() => openConvert(post)}
+                    >
+                      حوّليه إلى مقال
+                    </button>
                   )}
+                  {/* Every row, whatever it became. A post that is already an
+                      article still wants filing away once she is done with it —
+                      that was the option this list did not have. */}
+                  <button
+                    className="adm-link"
+                    disabled={busyId === post.id}
+                    onClick={() => void setArchived(post, !post.archivedAt)}
+                  >
+                    {post.archivedAt ? "إعادة من الأرشيف" : "أرشفة"}
+                  </button>
                   <button
                     className="adm-link adm-danger"
                     disabled={busyId === post.id}

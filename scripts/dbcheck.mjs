@@ -846,14 +846,49 @@ await check("converting writes the article and links the post, in one transactio
   assert(rows[0].articleId === article[0].id, "articleId was not recorded");
 });
 
-await check("a converted post cannot be dismissed out from under its article", async () => {
-  const { rows } = await db.query(
-    `UPDATE linkedin_posts SET status = $2::text
-      WHERE "externalId" = $1 AND status <> 'converted'
-      RETURNING id`,
-    ["url:https://linkedin.com/posts/x", "dismissed"]
+await check("archiving hides a post from every live tab, and is reversible", async () => {
+  const id = "url:https://linkedin.com/posts/x";
+  const live = `status = $1::text AND "archivedAt" IS NULL`;
+
+  await db.query(
+    `UPDATE linkedin_posts SET "archivedAt" = now() WHERE "externalId" = $1`, [id]
   );
-  assert(rows.length === 0, "a converted post was moved back to the queue");
+  const { rows: converted } = await db.query(
+    `SELECT id FROM linkedin_posts WHERE ${live}`, ["converted"]
+  );
+  assert(converted.length === 0, "an archived post still shows in the converted tab");
+
+  const { rows: shelf } = await db.query(
+    `SELECT id, status FROM linkedin_posts WHERE "archivedAt" IS NOT NULL`
+  );
+  assert(shelf.length === 1, "the archived tab did not find it");
+  // Archiving is orthogonal to status: it stays the article it became.
+  assert(shelf[0].status === "converted", "archiving overwrote the status");
+
+  await db.query(
+    `UPDATE linkedin_posts SET "archivedAt" = NULL WHERE "externalId" = $1`, [id]
+  );
+  const { rows: back } = await db.query(
+    `SELECT id FROM linkedin_posts WHERE ${live}`, ["converted"]
+  );
+  assert(back.length === 1, "restoring did not put it back");
+});
+
+await check("the tab counts exclude what is archived", async () => {
+  await db.query(
+    `UPDATE linkedin_posts SET "archivedAt" = now() WHERE "externalId" = $1`,
+    ["url:https://linkedin.com/posts/x"]
+  );
+  const { rows } = await db.query(
+    `SELECT
+       count(*) FILTER (WHERE status='new'       AND "archivedAt" IS NULL)::text AS neu,
+       count(*) FILTER (WHERE status='converted' AND "archivedAt" IS NULL)::text AS converted,
+       count(*) FILTER (WHERE "archivedAt" IS NOT NULL)::text                    AS archived
+     FROM linkedin_posts`
+  );
+  assert(rows[0].converted === "0", `converted should be 0, got ${rows[0].converted}`);
+  assert(rows[0].archived === "1", `archived should be 1, got ${rows[0].archived}`);
+  await db.query(`UPDATE linkedin_posts SET "archivedAt" = NULL`);
 });
 
 await check("deleting the article leaves the post, with no article", async () => {

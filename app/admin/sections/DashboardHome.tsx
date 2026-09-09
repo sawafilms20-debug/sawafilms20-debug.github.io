@@ -59,13 +59,15 @@ type Overview = {
 
 type ArticleRow = { slug: string; reads: string; title: string };
 
-type RangeKey = "7" | "30" | "90" | "365";
+/* "0" is since the beginning — the server reads it as no lower bound. */
+type RangeKey = "7" | "30" | "90" | "365" | "0";
 
 const RANGES: { value: RangeKey; label: string }[] = [
   { value: "7", label: "٧ أيام" },
   { value: "30", label: "٣٠ يومًا" },
   { value: "90", label: "٩٠ يومًا" },
   { value: "365", label: "سنة" },
+  { value: "0", label: "منذ البداية" },
 ];
 
 const RANGE_WORDS: Record<RangeKey, string> = {
@@ -73,6 +75,7 @@ const RANGE_WORDS: Record<RangeKey, string> = {
   "30": "آخر ٣٠ يومًا",
   "90": "آخر ٩٠ يومًا",
   "365": "آخر سنة",
+  "0": "منذ البداية",
 };
 
 const STATUS_LABEL: Record<string, string> = {
