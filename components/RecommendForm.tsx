@@ -257,12 +257,11 @@ export default function RecommendForm() {
           name="text"
           rows={6}
           /* auto, so an English recommendation reads left to right — but only
-             once there is text: an empty auto field is left-to-right, and the
-             Arabic placeholder's full stop jumps to the wrong end. */
+             once there is text: an empty auto field is left-to-right, which
+             puts the caret of someone starting in Arabic on the wrong side. */
           dir={text.trim() ? "auto" : "rtl"}
           required
           maxLength={LIMITS.text}
-          placeholder="كيف كانت تجربة العمل معها؟ ما الذي تغيّر بعدها؟ اكتب بالعربية أو بالإنجليزية."
           value={text}
           onChange={(e) => setText(e.target.value)}
         />
