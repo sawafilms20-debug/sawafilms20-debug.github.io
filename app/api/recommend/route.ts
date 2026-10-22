@@ -6,12 +6,12 @@ import { recordError } from "@/lib/errorLog";
 import { isValidEmail } from "@/lib/email";
 import { mediaUrl, safeStorageKey, sniffMime } from "@/lib/media";
 import { imageSize } from "@/lib/imageSize";
-import { RECOMMEND_LIMITS as L, inviteTokenMatches } from "@/lib/recommend";
+import { RECOMMEND_LIMITS as L } from "@/lib/recommend";
 
 /* Where the recommendation form posts.
 
-   Anyone holding the link can call this, and the link is sent to many people,
-   so nothing that arrives here is shown to anyone until she approves it. The
+   The link is a plain public address sent to many people, so anyone can call
+   this, and nothing that arrives here is shown to anyone until she approves it. The
    row lands hidden and marked pending; the dashboard is the only place it
    appears.
 
@@ -60,10 +60,6 @@ export async function POST(req: Request) {
   }
 
   await migrate();
-
-  if (!(await inviteTokenMatches(clip(form.get("k"), 100)))) {
-    return fail("هذا الرابط لم يعد يعمل. اطلب من رحيق رابطًا جديدًا.", 403);
-  }
 
   const name = clip(form.get("name"), L.name);
   const title = clip(form.get("title"), L.title);

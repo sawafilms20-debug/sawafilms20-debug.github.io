@@ -142,21 +142,6 @@ export default function TestimonialsSection({
     }
   };
 
-  const rotate = async () => {
-    const ok = await confirm(
-      "سيتوقف الرابط الحالي عن العمل فورًا، ومن معه الرابط القديم لن يستطيع إرسال توصية. التوصيات التي وصلت تبقى كما هي.",
-      { confirmLabel: "أنشئي رابطًا جديدًا" }
-    );
-    if (!ok) return;
-    try {
-      const r = await rpc.recommendations.rotateInvite<{ url: string }>();
-      setInviteUrl(r.url);
-      toast("رابط جديد جاهز — الرابط القديم لم يعد يعمل ✓");
-    } catch (e) {
-      toast(e instanceof RpcError ? e.message : "تعذّر إنشاء رابط جديد.", "bad");
-    }
-  };
-
   const approve = async (t: Testimonial) => {
     setBusyId(t.id);
     try {
@@ -367,9 +352,6 @@ export default function TestimonialsSection({
               <a className="adm-link" href={inviteUrl} target="_blank" rel="noopener noreferrer">
                 افتحي الصفحة كما يراها العميل
               </a>
-              <button className="adm-link" onClick={rotate}>
-                أوقفي هذا الرابط وأنشئي غيره
-              </button>
             </div>
           </>
         ) : (

@@ -1025,22 +1025,6 @@ await check("rejecting removes the row and the photo that came with it", async (
   assert(left.rows[0].n === 0, "the photo outlived its rejected submission");
 });
 
-await check("the invite key lives in site_settings without breaking its constraint", async () => {
-  await db.query(
-    `INSERT INTO site_settings ("settingKey","settingValue","settingType")
-     VALUES ($1,$2,'text')
-     ON CONFLICT ("settingKey") DO UPDATE SET "settingValue" = EXCLUDED."settingValue"`,
-    ["recommendInviteToken", "abc"]);
-  await db.query(
-    `INSERT INTO site_settings ("settingKey","settingValue","settingType")
-     VALUES ($1,$2,'text')
-     ON CONFLICT ("settingKey") DO UPDATE SET "settingValue" = EXCLUDED."settingValue"`,
-    ["recommendInviteToken", "def"]);
-  const { rows } = await db.query(
-    `SELECT "settingValue" FROM site_settings WHERE "settingKey" = 'recommendInviteToken'`);
-  assert(rows.length === 1 && rows[0].settingValue === "def", "rotation did not replace the key");
-});
-
 /* ----------------------------------------------------------------- report */
 
 console.log(`\n${passed} passed, ${failures.length} failed`);

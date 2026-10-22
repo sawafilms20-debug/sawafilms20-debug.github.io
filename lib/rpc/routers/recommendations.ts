@@ -1,12 +1,7 @@
 import { z } from "zod";
 import { adminProcedure, errors, type Router } from "../core";
 import { one, tx } from "@/lib/db";
-import {
-  forgetPublicTestimonials,
-  inviteToken,
-  inviteUrl,
-  rotateInviteToken,
-} from "@/lib/recommend";
+import { RECOMMEND_URL, forgetPublicTestimonials } from "@/lib/recommend";
 
 /* Recommendations people send through the link.
  *
@@ -20,14 +15,7 @@ const idInput = z.object({ id: z.number().int().positive() });
 export const recommendationsRouter: Router = {
   invite: adminProcedure({
     input: z.object({}).optional(),
-    handler: async () => ({ url: inviteUrl(await inviteToken()) }),
-  }),
-
-  /** A new link. The old one stops working at once; nothing already received
-   *  is affected. */
-  rotateInvite: adminProcedure({
-    input: z.object({}).optional(),
-    handler: async () => ({ url: inviteUrl(await rotateInviteToken()) }),
+    handler: async () => ({ url: RECOMMEND_URL }),
   }),
 
   /** Put it on the site. It joins the end of the list, where she can drag it. */

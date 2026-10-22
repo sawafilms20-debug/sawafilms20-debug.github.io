@@ -6,16 +6,32 @@ import { isValidEmail, suggestEmail } from "@/lib/email";
 /* The recommendation form, reached through the link she sends.
 
    Everything a person writes here goes to her dashboard and waits; nothing is
-   published from this page. The link's key travels with the submission and
-   the server checks it, so the form shows only when the URL carries one. */
+   published from this page.
 
-const RAILWAY_ENDPOINT = "https://rak-production.up.railway.app/api/recommend";
+   Two ways in, chosen when the page opens. The full one posts to
+   /api/recommend, with the photo, into the review queue. That endpoint only
+   exists once the dashboard server has been deployed with it — and the page,
+   being static, can go live before that. Until then the form asks for a
+   LinkedIn profile link in place of the photo and sends through the contact
+   endpoint every deployed server already has, so recommendations land in her
+   messages instead of being lost. The page switches to the full form by
+   itself the first time the new endpoint answers. */
 
-function endpoint(): string {
+const RAILWAY = "https://rak-production.up.railway.app";
+
+function api(path: string): string {
   const h = window.location.hostname;
-  return h === "raheeqkanjo.com" || h === "www.raheeqkanjo.com"
-    ? RAILWAY_ENDPOINT
-    : "/api/recommend";
+  return (h === "raheeqkanjo.com" || h === "www.raheeqkanjo.com" ? RAILWAY : "") + path;
+}
+
+/** Is the review-queue endpoint deployed? Its public sibling answers 200 when it is. */
+async function hasQueue(): Promise<boolean> {
+  try {
+    const r = await fetch(api("/api/testimonials"), { cache: "no-store" });
+    return r.ok;
+  } catch {
+    return false;
+  }
 }
 
 // Mirrors RECOMMEND_LIMITS in lib/recommend.ts, which the server enforces.
@@ -62,7 +78,7 @@ async function squarePhoto(file: File): Promise<Blob> {
 }
 
 export default function RecommendForm() {
-  const [token, setToken] = useState<string | null>(null);
+  const [mode, setMode] = useState<"full" | "messages" | null>(null);
   const [status, setStatus] = useState<"idle" | "sending" | "ok" | "err">("idle");
   const [error, setError] = useState("");
   const [email, setEmail] = useState("");
@@ -74,9 +90,8 @@ export default function RecommendForm() {
   const [photoError, setPhotoError] = useState("");
   const fileInput = useRef<HTMLInputElement>(null);
 
-  // Read after mount: the page is static HTML, so the key cannot be known at build time.
   useEffect(() => {
-    setToken(new URLSearchParams(window.location.search).get("k") || "");
+    hasQueue().then((ok) => setMode(ok ? "full" : "messages"));
   }, []);
 
   useEffect(() => {
@@ -122,20 +137,52 @@ export default function RecommendForm() {
       return;
     }
 
-    const body = new FormData();
-    body.set("k", token || "");
-    body.set("name", String(fd.get("name") || "").trim());
-    body.set("title", String(fd.get("title") || "").trim());
-    body.set("text", text.trim());
-    body.set("email", value);
-    body.set("consent", fd.get("consent") ? "yes" : "");
-    if (photo) body.set("photo", photo, "photo.jpg");
+    const name = String(fd.get("name") || "").trim();
+    const title = String(fd.get("title") || "").trim();
+    const profile = String(fd.get("profile") || "").trim();
+
+    let req: RequestInit;
+    let url: string;
+    if (mode === "full") {
+      const body = new FormData();
+      body.set("name", name);
+      body.set("title", title);
+      body.set("text", text.trim());
+      body.set("email", value);
+      body.set("consent", fd.get("consent") ? "yes" : "");
+      if (photo) body.set("photo", photo, "photo.jpg");
+      // multipart without custom headers: a simple request, so no preflight
+      url = api("/api/recommend");
+      req = { method: "POST", body };
+    } else {
+      /* Into her messages, laid out so it reads as what it is. The consent
+         is stated in the message because there is no other field to hold it. */
+      const head = [
+        "توصية للموقع",
+        `الاسم: ${name}`,
+        `المسمّى الوظيفي: ${title}`,
+        ...(profile ? [`LinkedIn: ${profile}`] : []),
+        "وافق على نشرها باسمه ومسمّاه الوظيفي وصورته: نعم",
+      ];
+      const message = `${head.join("\n")}\n\n${text.trim()}`;
+      url = api("/api/leads");
+      req = {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          name,
+          email: value,
+          message,
+          source: "recommendation",
+          serviceInterest: title.slice(0, 100),
+        }),
+      };
+    }
 
     setStatus("sending");
     setError("");
     try {
-      // multipart without custom headers: a simple request, so no preflight
-      const res = await fetch(endpoint(), { method: "POST", body });
+      const res = await fetch(url, req);
       const j = (await res.json().catch(() => ({}))) as { error?: string };
       if (res.ok) {
         setStatus("ok");
@@ -150,24 +197,16 @@ export default function RecommendForm() {
     }
   }
 
-  if (token === null) return null;
-
-  if (!token) {
-    return (
-      <div className="rf-done">
-        <h2>الرابط غير مكتمل</h2>
-        <p>افتح الرابط كما وصلك من رحيق كاملًا، أو اطلب منها رابطًا جديدًا.</p>
-      </div>
-    );
-  }
+  if (mode === null) return null;
 
   if (status === "ok") {
     return (
       <div className="rf-done" role="status">
         <h2>وصلت توصيتك — شكرًا من القلب</h2>
         <p>
-          ستظهر على الموقع بعد أن تراجعها رحيق. وإن أردت تعديل شيء، أرسلها مرة أخرى بالبريد نفسه
-          وستحلّ محل الأولى.
+          ستظهر على الموقع بعد أن تراجعها رحيق.
+          {mode === "full" &&
+            " وإن أردت تعديل شيء، أرسلها مرة أخرى بالبريد نفسه وستحلّ محل الأولى."}
         </p>
       </div>
     );
@@ -287,6 +326,25 @@ export default function RecommendForm() {
         </small>
       </label>
 
+      {mode === "messages" ? (
+        <label className="cf-field" htmlFor="rf-profile">
+          <span>
+            رابط حسابك على LinkedIn <i className="rf-en">LinkedIn profile</i>{" "}
+            <em className="rf-opt">اختياري</em>
+          </span>
+          <input
+            id="rf-profile"
+            className="cf-in"
+            name="profile"
+            type="url"
+            dir="ltr"
+            inputMode="url"
+            maxLength={300}
+            placeholder="https://www.linkedin.com/in/…"
+          />
+          <small className="rf-hint">تؤخذ منه صورتك لتظهر بجانب التوصية.</small>
+        </label>
+      ) : (
       <div className="cf-field">
         <span>
           صورتك الشخصية <i className="rf-en">Profile photo</i>{" "}
@@ -334,6 +392,7 @@ export default function RecommendForm() {
           </small>
         )}
       </div>
+      )}
 
       <label className="rf-consent">
         <input type="checkbox" name="consent" required />
