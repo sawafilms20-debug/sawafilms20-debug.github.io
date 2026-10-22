@@ -875,6 +875,33 @@ section.chapter{padding-top:clamp(70px,10vw,120px)}
 .adm-strip-cell button{background:none;border:none;font:inherit;color:var(--gold-text);cursor:pointer;text-align:start;padding:0}
 @media(max-width:760px){.adm-strip{grid-template-columns:repeat(2,1fr)}.adm-strip-cell:nth-child(3){border-inline-start:none}}
 
+.adm-callout{
+  display:flex;align-items:center;justify-content:space-between;gap:12px;width:100%;
+  font:inherit;text-align:start;cursor:pointer;margin-bottom:14px;padding:14px 18px;
+  border:1px solid rgba(199,154,59,.45);border-radius:14px;color:var(--espresso);
+  background:linear-gradient(135deg,rgba(199,154,59,.16),rgba(199,154,59,.05));
+}
+.adm-callout span{color:var(--gold-text);font-size:13.5px;white-space:nowrap}
+
+/* ---------- recommendations ---------- */
+.adm-invite{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+.adm-invite input{
+  flex:1;min-width:220px;font:inherit;font-size:13.5px;color:var(--ink);background:var(--ivory);
+  border:1px solid var(--line);border-radius:12px;padding:10px 14px;text-overflow:ellipsis;
+}
+.adm-invite input.manual{border-color:var(--gold);background:#fffaf0}
+.adm-invite-more{display:flex;gap:18px;flex-wrap:wrap;margin-top:12px;font-size:13.5px}
+.adm-panel-pending{border-color:rgba(199,154,59,.55)}
+.adm-rec{background:var(--paper);border:1px solid var(--line);border-radius:14px;padding:16px 18px;display:grid;gap:12px}
+.adm-rec-head{display:flex;align-items:center;gap:12px}
+.adm-rec-photo{
+  width:48px;height:48px;border-radius:50%;object-fit:cover;flex-shrink:0;
+  display:grid;place-items:center;background:var(--sand);color:var(--gold-text);font-weight:700;font-size:18px;
+}
+.adm-rec-quote{margin:0;font-size:15px;line-height:1.85;color:var(--ink);white-space:pre-line;overflow-wrap:anywhere}
+.adm-rec-actions{display:flex;gap:16px;align-items:center;flex-wrap:wrap}
+.adm-link.adm-link-danger{color:#a3352f}
+
 /* ---------- toolbar ---------- */
 .adm-toolbar2{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:14px}
 .adm-search{position:relative;flex:1;min-width:180px;max-width:340px}
@@ -1528,6 +1555,27 @@ section.chapter::before{content:"";display:block;width:min(180px,42%);height:1px
 .contact-main .contact-art{margin-inline:auto}
 
 /* honeypot: hidden without creating page overflow (RTL-safe) */
+/* ---------- recommendation form ---------- */
+.rf-en{font-style:normal;font-weight:400;color:var(--muted);font-size:12px;margin-inline-start:6px}
+.rf-opt{font-style:normal;font-weight:400;color:var(--muted);font-size:12px}
+.rf-hint{font-weight:400;color:var(--muted);font-size:12.5px}
+.rf-count{font-weight:400;color:var(--muted);font-size:12.5px;justify-self:end}
+.rf-photo{display:flex;align-items:center;gap:16px}
+.rf-photo img,.rf-photo-empty{width:72px;height:72px;border-radius:50%;object-fit:cover;flex-shrink:0;border:1.5px solid var(--line)}
+.rf-photo-empty{display:block;background-color:var(--paper);
+  background-image:radial-gradient(circle at 50% 38%,var(--line) 0 16%,transparent 17%),radial-gradient(ellipse at 50% 100%,var(--line) 0 38%,transparent 39%)}
+.rf-photo-actions{display:flex;flex-wrap:wrap;align-items:center;gap:6px 14px}
+.rf-photo-actions .rf-hint{flex-basis:100%}
+.rf-photo-btn,.rf-photo-remove{font:inherit;font-size:14px;font-weight:700;cursor:pointer;border-radius:10px;padding:8px 14px}
+.rf-photo-btn{background:var(--paper);color:var(--espresso);border:1.5px solid var(--line)}
+.rf-photo-btn:hover{border-color:var(--gold)}
+.rf-photo-remove{background:none;border:none;color:var(--muted);padding-inline:4px}
+.rf-consent{display:flex;gap:10px;align-items:flex-start;font-size:14px;line-height:1.7;color:var(--ink);cursor:pointer}
+.rf-consent input{width:18px;height:18px;margin-top:4px;accent-color:var(--gold-deep);flex-shrink:0}
+.rf-done{max-width:560px;margin-inline:auto;text-align:center;padding:28px 0 10px}
+.rf-done h2{font-family:var(--font-messiri),serif;color:var(--espresso);font-size:clamp(22px,3vw,28px);margin:0 0 10px}
+.rf-done p{color:var(--muted);line-height:1.9;margin:0}
+
 .cf-hp{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;
   clip:rect(0,0,0,0);clip-path:inset(50%);white-space:nowrap;border:0}
 

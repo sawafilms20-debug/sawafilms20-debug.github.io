@@ -184,6 +184,7 @@ export function collectionRouter(spec: CollectionSpec): Router {
           [id, isVisible]
         );
         if (!row) throw errors.notFound();
+        await spec.afterWrite?.();
         return row;
       },
     });

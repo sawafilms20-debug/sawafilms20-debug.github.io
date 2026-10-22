@@ -13,7 +13,7 @@ export const dashboardRouter: Router = {
     handler: async () => {
       await promoteScheduled();
 
-      const [traffic, articles, enquiries, series, recent, scheduled, errorRow] =
+      const [traffic, articles, enquiries, series, recent, scheduled, errorRow, pendingRow] =
         await Promise.all([
           one<{ views: string; visitors: string }>(
             `SELECT count(*) FILTER (WHERE type='pageview')::text AS views,
@@ -48,6 +48,9 @@ export const dashboardRouter: Router = {
           one<{ n: string }>(
             `SELECT count(*)::text AS n FROM error_logs WHERE NOT "isResolved"`
           ),
+          one<{ n: string }>(
+            `SELECT count(*)::text AS n FROM testimonials WHERE "pendingReview"`
+          ),
         ]);
 
       return {
@@ -58,6 +61,7 @@ export const dashboardRouter: Router = {
         enquiriesAwaiting: Number(enquiries?.awaiting || 0),
         enquiriesTotal: Number(enquiries?.total || 0),
         openErrors: Number(errorRow?.n || 0),
+        pendingRecommendations: Number(pendingRow?.n || 0),
         series,
         recentEnquiries: recent,
         scheduledArticles: scheduled,

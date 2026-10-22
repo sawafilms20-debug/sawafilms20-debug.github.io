@@ -153,6 +153,7 @@ export default function AdminApp() {
     drafts: 0,
     enquiriesAwaiting: 0,
     openErrors: 0,
+    pendingRecommendations: 0,
   });
   const [newNonce, setNewNonce] = useState(0);
   const [pendingNew, setPendingNew] = useState<SectionId | null>(null);
@@ -177,12 +178,14 @@ export default function AdminApp() {
         drafts: number;
         enquiriesAwaiting: number;
         openErrors: number;
+        pendingRecommendations: number;
       }>();
       setCounts({
         articles: s.published,
         drafts: s.drafts,
         enquiriesAwaiting: s.enquiriesAwaiting,
         openErrors: s.openErrors,
+        pendingRecommendations: s.pendingRecommendations,
       });
     } catch {
       /* badges are decoration; a failure here must not blank the dashboard */
@@ -315,6 +318,9 @@ export default function AdminApp() {
       return { n: counts.articles + counts.drafts, kind: "count" };
     }
     if (id === "errorLog" && counts.openErrors) return { n: counts.openErrors, kind: "urgent" };
+    if (id === "testimonials" && counts.pendingRecommendations) {
+      return { n: counts.pendingRecommendations, kind: "urgent" };
+    }
     return null;
   };
 

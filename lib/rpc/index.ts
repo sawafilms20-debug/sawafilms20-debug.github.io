@@ -18,6 +18,7 @@ import { errorsRouter } from "./routers/errors";
 import { dashboardRouter } from "./routers/dashboard";
 import { publishRouter } from "./routers/publish";
 import { linkedinRouter } from "./routers/linkedin";
+import { recommendationsRouter } from "./routers/recommendations";
 
 export const ROUTERS: Record<string, Router> = {
   auth: authRouter,
@@ -39,6 +40,7 @@ export const ROUTERS: Record<string, Router> = {
   errors: errorsRouter,
   publish: publishRouter,
   linkedin: linkedinRouter,
+  recommendations: recommendationsRouter,
 };
 
 export type RouterName = keyof typeof ROUTERS;

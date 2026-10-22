@@ -36,10 +36,17 @@
      page is right-to-left. Detect it by codepoint rather than by guessing. */
   function isLatin(name) {
     var s = String(name || "");
+    var letters = 0;
     for (var i = 0; i < s.length; i++) {
-      if (s.charCodeAt(i) > 591) return false; // past Latin Extended-B
+      var c = s.charCodeAt(i);
+      // General punctuation (curly quotes, dashes, the ellipsis) is shared by
+      // both scripts and decides nothing; anything else past Latin Extended-B
+      // — Arabic above all — means this is not Latin text.
+      if (c >= 0x2000 && c <= 0x206f) continue;
+      if (c > 591) return false;
+      if ((c >= 65 && c <= 90) || (c >= 97 && c <= 122) || c > 191) letters++;
     }
-    return s.length > 0;
+    return letters > 0;
   }
 
   /* Replace only the element's trailing text, so an inline icon in the same
@@ -74,9 +81,50 @@
     return n < 10 ? "0" + n : String(n);
   }
 
+  /* The page's own reveal-on-scroll observer runs once, at load, over the
+     elements that existed then. Cards written in afterwards would keep the
+     hidden starting state of .rv forever — so they get an observer of their
+     own here. */
+  function reveal(wrap) {
+    var els = wrap.querySelectorAll(".rv");
+    if (!("IntersectionObserver" in window)) {
+      for (var i = 0; i < els.length; i++) els[i].classList.add("on");
+      return;
+    }
+    var io = new IntersectionObserver(
+      function (entries) {
+        entries.forEach(function (e) {
+          if (e.isIntersecting) {
+            e.target.classList.add("on");
+            io.unobserve(e.target);
+          }
+        });
+      },
+      { threshold: 0.15, rootMargin: "0px 0px -40px 0px" }
+    );
+    for (var j = 0; j < els.length; j++) io.observe(els[j]);
+  }
+
+  /* Rendering is retried several times around hydration. Re-rendering a list
+     that is already on the page would restart its entrance animation each
+     time, so a list is written only when it differs from what is there. */
+  var sigList = null, sigValue = "";
+  function signature(list) {
+    // Memoised on the list itself: the guard below asks on every DOM change.
+    if (list === sigList) return sigValue;
+    var s = JSON.stringify(list), h = 0;
+    for (var i = 0; i < s.length; i++) h = (h * 31 + s.charCodeAt(i)) | 0;
+    sigList = list;
+    sigValue = String(h);
+    return sigValue;
+  }
+
   function renderTestimonials(list) {
     var wrap = document.querySelector("#testimonials .notes");
     if (!wrap || !list || !list.length) return;
+    var sig = signature(list);
+    var first = wrap.firstElementChild;
+    if (first && first.getAttribute("data-rk") === sig) return;
     wrap.innerHTML = list
       .map(function (t, i) {
         var role = [t.authorTitleAr, t.company].filter(Boolean).join(" · ");
@@ -84,7 +132,9 @@
           ? '<img class="note-avatar" src="' + esc(t.authorPhoto) + '" alt="" width="100" height="100" loading="lazy"/>'
           : "";
         return (
-          '<blockquote class="note rv' + (i % 3 ? " d" + (i % 3) : "") + '">' +
+          '<blockquote data-rk="' + sig + '" class="note rv' + (i % 3 ? " d" + (i % 3) : "") + '"' +
+          // An English recommendation reads left to right, as the built page has it.
+          (isLatin(t.quoteAr) ? ' dir="ltr"' : "") + ">" +
           "<q>" + esc(t.quoteAr) + "</q>" +
           "<footer>" + photo +
           '<span class="note-who"' + (isLatin(t.authorName) ? ' dir="ltr"' : "") + ">" +
@@ -94,6 +144,7 @@
         );
       })
       .join("");
+    reveal(wrap);
   }
 
   function renderSteps(list) {
@@ -141,6 +192,14 @@
       .join("");
   }
 
+  /* Recommendations are read live from the dashboard's server, so one she
+     approves appears without a publish. The published list stays the
+     fallback: if this request fails or is slow, nothing is lost but freshness. */
+  var LIVE = /(^|\.)raheeqkanjo\.com$/.test(location.hostname)
+    ? "https://rak-production.up.railway.app/api/testimonials"
+    : "/api/testimonials";
+  var liveTestimonials = null;
+
   function apply(data) {
     var key = pageKey();
     // Site-wide values — logo, footer wording, contact links — live on every
@@ -148,7 +207,7 @@
     if (data.global) data.global.forEach(applyOne);
     if (key && data.pages && data.pages[key]) data.pages[key].forEach(applyOne);
     if (key === "home") {
-      renderTestimonials(data.testimonials);
+      renderTestimonials(liveTestimonials || data.testimonials);
       renderSteps(data.processSteps);
       renderServices(data.services);
     }
@@ -172,7 +231,44 @@
     });
   }
 
+  /* Hydration on a slow phone can finish after the live list is drawn, and
+     when it does React puts the built-in list back. Watch the list for a while and put
+     the live one back whenever that happens. Our own render matches its
+     signature and is left alone, so this cannot loop. */
+  function guard() {
+    if (!("MutationObserver" in window)) return;
+    // The whole page, not the list: a failed hydration regenerates the
+    // section, and an observer on the old list would be watching a node that
+    // is no longer in the document.
+    var mo = new MutationObserver(function () {
+      renderTestimonials(liveTestimonials);
+    });
+    mo.observe(document.body, { childList: true, subtree: true });
+    setTimeout(function () {
+      mo.disconnect();
+    }, 15000);
+  }
+
+  function loadLive() {
+    if (!document.querySelector("#testimonials .notes")) return;
+    fetch(LIVE, { cache: "no-store" })
+      .then(function (r) {
+        return r.ok ? r.json() : null;
+      })
+      .then(function (j) {
+        if (!j || !j.testimonials || !j.testimonials.length) return;
+        liveTestimonials = j.testimonials;
+        renderTestimonials(liveTestimonials);
+        guard();
+      })
+      .catch(function () {});
+  }
+
   function init() {
+    if (pageKey() === "home") {
+      if (document.readyState === "complete") loadLive();
+      else window.addEventListener("load", loadLive);
+    }
     fetch("/site-content.json?v=" + Math.floor(Date.now() / 60000), { cache: "no-store" })
       .then(function (r) {
         return r.ok ? r.json() : null;

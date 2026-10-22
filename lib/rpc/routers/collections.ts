@@ -2,6 +2,7 @@ import { z } from "zod";
 import { collectionRouter, optText, type CollectionSpec } from "../collection";
 import { dbq } from "@/lib/db";
 import type { Router } from "../core";
+import { forgetPublicTestimonials } from "@/lib/recommend";
 
 /* The five ordered content lists. Arabic is required, English optional —
    everywhere, without exception. */
@@ -46,7 +47,14 @@ export const testimonialsSpec: CollectionSpec = {
     { column: "sourceUrl", zod: optText(500) },
     { column: "displayOrder", zod: z.number().int(), serverDefaulted: true },
     { column: "isVisible", zod: z.boolean(), serverDefaulted: true },
+    // Set by the public form, read by the dashboard, never written from here:
+    // approving goes through recommendations.approve.
+    { column: "pendingReview", zod: z.any(), writable: false },
+    { column: "submitterEmail", zod: z.any(), writable: false },
+    { column: "submittedAt", zod: z.any(), writable: false },
   ],
+  // The home page reads these live; drop the cache so a change shows at once.
+  afterWrite: async () => forgetPublicTestimonials(),
 };
 
 export const processStepsSpec: CollectionSpec = {

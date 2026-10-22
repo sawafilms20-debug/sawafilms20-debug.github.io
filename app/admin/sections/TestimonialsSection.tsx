@@ -27,6 +27,10 @@ type Testimonial = {
   sourceUrl: string | null;
   displayOrder: number;
   isVisible: boolean;
+  /** Sent through the recommendation link and not yet seen by her. */
+  pendingReview: boolean;
+  submitterEmail: string | null;
+  submittedAt: string | null;
 };
 
 type Draft = {
@@ -40,6 +44,8 @@ type Draft = {
   authorPhoto: string | null;
   sourceUrl: string;
   isVisible: boolean;
+  pending: boolean;
+  submitterEmail: string | null;
 };
 
 const blankDraft = (): Draft => ({
@@ -53,6 +59,8 @@ const blankDraft = (): Draft => ({
   authorPhoto: null,
   sourceUrl: "",
   isVisible: true,
+  pending: false,
+  submitterEmail: null,
 });
 
 const draftOf = (t: Testimonial): Draft => ({
@@ -66,7 +74,23 @@ const draftOf = (t: Testimonial): Draft => ({
   authorPhoto: t.authorPhoto,
   sourceUrl: t.sourceUrl ?? "",
   isVisible: t.isVisible,
+  pending: t.pendingReview,
+  submitterEmail: t.submitterEmail,
 });
+
+/** The day it arrived. */
+function when(iso: string | null): string {
+  if (!iso) return "";
+  const d = new Date(iso);
+  if (Number.isNaN(d.getTime())) return "";
+  return d.toLocaleDateString("ar", { dateStyle: "long" });
+}
+
+/* What she sends along with the link. Neutral wording: it goes to men and
+   women alike, and Arabic has no gender-free "you" — so it avoids addressing
+   the reader's verb forms at all. */
+const inviteMessage = (url: string) =>
+  `مرحبًا،\n\nيسعدني جدًا أن أقرأ رأيك في تجربة العمل معي. كتابة التوصية تأخذ دقيقتين، وستظهر على موقعي باسمك ومسمّاك الوظيفي:\n\n${url}\n\nشكرًا من القلب،\nرحيق`;
 
 /** A stored link is only safe to render as an anchor when it carries its own
  *  scheme; "linkedin.com/in/x" would resolve against /admin and go nowhere. */
@@ -91,6 +115,80 @@ export default function TestimonialsSection({
   const [tick, setTick] = useState(0);
   const [draft, setDraft] = useState<Draft | null>(null);
   const [saving, setSaving] = useState(false);
+  const [inviteUrl, setInviteUrl] = useState("");
+  const [manualCopy, setManualCopy] = useState(false);
+  const [busyId, setBusyId] = useState<number | null>(null);
+
+  const pending = items.filter((t) => t.pendingReview);
+  const live = items.filter((t) => !t.pendingReview);
+
+  useEffect(() => {
+    rpc.recommendations
+      .invite<{ url: string }>()
+      .then((r) => setInviteUrl(r.url))
+      .catch(() => {
+        /* the list below still works without the link */
+      });
+  }, []);
+
+  const copy = async (text: string, done: string) => {
+    try {
+      if (!navigator.clipboard) throw new Error("no clipboard");
+      await navigator.clipboard.writeText(text);
+      toast(done);
+    } catch {
+      setManualCopy(true);
+      toast("تعذّر النسخ تلقائيًا — انسخي الرابط من الحقل الظاهر.", "bad");
+    }
+  };
+
+  const rotate = async () => {
+    const ok = await confirm(
+      "سيتوقف الرابط الحالي عن العمل فورًا، ومن معه الرابط القديم لن يستطيع إرسال توصية. التوصيات التي وصلت تبقى كما هي.",
+      { confirmLabel: "أنشئي رابطًا جديدًا" }
+    );
+    if (!ok) return;
+    try {
+      const r = await rpc.recommendations.rotateInvite<{ url: string }>();
+      setInviteUrl(r.url);
+      toast("رابط جديد جاهز — الرابط القديم لم يعد يعمل ✓");
+    } catch (e) {
+      toast(e instanceof RpcError ? e.message : "تعذّر إنشاء رابط جديد.", "bad");
+    }
+  };
+
+  const approve = async (t: Testimonial) => {
+    setBusyId(t.id);
+    try {
+      await rpc.recommendations.approve<{ ok: boolean }>({ id: t.id });
+      toast(`توصية ${t.authorName} على الموقع الآن ✓`);
+      setTick((n) => n + 1);
+      onCountsChanged();
+    } catch (e) {
+      toast(e instanceof RpcError ? e.message : "تعذّر نشر التوصية.", "bad");
+    } finally {
+      setBusyId(null);
+    }
+  };
+
+  const reject = async (t: Testimonial) => {
+    const ok = await confirm(
+      `ستُحذف توصية ${t.authorName} والصورة المرفقة بها، ولن تظهر على الموقع. هل تريدين المتابعة؟`,
+      { confirmLabel: "احذفيها" }
+    );
+    if (!ok) return;
+    setBusyId(t.id);
+    try {
+      await rpc.recommendations.reject<{ ok: boolean }>({ id: t.id });
+      setItems((list) => list.filter((x) => x.id !== t.id));
+      toast("حُذفت التوصية ✓");
+      onCountsChanged();
+    } catch (e) {
+      toast(e instanceof RpcError ? e.message : "تعذّر حذف التوصية.", "bad");
+    } finally {
+      setBusyId(null);
+    }
+  };
 
   useEffect(() => {
     let cancelled = false;
@@ -132,7 +230,11 @@ export default function TestimonialsSection({
   const saveOrder = async (ids: number[]) => {
     const before = items;
     const byId = new Map(items.map((t) => [t.id, t]));
-    setItems(ids.map((id) => byId.get(id)).filter((t): t is Testimonial => !!t));
+    // Only the published ones are dragged; the waiting ones keep their place.
+    setItems([
+      ...ids.map((id) => byId.get(id)).filter((t): t is Testimonial => !!t),
+      ...items.filter((t) => t.pendingReview),
+    ]);
     try {
       await rpc.testimonials.reorder<{ ok: boolean }>({ ids });
       toast("تم حفظ ترتيب التوصيات ✓");
@@ -170,7 +272,7 @@ export default function TestimonialsSection({
     }
   };
 
-  const save = async () => {
+  const save = async (publishAfter = false) => {
     if (!draft) return;
     const quoteAr = draft.quoteAr.trim();
     const authorName = draft.authorName.trim();
@@ -205,6 +307,16 @@ export default function TestimonialsSection({
       if (draft.id === null) {
         await rpc.testimonials.create<Testimonial>(payload);
         toast("تمت إضافة التوصية ✓");
+      } else if (draft.pending) {
+        // Visibility is the approval's to set, not the editor's.
+        const { isVisible: _ignored, ...edits } = payload;
+        await rpc.testimonials.update<Testimonial>({ id: draft.id, ...edits });
+        if (publishAfter) {
+          await rpc.recommendations.approve<{ ok: boolean }>({ id: draft.id });
+          toast(`توصية ${authorName} على الموقع الآن ✓`);
+        } else {
+          toast("حُفظت التعديلات — التوصية ما زالت بانتظار نشرك ✓");
+        }
       } else {
         await rpc.testimonials.update<Testimonial>({ id: draft.id, ...payload });
         toast("تم حفظ التوصية ✓");
@@ -223,22 +335,130 @@ export default function TestimonialsSection({
     <>
       <div className="adm-panel">
         <div className="adm-panel-head">
+          <h2>اطلبي توصية</h2>
+          <span className="adm-panel-title">رابط واحد لكل من تريدين</span>
+        </div>
+        <p className="adm-note">
+          أرسلي هذا الرابط لعملائك. يكتب كلٌّ منهم اسمه ومسمّاه الوظيفي وتوصيته وبريده، ويرفع صورته
+          إن أراد — وتصلك هنا لتراجعيها. لا يظهر شيء على الموقع قبل أن تنشريه أنتِ.
+        </p>
+        {inviteUrl ? (
+          <>
+            <div className="adm-invite">
+              <input
+                dir="ltr"
+                readOnly
+                value={inviteUrl}
+                aria-label="رابط طلب التوصية"
+                onFocus={(e) => e.currentTarget.select()}
+                className={manualCopy ? "manual" : undefined}
+              />
+              <button className="btn btn-gold" onClick={() => copy(inviteUrl, "نُسخ الرابط ✓")}>
+                انسخي الرابط
+              </button>
+            </div>
+            <div className="adm-invite-more">
+              <button
+                className="adm-link"
+                onClick={() => copy(inviteMessage(inviteUrl), "نُسخت الرسالة مع الرابط ✓")}
+              >
+                انسخي رسالة جاهزة مع الرابط
+              </button>
+              <a className="adm-link" href={inviteUrl} target="_blank" rel="noopener noreferrer">
+                افتحي الصفحة كما يراها العميل
+              </a>
+              <button className="adm-link" onClick={rotate}>
+                أوقفي هذا الرابط وأنشئي غيره
+              </button>
+            </div>
+          </>
+        ) : (
+          <Loading label="جارٍ تجهيز الرابط…" />
+        )}
+      </div>
+
+      {pending.length > 0 && (
+        <div className="adm-panel adm-panel-pending">
+          <div className="adm-panel-head">
+            <h2>بانتظار مراجعتك</h2>
+            <span className="adm-panel-title">
+              {pending.length === 1 ? "توصية واحدة" : `${pending.length} توصيات`} وصلت عبر الرابط
+            </span>
+          </div>
+          <div className="adm-list">
+            {pending.map((t) => (
+              <article key={t.id} className="adm-rec">
+                <header className="adm-rec-head">
+                  {t.authorPhoto ? (
+                    <img className="adm-rec-photo" src={t.authorPhoto} alt="" />
+                  ) : (
+                    <span className="adm-rec-photo empty" aria-hidden>
+                      {t.authorName.trim().charAt(0)}
+                    </span>
+                  )}
+                  <div className="adm-item-main">
+                    <p className="adm-item-title">{t.authorName}</p>
+                    <span className="adm-item-meta">
+                      {byline(t) && <span>{byline(t)}</span>}
+                      {t.submitterEmail && (
+                        <a className="adm-link" dir="ltr" href={`mailto:${t.submitterEmail}`}>
+                          {t.submitterEmail}
+                        </a>
+                      )}
+                      {t.submittedAt && <span>{when(t.submittedAt)}</span>}
+                    </span>
+                  </div>
+                </header>
+                <p className="adm-rec-quote" dir="auto">
+                  {t.quoteAr}
+                </p>
+                <div className="adm-rec-actions">
+                  <button
+                    className="btn btn-gold"
+                    onClick={() => approve(t)}
+                    disabled={busyId === t.id}
+                  >
+                    انشريها على الموقع
+                  </button>
+                  <button
+                    className="adm-link"
+                    onClick={() => setDraft(draftOf(t))}
+                    disabled={busyId === t.id}
+                  >
+                    عدّليها أولًا
+                  </button>
+                  <button
+                    className="adm-link adm-link-danger"
+                    onClick={() => reject(t)}
+                    disabled={busyId === t.id}
+                  >
+                    احذفيها
+                  </button>
+                </div>
+              </article>
+            ))}
+          </div>
+        </div>
+      )}
+
+      <div className="adm-panel">
+        <div className="adm-panel-head">
           <h2>توصيات العملاء</h2>
           <span className="adm-panel-title">الترتيب هنا هو ترتيب الظهور</span>
         </div>
 
         <p className="adm-note">
           اسحبي التوصيات لتغيير ترتيبها على الموقع — يُحفظ الترتيب فور تغييره. ضعي أقوى توصية
-          أولًا؛ هي التي يقرأها أغلب الزوّار.
+          أولًا؛ هي التي يقرأها أغلب الزوّار. أي تغيير هنا يظهر على الموقع خلال دقيقة، دون زر النشر.
         </p>
 
         {error && <p className="adm-err">{error}</p>}
 
         {loading ? (
           <Loading label="جارٍ تحميل التوصيات…" />
-        ) : items.length ? (
+        ) : live.length ? (
           <DragList
-            items={items}
+            items={live}
             onReorder={saveOrder}
             renderItem={(t) => (
               <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
@@ -283,7 +503,7 @@ export default function TestimonialsSection({
         ) : (
           <EmptyState
             title="لا توجد توصيات بعد"
-            body="انسخي ما كتبه عملاؤك عنك على LinkedIn أو في رسائلهم، وأضيفيه هنا باسم صاحبه ومسمّاه الوظيفي. التوصيات تظهر على الموقع بالترتيب الذي تضعينه."
+            body="أرسلي رابط التوصيات أعلاه لعملائك، أو انسخي ما كتبوه عنك على LinkedIn وأضيفيه هنا باسم صاحبه ومسمّاه الوظيفي. التوصيات تظهر على الموقع بالترتيب الذي تضعينه."
             actionLabel="أضيفي توصية"
             onAction={() => setDraft(blankDraft())}
           />
@@ -294,20 +514,49 @@ export default function TestimonialsSection({
         <Dialog
           open
           onClose={() => setDraft(null)}
-          title={draft.id === null ? "توصية جديدة" : "تحرير التوصية"}
-          subtitle="انقلي كلام صاحب التوصية كما كتبه، دون تحسينه."
+          title={
+            draft.id === null ? "توصية جديدة" : draft.pending ? "مراجعة التوصية" : "تحرير التوصية"
+          }
+          subtitle={
+            draft.pending
+              ? "صحّحي خطأً إملائيًا إن وُجد، لكن اتركي الكلام كلامه — التوصية باسمه."
+              : "انقلي كلام صاحب التوصية كما كتبه، دون تحسينه."
+          }
           width={780}
           footer={
+            draft.pending ? (
+              <>
+                <button className="btn btn-gold" onClick={() => save(true)} disabled={saving}>
+                  {saving ? "جارٍ الحفظ…" : "احفظي وانشريها"}
+                </button>
+                <button className="adm-link" onClick={() => save(false)} disabled={saving}>
+                  احفظي دون نشر
+                </button>
+                <button className="adm-link" onClick={() => setDraft(null)} disabled={saving}>
+                  إلغاء
+                </button>
+              </>
+            ) : (
             <>
-              <button className="btn btn-gold" onClick={save} disabled={saving}>
+              <button className="btn btn-gold" onClick={() => save()} disabled={saving}>
                 {saving ? "جارٍ الحفظ…" : "حفظ"}
               </button>
               <button className="adm-link" onClick={() => setDraft(null)} disabled={saving}>
                 إلغاء
               </button>
             </>
+            )
           }
         >
+          {draft.pending && draft.submitterEmail && (
+            <p className="adm-note">
+              أرسلها{" "}
+              <a className="adm-link" dir="ltr" href={`mailto:${draft.submitterEmail}`}>
+                {draft.submitterEmail}
+              </a>{" "}
+              — البريد لا يظهر على الموقع.
+            </p>
+          )}
           <BilingualField
             label="نصّ التوصية"
             required
@@ -367,6 +616,7 @@ export default function TestimonialsSection({
             />
           </Field>
 
+          {!draft.pending && (
           <div className="adm-field">
             <span className="adm-field-label">الظهور على الموقع</span>
             <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
@@ -380,6 +630,7 @@ export default function TestimonialsSection({
               </span>
             </div>
           </div>
+          )}
         </Dialog>
       )}
     </>

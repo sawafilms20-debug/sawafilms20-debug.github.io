@@ -927,6 +927,120 @@ await check("the article list reports which rows came from LinkedIn", async () =
   assert(byId.get(written[0].id) === false, "a hand-written article was flagged as imported");
 });
 
+/* -------------------------------------------------------- recommendations */
+
+console.log("\nrecommendations");
+
+// The exact statements from app/api/recommend/route.ts,
+// lib/rpc/routers/recommendations.ts and lib/recommend.ts.
+const recInsert = `INSERT INTO testimonials
+     ("quoteAr","authorName","authorTitleAr","authorPhoto","displayOrder","isVisible",
+      "pendingReview","submitterEmail","submittedAt","submittedPhotoKey")
+   VALUES ($1,$2,$3,$4,
+           (SELECT COALESCE(max("displayOrder"), -1) + 1 FROM testimonials),
+           FALSE, TRUE, $5, now(), $6)`;
+const recPrior = `SELECT id, "submittedPhotoKey" FROM testimonials
+    WHERE "pendingReview" AND lower("submitterEmail") = lower($1)
+    ORDER BY id DESC LIMIT 1 FOR UPDATE`;
+const recPublic = `SELECT "quoteAr","authorName","authorTitleAr",company,"authorPhoto"
+     FROM testimonials
+    WHERE "isVisible" AND NOT "pendingReview"
+    ORDER BY "displayOrder", id`;
+const recApprove = `UPDATE testimonials
+      SET "pendingReview" = FALSE, "isVisible" = TRUE,
+          "displayOrder" = (SELECT COALESCE(max("displayOrder"), -1) + 1
+                              FROM testimonials WHERE NOT "pendingReview")
+    WHERE id = $1 AND "pendingReview"
+    RETURNING id`;
+
+await check("a fresh database carries the six recommendations the page always showed", async () => {
+  const fresh = new PGlite();
+  await fresh.waitReady;
+  for (const m of MIGRATIONS) await fresh.exec(m.sql);
+  const { rows } = await fresh.query(
+    `SELECT "authorName", company, "authorTitleAr" FROM testimonials
+      WHERE "isVisible" ORDER BY "displayOrder"`);
+  assert(rows.length === 6, `seeded ${rows.length}, want 6`);
+  assert(rows[0].authorName === "Fouad Hasan" && rows[5].authorName === "Ali Hasan",
+    `order is ${rows.map((r) => r.authorName).join(", ")}`);
+  // The built page escaped these as &amp;; the database holds the character.
+  assert(rows[4].authorTitleAr === "CEO & Founder", `got ${rows[4].authorTitleAr}`);
+  await fresh.close();
+});
+
+await check("the seed stands aside when she already has a list of her own", async () => {
+  const mine = new PGlite();
+  await mine.waitReady;
+  const i017 = MIGRATIONS.findIndex((m) => m.id === "017_testimonial_submissions");
+  for (const m of MIGRATIONS.slice(0, i017)) await mine.exec(m.sql);
+  await mine.query(`INSERT INTO testimonials ("quoteAr","authorName") VALUES ('نص','Her own')`);
+  await mine.exec(MIGRATIONS[i017].sql);
+  const { rows } = await mine.query(`SELECT count(*)::int AS n FROM testimonials`);
+  assert(rows[0].n === 1, `her list became ${rows[0].n} rows`);
+  await mine.close();
+});
+
+await check("a submission waits: hidden, pending, and absent from both public lists", async () => {
+  await db.query(recInsert, ["توصية رائعة ومفصّلة جدًا", "سارة", "مديرة", null, "Sara@Example.com", null]);
+  const pub = await db.query(recPublic);
+  assert(!pub.rows.some((r) => r.authorName === "سارة"), "a pending submission is public");
+  // and the published snapshot, from lib/rpc/routers/pageContent.ts
+  const snap = await db.query(
+    `SELECT "authorName" FROM testimonials WHERE "isVisible" AND NOT "pendingReview"
+      ORDER BY "displayOrder", id`);
+  assert(!snap.rows.some((r) => r.authorName === "سارة"), "a pending submission is in the snapshot");
+});
+
+await check("sending again with the same email finds the waiting one, whatever the case", async () => {
+  const { rows } = await db.query(recPrior, ["sara@example.COM"]);
+  assert(rows.length === 1, "the earlier submission was not found");
+});
+
+await check("approving puts it on the public list, at the end", async () => {
+  const { rows: [row] } = await db.query(
+    `SELECT id FROM testimonials WHERE "submitterEmail" = 'Sara@Example.com'`);
+  const { rows: done } = await db.query(recApprove, [row.id]);
+  assert(done.length === 1, "approve matched nothing");
+  const pub = (await db.query(recPublic)).rows;
+  assert(pub[pub.length - 1].authorName === "سارة", "the approved one is not last");
+  // and the submitter's email is not among what the public list returns
+  assert(!("submitterEmail" in pub[0]), "the public list exposes the email");
+  const again = await db.query(recApprove, [row.id]);
+  assert(again.rows.length === 0, "an approved recommendation was approved twice");
+});
+
+await check("rejecting removes the row and the photo that came with it", async () => {
+  await db.query(
+    `INSERT INTO media_assets ("storageKey", url, "fileName", "mimeType", "sizeBytes")
+     VALUES ('uploads/rec-x.jpg','u','photo.jpg','image/jpeg',10)`);
+  await db.query(`INSERT INTO media_blobs ("storageKey", bytes) VALUES ('uploads/rec-x.jpg', '\\x00')`);
+  await db.query(recInsert, ["نص توصية مرفوضة طويل بما يكفي", "Spam", "x", "u", "s@x.co", "uploads/rec-x.jpg"]);
+  const { rows: [row] } = await db.query(`SELECT id FROM testimonials WHERE "authorName" = 'Spam'`);
+  const r = await db.query(
+    `DELETE FROM testimonials WHERE id = $1 AND "pendingReview" RETURNING "submittedPhotoKey"`, [row.id]);
+  const key = r.rows[0].submittedPhotoKey;
+  await db.query(`DELETE FROM media_blobs WHERE "storageKey" = $1`, [key]);
+  await db.query(`DELETE FROM media_assets WHERE "storageKey" = $1`, [key]);
+  const left = await db.query(`SELECT count(*)::int AS n FROM media_assets WHERE "storageKey" = $1`, [key]);
+  assert(left.rows[0].n === 0, "the photo outlived its rejected submission");
+});
+
+await check("the invite key lives in site_settings without breaking its constraint", async () => {
+  await db.query(
+    `INSERT INTO site_settings ("settingKey","settingValue","settingType")
+     VALUES ($1,$2,'text')
+     ON CONFLICT ("settingKey") DO UPDATE SET "settingValue" = EXCLUDED."settingValue"`,
+    ["recommendInviteToken", "abc"]);
+  await db.query(
+    `INSERT INTO site_settings ("settingKey","settingValue","settingType")
+     VALUES ($1,$2,'text')
+     ON CONFLICT ("settingKey") DO UPDATE SET "settingValue" = EXCLUDED."settingValue"`,
+    ["recommendInviteToken", "def"]);
+  const { rows } = await db.query(
+    `SELECT "settingValue" FROM site_settings WHERE "settingKey" = 'recommendInviteToken'`);
+  assert(rows.length === 1 && rows[0].settingValue === "def", "rotation did not replace the key");
+});
+
 /* ----------------------------------------------------------------- report */
 
 console.log(`\n${passed} passed, ${failures.length} failed`);

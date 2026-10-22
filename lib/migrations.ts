@@ -454,4 +454,51 @@ export const MIGRATIONS: Migration[] = [
         ON linkedin_posts("archivedAt");
     `,
   },
+  {
+    id: "017_testimonial_submissions",
+    sql: `
+      -- Recommendations people write themselves, through a link she sends them.
+      --
+      -- They land in the same table as the ones she types in, because once
+      -- approved they ARE the same thing: an ordered, visible-or-not quote on
+      -- the home page. What is different is only that a stranger wrote the
+      -- row, so it waits for her before it can be seen.
+      ALTER TABLE testimonials
+        ADD COLUMN IF NOT EXISTS "pendingReview"  BOOLEAN NOT NULL DEFAULT FALSE,
+        -- Never published. It is how she thanks them, or checks it was them.
+        ADD COLUMN IF NOT EXISTS "submitterEmail" VARCHAR(320),
+        ADD COLUMN IF NOT EXISTS "submittedAt"    TIMESTAMPTZ,
+        -- The photo they uploaded, so refusing a submission can delete it too
+        -- rather than leave a stranger's face in her media library.
+        ADD COLUMN IF NOT EXISTS "submittedPhotoKey" VARCHAR(500);
+
+      CREATE INDEX IF NOT EXISTS idx_testimonials_pending
+        ON testimonials("pendingReview") WHERE "pendingReview";
+
+      -- The six recommendations the home page has always shown live in its
+      -- HTML, not here. The page swaps that HTML for the database list as soon
+      -- as the list has anything in it — so the first approved submission would
+      -- otherwise replace all six with one. Bring them in first, unless she has
+      -- already put her own list together.
+      INSERT INTO testimonials
+        ("quoteAr","authorName","authorTitleAr",company,"authorPhoto","displayOrder","isVisible")
+      SELECT v.q, v.n, v.t, v.c, v.p, v.o, TRUE
+        FROM (VALUES
+          ('تستمع جيدًا وتحاول أن تفهم الشخص وطريقة تفكيره قبل أن تبدأ بالعمل، وتحافظ على صوته وأسلوبه بدل أن تفرض عليه أسلوبًا جاهزًا.',
+           'Fouad Hasan', 'CFO', NULL, '/avatar-fouad.jpg', 0),
+          ('باحثة ممتازة. تطرح الأسئلة الصحيحة، وتلتقط التفاصيل المهمة، ثم تقدّم حلولًا مدروسة تعكس صوت الحساب وشخصيته بصدق.',
+           'أسماء الخالدي', 'مستشارة LinkedIn للخبراء العرب', NULL, '/avatar-asmaa.jpg', 1),
+          ('تملك حسًا واضحًا في فهم العلامة وصوتها، وهو ما يظهر بصورة خاصة في كتابتها للعلامات الشخصية.',
+           'Rami Badrah', 'Marketing Content & UX Consultant', NULL, '/avatar-rami.jpg', 2),
+          ('إتقان. احترام وتقدير. تواجد دائمًا. إبداع بالبحث والكتابة. رحيق إضافة لا أندم عليها أبدًا لفريق EXEED.',
+           'Mohamad Jandali', 'CEO', 'exeedin.com', '/avatar-jandali.jpg', 3),
+          ('Well organized, result oriented and creative copywriter. I really recommend Raheek to be a cornerstone of any copywriting team.',
+           'Mohammed Okko', 'CEO & Founder', 'Digital Genuity', '/avatar-okko.jpg', 4),
+          ('استشارة تسويقية مركزة وقوية لبناء علامتي الشخصية وهوية حساب الشركة، مع استراتيجيات واضحة لزيادة المتابعين واستقطاب الجمهور. المعلومات جاءت عميقة وعملية.',
+           'Ali Hasan', 'OT/ICS Security Engineer', NULL, '/avatar-ali.jpg', 5)
+        ) AS v(q, n, t, c, p, o)
+       WHERE NOT EXISTS (SELECT 1 FROM testimonials WHERE "isVisible")
+         AND NOT EXISTS (SELECT 1 FROM testimonials t WHERE t."authorName" = v.n);
+    `,
+  },
 ];

@@ -55,4 +55,5 @@ export type Counts = {
   drafts: number;
   enquiriesAwaiting: number;
   openErrors: number;
+  pendingRecommendations: number;
 };

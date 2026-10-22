@@ -32,6 +32,7 @@ const ROUTES = [
   { url: "/scripts", out: "scripts/index.html" },
   { url: "/about", out: "about/index.html" },
   { url: "/contact", out: "contact/index.html" },
+  { url: "/recommend", out: "recommend/index.html" },
   { url: "/this-route-does-not-exist", out: "404.html" },
   { url: "/this-route-does-not-exist", out: "404/index.html" },
 ];

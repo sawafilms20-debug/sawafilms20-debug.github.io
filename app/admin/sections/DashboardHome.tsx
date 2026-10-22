@@ -42,6 +42,7 @@ type Summary = {
   drafts: number;
   enquiriesAwaiting: number;
   enquiriesTotal: number;
+  pendingRecommendations?: number;
   recentEnquiries: Enquiry[];
   scheduledArticles: Scheduled[];
 };
@@ -266,6 +267,17 @@ export default function DashboardHome({ toast, goTo }: SectionProps) {
         <p className="adm-err" role="alert">
           {err}
         </p>
+      )}
+
+      {!!summary.pendingRecommendations && (
+        <button className="adm-callout" onClick={() => goTo("testimonials")}>
+          <b>
+            {summary.pendingRecommendations === 1
+              ? "توصية جديدة تنتظر مراجعتك"
+              : `${en(summary.pendingRecommendations)} توصيات جديدة تنتظر مراجعتك`}
+          </b>
+          <span>راجعيها وانشريها ←</span>
+        </button>
       )}
 
       <div className="adm-strip">

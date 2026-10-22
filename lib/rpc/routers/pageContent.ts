@@ -211,7 +211,8 @@ export async function contentSnapshot(): Promise<ContentSnapshot> {
 
   const [testimonials, processSteps, services, faq, statistics] = await Promise.all([
     dbq(`SELECT "quoteAr","authorName","authorTitleAr",company,"authorPhoto","sourceUrl"
-           FROM testimonials WHERE "isVisible" ORDER BY "displayOrder", id`),
+           FROM testimonials WHERE "isVisible" AND NOT "pendingReview"
+          ORDER BY "displayOrder", id`),
     dbq(`SELECT "stepNumber","titleAr","descriptionAr",icon
            FROM process_steps WHERE "isVisible" ORDER BY "displayOrder", id`),
     dbq(`SELECT slug,"titleAr","summaryAr",icon,"coverImage"
