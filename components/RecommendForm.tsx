@@ -203,11 +203,6 @@ export default function RecommendForm() {
     return (
       <div className="rf-done" role="status">
         <h2>وصلت توصيتك — شكرًا من القلب</h2>
-        <p>
-          ستظهر على الموقع بعد أن تراجعها رحيق.
-          {mode === "full" &&
-            " وإن أردت تعديل شيء، أرسلها مرة أخرى بالبريد نفسه وستحلّ محل الأولى."}
-        </p>
       </div>
     );
   }
