@@ -20,10 +20,6 @@ export default function RecommendPage() {
 
       <header className="page-head wrap contact-head rf-head">
         <h1 className="hero-title rv d1">شاركني تجربتك في العمل معي</h1>
-        <p className="page-lead rv d2">
-          كلماتك تساعد خبراء آخرين على معرفة كيف يبدو العمل معي. تأخذ دقيقتين، وتظهر على موقعي
-          باسمك ومسمّاك الوظيفي.
-        </p>
       </header>
 
       <main id="main" className="wrap contact-main rf-main">
