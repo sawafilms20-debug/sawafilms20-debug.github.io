@@ -501,4 +501,66 @@ export const MIGRATIONS: Migration[] = [
          AND NOT EXISTS (SELECT 1 FROM testimonials t WHERE t."authorName" = v.n);
     `,
   },
+  {
+    id: "018_recommendations_via_enquiries",
+    sql: `
+      -- The recommendation page went live while the platform the dashboard
+      -- runs on had paused every deploy, so the server that receives
+      -- recommendations directly did not exist yet. The page sends through the
+      -- contact endpoint instead, marked source = 'recommendation', and this
+      -- trigger files each one where it belongs: a hidden draft in the
+      -- recommendations list, never a message. RETURN NULL drops the enquiry
+      -- row; the endpoint still answers success.
+      --
+      -- The form sends the bare recommendation as the message, the position
+      -- as serviceInterest and the LinkedIn profile link as utm_source — the
+      -- only free fields that endpoint has.
+      CREATE OR REPLACE FUNCTION rk_recommendation_from_enquiry() RETURNS trigger AS $$
+      BEGIN
+        INSERT INTO testimonials
+          ("quoteAr","authorName","authorTitleAr","sourceUrl","displayOrder","isVisible",
+           "pendingReview","submitterEmail","submittedAt")
+        VALUES
+          (NEW.message, NEW.name, NULLIF(NEW."serviceInterest", ''), NULLIF(NEW."utmSource", ''),
+           (SELECT COALESCE(max("displayOrder"), -1) + 1 FROM testimonials),
+           FALSE, TRUE, NEW.email, now());
+        RETURN NULL;
+      END;
+      $$ LANGUAGE plpgsql;
+
+      DROP TRIGGER IF EXISTS trg_enquiry_recommendation ON enquiries;
+      CREATE TRIGGER trg_enquiry_recommendation BEFORE INSERT ON enquiries
+        FOR EACH ROW WHEN (NEW.source = 'recommendation')
+        EXECUTE FUNCTION rk_recommendation_from_enquiry();
+
+      -- Any that arrived as messages before the trigger existed. The first
+      -- version of the page wrote the details into the message above a blank
+      -- line, under the heading «توصية للموقع»; only those get the header cut.
+      INSERT INTO testimonials
+        ("quoteAr","authorName","authorTitleAr","sourceUrl","displayOrder","isVisible",
+         "pendingReview","submitterEmail","submittedAt")
+      SELECT CASE WHEN e.message LIKE 'توصية للموقع%' AND strpos(e.message, E'\\n\\n') > 0
+                  THEN substr(e.message, strpos(e.message, E'\\n\\n') + 2)
+                  ELSE e.message END,
+             e.name,
+             NULLIF(e."serviceInterest", ''),
+             COALESCE(substring(e.message from 'LinkedIn: ([^\\n]+)'), NULLIF(e."utmSource", '')),
+             (SELECT COALESCE(max("displayOrder"), -1) + 1 FROM testimonials) + row_number() OVER (ORDER BY e.id),
+             FALSE, TRUE, e.email, e."createdAt"
+        FROM enquiries e
+       WHERE e.source = 'recommendation';
+      DELETE FROM enquiries WHERE source = 'recommendation';
+    `,
+  },
+
+  {
+    id: "019_drafts_shown_before_review_screen",
+    sql: `
+      -- Until the review screen shipped, the only way to put a submitted
+      -- recommendation on the site was the visibility switch, which does not
+      -- know about pendingReview. A row she switched on then is approved.
+      UPDATE testimonials SET "pendingReview" = FALSE
+       WHERE "pendingReview" AND "isVisible";
+    `,
+  },
 ];

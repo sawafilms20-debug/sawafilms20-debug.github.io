@@ -35,7 +35,8 @@ async function hasQueue(): Promise<boolean> {
 }
 
 // Mirrors RECOMMEND_LIMITS in lib/recommend.ts, which the server enforces.
-const LIMITS = { name: 120, title: 160, textMin: 20, text: 1500 };
+// The title cap is the contact endpoint's, the tighter of the two routes.
+const LIMITS = { name: 120, title: 100, textMin: 20, text: 1500 };
 const PHOTO_SIDE = 512;
 
 /* A phone photo is several megabytes and carries the GPS position it was taken
@@ -155,16 +156,10 @@ export default function RecommendForm() {
       url = api("/api/recommend");
       req = { method: "POST", body };
     } else {
-      /* Into her messages, laid out so it reads as what it is. The consent
-         is stated in the message because there is no other field to hold it. */
-      const head = [
-        "توصية للموقع",
-        `الاسم: ${name}`,
-        `المسمّى الوظيفي: ${title}`,
-        ...(profile ? [`LinkedIn: ${profile}`] : []),
-        "وافق على نشرها باسمه ومسمّاه الوظيفي وصورته: نعم",
-      ];
-      const message = `${head.join("\n")}\n\n${text.trim()}`;
+      /* Through the contact endpoint, which every deployed server has. A
+         database trigger (migration 018) catches source = 'recommendation'
+         and files it as a hidden draft recommendation, not a message — so
+         each field goes where the trigger reads it from. */
       url = api("/api/leads");
       req = {
         method: "POST",
@@ -172,9 +167,10 @@ export default function RecommendForm() {
         body: JSON.stringify({
           name,
           email: value,
-          message,
+          message: text.trim(),
           source: "recommendation",
-          serviceInterest: title.slice(0, 100),
+          serviceInterest: title,
+          utm_source: profile,
         }),
       };
     }
@@ -333,7 +329,7 @@ export default function RecommendForm() {
             type="url"
             dir="ltr"
             inputMode="url"
-            maxLength={300}
+            maxLength={100}
             placeholder="https://www.linkedin.com/in/…"
           />
           <small className="rf-hint">تؤخذ منه صورتك لتظهر بجانب التوصية.</small>
@@ -390,7 +386,7 @@ export default function RecommendForm() {
 
       <label className="rf-consent">
         <input type="checkbox" name="consent" required />
-        <span>أوافق على نشر هذه التوصية باسمي ومسمّاي الوظيفي وصورتي على موقع رحيق كنجو.</span>
+        <span>أوافق على نشر هذه التوصية على موقع رحيق كنجو.</span>
       </label>
 
       <input

@@ -1491,6 +1491,25 @@ textarea.cf-in{resize:vertical;line-height:1.8}
 .notes .note:nth-child(5){--dl:.48s}
 .notes .note:nth-child(6){--dl:.6s}
 
+/* Cards written in by the content script after load are never seen by the
+   page's reveal observer, so .on never arrives and they would sit at
+   opacity 0. The dashboard's publish button can ship an older script that
+   does not reveal them itself, so the fallback lives here, where publishing
+   never reaches: reveal on scroll where the browser can do it in CSS, and
+   after a short delay where it cannot. */
+@keyframes rk-note-in{to{opacity:1;transform:none}}
+@keyframes rk-tape-in{to{opacity:1;transform:rotate(-2deg) scale(1)}}
+@supports (animation-timeline: view()){
+  .notes .note.rv:not(.on){animation:rk-note-in linear both;animation-timeline:view();animation-range:entry 0% entry 70%}
+  .notes .note.rv:not(.on)::before{animation:rk-tape-in linear both;animation-timeline:view();animation-range:entry 50% entry 100%}
+}
+@supports not (animation-timeline: view()){
+  .notes .note.rv:not(.on){animation:rk-note-in .7s var(--ease) 1.2s both}
+  .notes .note.rv:not(.on)::before{animation:rk-tape-in .4s ease 1.6s both}
+}
+/* An English recommendation reads left to right whichever script renders it. */
+.notes .note q{unicode-bidi:plaintext}
+
 @media (prefers-reduced-motion: reduce){
   .notes .note.rv{opacity:1;transform:none}
   .notes .note.rv::before{opacity:1;transform:rotate(-2deg)}

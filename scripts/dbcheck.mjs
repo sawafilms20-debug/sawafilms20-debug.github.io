@@ -1025,6 +1025,46 @@ await check("rejecting removes the row and the photo that came with it", async (
   assert(left.rows[0].n === 0, "the photo outlived its rejected submission");
 });
 
+await check("a recommendation sent through the contact endpoint becomes a hidden draft, not a message", async () => {
+  // The exact INSERT from app/api/leads/route.ts, with what the form sends.
+  await db.query(
+    `INSERT INTO enquiries
+       (name, email, phone, "serviceInterest", message, source, "utmSource", "utmCampaign")
+     VALUES ($1,$2,$3,$4,$5,$6,$7,$8)`,
+    ["Lina", "lina@example.com", null, "Founder", "توصية حقيقية بما يكفي من الطول", "recommendation",
+     "https://www.linkedin.com/in/lina", null]);
+  const msg = await db.query(`SELECT count(*)::int AS n FROM enquiries WHERE name = 'Lina'`);
+  assert(msg.rows[0].n === 0, "it was also kept as a message");
+  const { rows } = await db.query(
+    `SELECT "quoteAr","authorTitleAr","sourceUrl","isVisible","pendingReview","submitterEmail"
+       FROM testimonials WHERE "authorName" = 'Lina'`);
+  assert(rows.length === 1, `found ${rows.length} rows`);
+  const r = rows[0];
+  assert(!r.isVisible && r.pendingReview, "it is not a hidden draft");
+  assert(r.authorTitleAr === "Founder" && r.sourceUrl === "https://www.linkedin.com/in/lina"
+    && r.submitterEmail === "lina@example.com", JSON.stringify(r));
+  // an ordinary contact message is untouched
+  await db.query(`INSERT INTO enquiries (name,email,message,source) VALUES ('Omar','o@x.co','مرحبا','contact-page')`);
+  const omar = await db.query(`SELECT count(*)::int AS n FROM enquiries WHERE name = 'Omar'`);
+  assert(omar.rows[0].n === 1, "an ordinary message was swallowed");
+});
+
+await check("recommendations that arrived as messages before the trigger are moved over", async () => {
+  const fresh = new PGlite();
+  await fresh.waitReady;
+  const i018 = MIGRATIONS.findIndex((m) => m.id === "018_recommendations_via_enquiries");
+  for (const m of MIGRATIONS.slice(0, i018)) await fresh.exec(m.sql);
+  await fresh.query(`INSERT INTO enquiries (name,email,message,source,"serviceInterest") VALUES ($1,$2,$3,'recommendation',$4)`,
+    ["rjhg", "r@x.co", "توصية للموقع\nالاسم: rjhg\nالمسمّى الوظيفي: 7\nLinkedIn: https://l.in/x\nوافق على نشرها: نعم\n\nsample text", "7"]);
+  await fresh.exec(MIGRATIONS[i018].sql);
+  const t = await fresh.query(`SELECT "quoteAr","sourceUrl","pendingReview","isVisible" FROM testimonials WHERE "authorName"='rjhg'`);
+  assert(t.rows.length === 1 && t.rows[0].quoteAr === "sample text" && t.rows[0].sourceUrl === "https://l.in/x"
+    && t.rows[0].pendingReview && !t.rows[0].isVisible, JSON.stringify(t.rows));
+  const e = await fresh.query(`SELECT count(*)::int AS n FROM enquiries`);
+  assert(e.rows[0].n === 0, "the message was left behind");
+  await fresh.close();
+});
+
 /* ----------------------------------------------------------------- report */
 
 console.log(`\n${passed} passed, ${failures.length} failed`);
