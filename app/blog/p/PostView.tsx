@@ -82,7 +82,7 @@ export default function PostView() {
       </header>
       {post.cover && (
         // eslint-disable-next-line @next/next/no-img-element
-        <img className="article-cover" src={post.cover} alt={post.title} />
+        <img className="article-cover" src={post.cover} alt={post.title} fetchPriority="high" />
       )}
       <div
         className="prose"

@@ -52,6 +52,21 @@ body::before{
 @media(prefers-reduced-motion:reduce){
   .rv{opacity:1;transform:none;transition:none}
 }
+/* Above the fold, the reveal must not wait for JavaScript. FX adds `.on` only
+   after React has hydrated, and until then the page header sat at opacity 0:
+   the largest paint (the title, the portrait) waited on the whole JS bundle,
+   which is most of the mobile LCP. The header now plays the same rise-in from
+   CSS on first paint. Its resting state is already the `.on` state, so when FX
+   adds `.on` later nothing changes and no transition fires. */
+.hero .rv,.page-head .rv{opacity:1;transform:none;animation:rv-in .6s var(--ease) both}
+.hero .rv.d1,.page-head .rv.d1{animation-delay:.12s}
+.hero .rv.d2,.page-head .rv.d2{animation-delay:.24s}
+.hero .rv.d3,.page-head .rv.d3{animation-delay:.36s}
+.hero .rv.d4,.page-head .rv.d4{animation-delay:.48s}
+@keyframes rv-in{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:none}}
+@media(prefers-reduced-motion:reduce){
+  .hero .rv,.page-head .rv{animation:none}
+}
 
 /* ====== nav ====== */
 /* Scoped to the header nav by id. As a bare `nav {}` rule this also pinned the
