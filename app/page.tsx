@@ -14,6 +14,7 @@ import {
 import FX from "./fx";
 import SiteNav from "@/components/SiteNav";
 import SiteFooter from "@/components/SiteFooter";
+import JsonLd from "@/components/JsonLd";
 
 /* The home page answers on two addresses — "/" and "/index.html", both 200 —
    so without this Google is free to index them as separate pages and split
@@ -443,6 +444,7 @@ export default function Home() {
       <SiteFooter />
 
       <FX />
+      <JsonLd page="home" meta={metadata} />
     </>
   );
 }

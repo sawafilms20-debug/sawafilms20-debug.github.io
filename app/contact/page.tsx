@@ -3,6 +3,7 @@ import { Clapperboard, FileText, Layers, Mail } from "lucide-react";
 import FX from "../fx";
 import SiteNav from "@/components/SiteNav";
 import SiteFooter from "@/components/SiteFooter";
+import JsonLd from "@/components/JsonLd";
 import ContactForm from "@/components/ContactForm";
 import { LinkedInIcon } from "@/components/icons";
 
@@ -102,6 +103,7 @@ export default function ContactPage() {
 
       <SiteFooter />
       <FX />
+      <JsonLd page="contact" meta={metadata} />
     </>
   );
 }

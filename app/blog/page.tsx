@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import SiteNav from "@/components/SiteNav";
 import SiteFooter from "@/components/SiteFooter";
+import JsonLd from "@/components/JsonLd";
 import SubscribeForm from "@/components/SubscribeForm";
 import BlogList from "./BlogList";
 
@@ -51,6 +52,7 @@ export default function BlogPage() {
         </section>
       </main>
       <SiteFooter />
+      <JsonLd page="blog" meta={metadata} />
     </>
   );
 }

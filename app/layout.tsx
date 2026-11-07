@@ -49,18 +49,6 @@ export const viewport: Viewport = {
   themeColor: "#f7f2e9",
 };
 
-const personJsonLd = {
-  "@context": "https://schema.org",
-  "@type": "Person",
-  name: "Raheek Kanjo",
-  alternateName: "رحيق كنجو",
-  jobTitle: "Marketing Content Writer & Content Strategist",
-  email: "mailto:raheeqkanjo@gmail.com",
-  sameAs: ["https://www.linkedin.com/in/raheekkanjo/"],
-  knowsLanguage: ["ar", "en"],
-  description:
-    "كاتبة واستراتيجية محتوى للخبراء العرب: محتوى LinkedIn، مقالات المواقع، وسكريبتات الفيديو",
-};
 
 export default function RootLayout({
   children,
@@ -70,10 +58,7 @@ export default function RootLayout({
       <body>
         <a className="skip-link" href="#main">تخطَّ إلى المحتوى</a>
         {children}
-        <script
-          type="application/ld+json"
-          dangerouslySetInnerHTML={{ __html: JSON.stringify(personJsonLd) }}
-        />
+        {/* JSON-LD: each page renders the site graph (lib/jsonld.ts) through <JsonLd />. */}
         {/* eslint-disable-next-line @next/next/no-sync-scripts */}
         <script defer src="/track.js" />
         {/* Applies whatever the dashboard has overridden; a no-op with no overrides. */}

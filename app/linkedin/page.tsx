@@ -18,6 +18,7 @@ import FX from "../fx";
 import SiteNav from "@/components/SiteNav";
 import SiteFooter from "@/components/SiteFooter";
 import Faq from "@/components/Faq";
+import JsonLd from "@/components/JsonLd";
 
 export const metadata: Metadata = {
   alternates: { canonical: "/linkedin/", types: { "application/rss+xml": [{ url: "/rss.xml", title: "رحيق كنجو" }] } },
@@ -212,6 +213,7 @@ export default function LinkedInPage() {
 
       <SiteFooter />
       <FX />
+      <JsonLd page="linkedin" meta={metadata} />
     </>
   );
 }

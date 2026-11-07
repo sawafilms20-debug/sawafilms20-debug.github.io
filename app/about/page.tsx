@@ -11,6 +11,7 @@ import {
 import FX from "../fx";
 import SiteNav from "@/components/SiteNav";
 import SiteFooter from "@/components/SiteFooter";
+import JsonLd from "@/components/JsonLd";
 import { LinkedInIcon } from "@/components/icons";
 
 export const metadata: Metadata = {
@@ -396,6 +397,7 @@ export default function AboutPage() {
 
       <SiteFooter />
       <FX />
+      <JsonLd page="about" meta={metadata} />
     </>
   );
 }

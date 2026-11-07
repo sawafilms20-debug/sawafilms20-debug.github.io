@@ -13,6 +13,7 @@ import {
 import FX from "../fx";
 import SiteNav from "@/components/SiteNav";
 import SiteFooter from "@/components/SiteFooter";
+import JsonLd from "@/components/JsonLd";
 import { YouTubeIcon } from "@/components/icons";
 import Faq from "@/components/Faq";
 
@@ -174,6 +175,7 @@ export default function ScriptsPage() {
 
       <SiteFooter />
       <FX />
+      <JsonLd page="scripts" meta={metadata} />
     </>
   );
 }

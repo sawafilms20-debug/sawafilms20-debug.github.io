@@ -1,5 +1,6 @@
 import { marked } from "marked";
 import { EMAIL_PATTERN } from "./email";
+import { ID, blogNode, breadcrumbNode, graph, personRef, siteNodes, webPageNode } from "./jsonld";
 
 /* Server-side generator for real, crawlable blog pages.
    Produces per-post HTML (unique title/description/OG/JSON-LD + the article text
@@ -115,32 +116,39 @@ export function renderPostPage(p: Post, sh: Shell) {
   const desc = p.excerpt || p.title;
   const dir = p.lang === "en" ? "ltr" : "rtl";
 
-  const jsonLd = {
-    "@context": "https://schema.org",
-    "@type": "BlogPosting",
-    headline: p.title,
-    description: desc,
-    image,
-    datePublished: p.date,
-    dateModified: p.date,
-    inLanguage: p.lang,
-    mainEntityOfPage: { "@type": "WebPage", "@id": url },
-    author: { "@type": "Person", name: "Raheek Kanjo", alternateName: BRAND, url: SITE },
-    publisher: { "@type": "Person", name: BRAND, url: SITE },
-    keywords: p.tags.join(", "),
-  };
-
-  /* What puts «الرئيسية › المدونة › العنوان» under the search result instead
-     of a bare URL. Cheap, and the article pages are the ones people land on. */
-  const breadcrumb = {
-    "@context": "https://schema.org",
-    "@type": "BreadcrumbList",
-    itemListElement: [
-      { "@type": "ListItem", position: 1, name: "الرئيسية", item: SITE },
-      { "@type": "ListItem", position: 2, name: "المدونة", item: `${SITE}/blog/` },
-      { "@type": "ListItem", position: 3, name: p.title, item: url },
-    ],
-  };
+  /* One graph: the site's Person/WebSite nodes, this page, the article and
+     the «الرئيسية › المدونة › العنوان» trail shown under the search result. */
+  const jsonLd = graph([
+    ...siteNodes(),
+    webPageNode({
+      url,
+      name: p.title,
+      description: desc,
+      lang: p.lang,
+      hasCrumbs: true,
+      extra: { primaryImageOfPage: { "@type": "ImageObject", url: image } },
+    }),
+    {
+      "@type": "BlogPosting",
+      "@id": `${url}#article`,
+      headline: p.title,
+      description: desc,
+      image,
+      datePublished: p.date,
+      dateModified: p.date,
+      inLanguage: p.lang,
+      wordCount: words,
+      mainEntityOfPage: { "@id": `${url}#webpage` },
+      isPartOf: { "@id": ID.blog },
+      author: personRef(),
+      publisher: personRef(),
+      ...(p.tags.length ? { keywords: p.tags.join(", "), articleSection: p.tags[0] } : {}),
+    },
+    breadcrumbNode(url, [
+      { name: "المدونة", url: `${SITE}/blog/` },
+      { name: p.title, url },
+    ]),
+  ]);
 
   const head = `<title>${esc(p.title)} | ${BRAND}</title>
 <meta name="description" content="${esc(desc)}"/>
@@ -162,8 +170,7 @@ ${p.cover ? "" : `<meta property="og:image:width" content="1200"/>
 <meta name="twitter:description" content="${esc(desc)}"/>
 <meta name="twitter:image" content="${esc(image)}"/>
 <meta name="twitter:image:alt" content="${esc(p.cover ? p.title : OG_ALT)}"/>
-<script type="application/ld+json">${jsonLdScript(jsonLd)}</script>
-<script type="application/ld+json">${jsonLdScript(breadcrumb)}</script>`;
+<script type="application/ld+json">${jsonLdScript(jsonLd)}</script>`;
 
   const body = `<main id="main" class="wrap">
 <article class="article">
@@ -210,33 +217,24 @@ export function renderBlogIndex(posts: Post[], sh: Shell) {
 <meta name="twitter:description" content="مساحة أكبر لأفكاري وتجاربي في المحتوى، القصص، وبناء الحضور الرقمي للخبراء العرب."/>
 <meta name="twitter:image" content="${SITE}/og-image.jpg"/>
 <meta name="twitter:image:alt" content="${OG_ALT}"/>
-<script type="application/ld+json">${jsonLdScript({
-    "@context": "https://schema.org",
-    "@type": "Blog",
-    name: "خلينا نحكي محتوى",
-    description:
-      "مساحة أكبر لأفكاري وتجاربي في المحتوى، القصص، وبناء الحضور الرقمي للخبراء العرب.",
-    url: `${SITE}/blog/`,
-    inLanguage: "ar",
-    author: { "@type": "Person", name: "Raheek Kanjo", alternateName: BRAND, url: SITE },
-    /* Naming the posts here gives the crawler the whole list from one page,
-       rather than relying on it following ten links to discover them. */
-    blogPost: posts.map((p) => ({
-      "@type": "BlogPosting",
-      headline: p.title,
-      url: `${SITE}/blog/${p.slug}/`,
-      datePublished: p.date,
-      inLanguage: p.lang,
-    })),
-  })}</script>
-<script type="application/ld+json">${jsonLdScript({
-    "@context": "https://schema.org",
-    "@type": "BreadcrumbList",
-    itemListElement: [
-      { "@type": "ListItem", position: 1, name: "الرئيسية", item: SITE },
-      { "@type": "ListItem", position: 2, name: "المدونة", item: `${SITE}/blog/` },
-    ],
-  })}</script>`;
+<script type="application/ld+json">${jsonLdScript(
+    graph([
+      ...siteNodes(),
+      webPageNode({
+        url: `${SITE}/blog/`,
+        type: "CollectionPage",
+        name: `خلينا نحكي محتوى | ${BRAND}`,
+        description:
+          "مدونتي هي مساحة أكبر لأفكاري وتجاربي في المحتوى، القصص، وبناء الحضور الرقمي للخبراء العرب بأبسط طريقة ممكنة.",
+        hasCrumbs: true,
+        extra: { about: { "@id": ID.person }, mainEntity: { "@id": ID.blog } },
+      }),
+      /* Naming the posts here gives the crawler the whole list from one page,
+         rather than relying on it following ten links to discover them. */
+      blogNode(posts),
+      breadcrumbNode(`${SITE}/blog/`, [{ name: "المدونة", url: `${SITE}/blog/` }]),
+    ])
+  )}</script>`;
 
   const cards = posts
     .map(
