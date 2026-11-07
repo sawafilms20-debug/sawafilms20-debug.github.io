@@ -14,6 +14,7 @@
     "check:selectors": "node scripts/check-selectors.mjs",
     "dev:docs": "node scripts/serve-docs.mjs",
     "snapshot": "node scripts/snapshot-docs.mjs",
+    "regen:blog": "node --import ./scripts/ts-paths.mjs scripts/regen-blog.mjs",
     "email:check": "node scripts/emailcheck.mjs",
     "link:check": "node scripts/linkcheck.mjs"
   },

@@ -20,6 +20,10 @@ export type Post = {
   cover?: string;
   body: string;
   status?: string;
+  /** Already-rendered article HTML. Set only by scripts/regen-blog.mjs, which
+   *  rebuilds the published pages from their own HTML when the database that
+   *  holds the Markdown is out of reach; the publish path never sets it. */
+  html?: string;
 };
 
 /* Every stylesheet the built site loads, in order. A single href was enough
@@ -102,8 +106,9 @@ ${FOOT}
 
 export function renderPostPage(p: Post, sh: Shell) {
   const url = `${SITE}/blog/${p.slug}/`;
-  const html = marked.parse(p.body) as string;
-  const words = p.body.split(/\s+/).filter(Boolean).length;
+  const html = p.html ?? (marked.parse(p.body) as string);
+  const text = p.html ? p.html.replace(/<[^>]+>/g, " ") : p.body;
+  const words = text.split(/\s+/).filter(Boolean).length;
   const image = p.cover ? (p.cover.startsWith("http") ? p.cover : SITE + p.cover) : `${SITE}/og-image.jpg`;
   const desc = p.excerpt || p.title;
   const dir = p.lang === "en" ? "ltr" : "rtl";
@@ -165,7 +170,7 @@ export function renderPostPage(p: Post, sh: Shell) {
     </div>
   </header>
   ${p.cover ? `<img class="article-cover" src="${esc(p.cover)}" alt="${esc(p.title)}"/>` : ""}
-  <div class="prose" dir="${dir}" lang="${p.lang}">${html}</div>
+  <div class="prose" dir="${dir}" lang="${p.lang}"><!--rk:body-->${html}<!--/rk:body--></div>
   <aside class="article-cta">
     <h3>لديك فكرة تستحق أن تتحول إلى محتوى؟</h3>
     <p>احكِ لي عن خبرتك، المشروع والجمهور الذي تريد الوصول إليه</p>
