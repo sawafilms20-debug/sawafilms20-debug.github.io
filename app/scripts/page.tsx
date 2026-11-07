@@ -17,17 +17,26 @@ import SiteFooter from "@/components/SiteFooter";
 import { YouTubeIcon } from "@/components/icons";
 
 export const metadata: Metadata = {
-  alternates: { canonical: "/scripts/" },
+  alternates: { canonical: "/scripts/", types: { "application/rss+xml": [{ url: "/rss.xml", title: "رحيق كنجو" }] } },
   title: "كتابة سكريبتات الفيديو | رحيق كنجو",
   description:
     "أحوّل خبرتك إلى فيديو يمنح المشاهد سببًا للاستمرار من أول ثانية إلى النهاية: فيديوهات قصيرة وتعليمية، محتوى معرفي وتحليلي، وYouTube.",
   openGraph: {
     type: "website",
     locale: "ar_AR",
+    siteName: "رحيق كنجو",
+    url: "/scripts/",
     title: "كتابة سكريبتات الفيديو | رحيق كنجو",
     description:
       "سكريبتات فيديو تبدأ من هوك مدروس وترتب الرحلة حتى آخر ثانية: فيديوهات قصيرة وتعليمية وYouTube.",
-    images: ["/og-image.jpg"],
+    images: [{ url: "/og-image.jpg", width: 1200, height: 630, alt: "شعار رحيق كنجو وعبارة: كاتبة محتوى تسويقي مختصة باستراتيجيات المحتوى للخبراء العرب", type: "image/jpeg" }],
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "كتابة سكريبتات الفيديو | رحيق كنجو",
+    description:
+      "سكريبتات فيديو تبدأ من هوك مدروس وترتب الرحلة حتى آخر ثانية: فيديوهات قصيرة وتعليمية وYouTube.",
+    images: [{ url: "/og-image.jpg", width: 1200, height: 630, alt: "شعار رحيق كنجو وعبارة: كاتبة محتوى تسويقي مختصة باستراتيجيات المحتوى للخبراء العرب", type: "image/jpeg" }],
   },
 };
 

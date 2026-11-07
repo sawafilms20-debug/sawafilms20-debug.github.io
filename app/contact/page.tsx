@@ -7,17 +7,26 @@ import ContactForm from "@/components/ContactForm";
 import { LinkedInIcon } from "@/components/icons";
 
 export const metadata: Metadata = {
-  alternates: { canonical: "/contact/" },
+  alternates: { canonical: "/contact/", types: { "application/rss+xml": [{ url: "/rss.xml", title: "رحيق كنجو" }] } },
   title: "تواصل معي | رحيق كنجو",
   description:
     "لديك فكرة تستحق أن تتحول إلى محتوى؟ احكِ لي عن خبرتك، المشروع والجمهور الذي تريد الوصول إليه.",
   openGraph: {
     type: "website",
     locale: "ar_AR",
+    siteName: "رحيق كنجو",
+    url: "/contact/",
     title: "تواصل معي | رحيق كنجو",
     description:
       "لديك فكرة تستحق أن تتحول إلى محتوى؟ احكِ لي عن خبرتك، المشروع والجمهور الذي تريد الوصول إليه.",
-    images: ["/og-image.jpg"],
+    images: [{ url: "/og-image.jpg", width: 1200, height: 630, alt: "شعار رحيق كنجو وعبارة: كاتبة محتوى تسويقي مختصة باستراتيجيات المحتوى للخبراء العرب", type: "image/jpeg" }],
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "تواصل معي | رحيق كنجو",
+    description:
+      "لديك فكرة تستحق أن تتحول إلى محتوى؟ احكِ لي عن خبرتك، المشروع والجمهور الذي تريد الوصول إليه.",
+    images: [{ url: "/og-image.jpg", width: 1200, height: 630, alt: "شعار رحيق كنجو وعبارة: كاتبة محتوى تسويقي مختصة باستراتيجيات المحتوى للخبراء العرب", type: "image/jpeg" }],
   },
 };
 

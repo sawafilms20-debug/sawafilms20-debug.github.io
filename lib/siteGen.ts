@@ -9,6 +9,8 @@ import { EMAIL_PATTERN } from "./email";
 
 export const SITE = "https://raheeqkanjo.com";
 const BRAND = "رحيق كنجو";
+/* Describes public/og-image.jpg, the 1200x630 share card used when a post has no cover. */
+const OG_ALT = "شعار رحيق كنجو وعبارة: كاتبة محتوى تسويقي مختصة باستراتيجيات المحتوى للخبراء العرب";
 
 export type Post = {
   slug: string;
@@ -147,13 +149,19 @@ export function renderPostPage(p: Post, sh: Shell) {
 <meta property="og:title" content="${esc(p.title)}"/>
 <meta property="og:description" content="${esc(desc)}"/>
 <meta property="og:url" content="${url}"/>
+<meta property="og:site_name" content="${BRAND}"/>
 <meta property="og:image" content="${esc(image)}"/>
+${p.cover ? "" : `<meta property="og:image:width" content="1200"/>
+<meta property="og:image:height" content="630"/>
+<meta property="og:image:type" content="image/jpeg"/>
+`}<meta property="og:image:alt" content="${esc(p.cover ? p.title : OG_ALT)}"/>
 <meta property="og:locale" content="${p.lang === "en" ? "en_US" : "ar_AR"}"/>
 <meta property="article:published_time" content="${esc(p.date)}"/>
 <meta name="twitter:card" content="summary_large_image"/>
 <meta name="twitter:title" content="${esc(p.title)}"/>
 <meta name="twitter:description" content="${esc(desc)}"/>
 <meta name="twitter:image" content="${esc(image)}"/>
+<meta name="twitter:image:alt" content="${esc(p.cover ? p.title : OG_ALT)}"/>
 <script type="application/ld+json">${jsonLdScript(jsonLd)}</script>
 <script type="application/ld+json">${jsonLdScript(breadcrumb)}</script>`;
 
@@ -190,11 +198,18 @@ export function renderBlogIndex(posts: Post[], sh: Shell) {
 <meta property="og:title" content="خلينا نحكي محتوى | ${BRAND}"/>
 <meta property="og:description" content="مساحة أكبر لأفكاري وتجاربي في المحتوى، القصص، وبناء الحضور الرقمي للخبراء العرب."/>
 <meta property="og:url" content="${SITE}/blog/"/>
+<meta property="og:site_name" content="${BRAND}"/>
+<meta property="og:locale" content="ar_AR"/>
 <meta property="og:image" content="${SITE}/og-image.jpg"/>
+<meta property="og:image:width" content="1200"/>
+<meta property="og:image:height" content="630"/>
+<meta property="og:image:type" content="image/jpeg"/>
+<meta property="og:image:alt" content="${OG_ALT}"/>
 <meta name="twitter:card" content="summary_large_image"/>
 <meta name="twitter:title" content="خلينا نحكي محتوى | ${BRAND}"/>
 <meta name="twitter:description" content="مساحة أكبر لأفكاري وتجاربي في المحتوى، القصص، وبناء الحضور الرقمي للخبراء العرب."/>
 <meta name="twitter:image" content="${SITE}/og-image.jpg"/>
+<meta name="twitter:image:alt" content="${OG_ALT}"/>
 <script type="application/ld+json">${jsonLdScript({
     "@context": "https://schema.org",
     "@type": "Blog",

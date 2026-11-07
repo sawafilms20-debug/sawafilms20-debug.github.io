@@ -5,24 +5,26 @@ import SubscribeForm from "@/components/SubscribeForm";
 import BlogList from "./BlogList";
 
 export const metadata: Metadata = {
-  alternates: { canonical: "/blog/" },
+  alternates: { canonical: "/blog/", types: { "application/rss+xml": [{ url: "/rss.xml", title: "رحيق كنجو" }] } },
   title: "خلينا نحكي محتوى | رحيق كنجو",
   description:
     "مدونتي هي مساحة أكبر لأفكاري وتجاربي في المحتوى، القصص، وبناء الحضور الرقمي للخبراء العرب بأبسط طريقة ممكنة.",
   openGraph: {
     type: "website",
     locale: "ar_AR",
+    siteName: "رحيق كنجو",
+    url: "/blog/",
     title: "خلينا نحكي محتوى | رحيق كنجو",
     description:
       "مساحة أكبر لأفكاري وتجاربي في المحتوى، القصص، وبناء الحضور الرقمي للخبراء العرب.",
-    images: ["/og-image.jpg"],
+    images: [{ url: "/og-image.jpg", width: 1200, height: 630, alt: "شعار رحيق كنجو وعبارة: كاتبة محتوى تسويقي مختصة باستراتيجيات المحتوى للخبراء العرب", type: "image/jpeg" }],
   },
   twitter: {
     card: "summary_large_image",
     title: "خلينا نحكي محتوى | رحيق كنجو",
     description:
       "مساحة أكبر لأفكاري وتجاربي في المحتوى، القصص، وبناء الحضور الرقمي للخبراء العرب.",
-    images: ["/og-image.jpg"],
+    images: [{ url: "/og-image.jpg", width: 1200, height: 630, alt: "شعار رحيق كنجو وعبارة: كاتبة محتوى تسويقي مختصة باستراتيجيات المحتوى للخبراء العرب", type: "image/jpeg" }],
   },
 };
 

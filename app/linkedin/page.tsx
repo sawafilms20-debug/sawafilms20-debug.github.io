@@ -20,17 +20,26 @@ import SiteNav from "@/components/SiteNav";
 import SiteFooter from "@/components/SiteFooter";
 
 export const metadata: Metadata = {
-  alternates: { canonical: "/linkedin/" },
+  alternates: { canonical: "/linkedin/", types: { "application/rss+xml": [{ url: "/rss.xml", title: "رحيق كنجو" }] } },
   title: "خدمات LinkedIn للخبراء | رحيق كنجو",
   description:
     "استراتيجية محتوى، Ghostwriting، تطوير الحساب واستشارات LinkedIn: أساعدك على بناء حساب ومحتوى يوضح خبرتك ويمنح الناس أسبابًا أكثر لتذكّر اسمك.",
   openGraph: {
     type: "website",
     locale: "ar_AR",
+    siteName: "رحيق كنجو",
+    url: "/linkedin/",
     title: "خدمات LinkedIn للخبراء | رحيق كنجو",
     description:
       "استراتيجية محتوى، Ghostwriting، تطوير الحساب واستشارات LinkedIn للخبراء العرب.",
-    images: ["/og-image.jpg"],
+    images: [{ url: "/og-image.jpg", width: 1200, height: 630, alt: "شعار رحيق كنجو وعبارة: كاتبة محتوى تسويقي مختصة باستراتيجيات المحتوى للخبراء العرب", type: "image/jpeg" }],
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "خدمات LinkedIn للخبراء | رحيق كنجو",
+    description:
+      "استراتيجية محتوى، Ghostwriting، تطوير الحساب واستشارات LinkedIn للخبراء العرب.",
+    images: [{ url: "/og-image.jpg", width: 1200, height: 630, alt: "شعار رحيق كنجو وعبارة: كاتبة محتوى تسويقي مختصة باستراتيجيات المحتوى للخبراء العرب", type: "image/jpeg" }],
   },
 };
 

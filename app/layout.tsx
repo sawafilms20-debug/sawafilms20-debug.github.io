@@ -22,22 +22,25 @@ export const metadata: Metadata = {
   openGraph: {
     type: "website",
     locale: "ar_AR",
+    siteName: "رحيق كنجو",
     title: "رحيق كنجو | كاتبة محتوى تسويقي للخبراء العرب",
     description:
       "أعمل مع الخبراء العرب على تحويل معرفتهم وتجاربهم وآرائهم إلى محتوى يحمل صوتهم: على LinkedIn، في مدونات المواقع، وفي سكريبتات الفيديو.",
-    images: ["/og-image.jpg"],
+    images: [{ url: "/og-image.jpg", width: 1200, height: 630, alt: "شعار رحيق كنجو وعبارة: كاتبة محتوى تسويقي مختصة باستراتيجيات المحتوى للخبراء العرب", type: "image/jpeg" }],
   },
   icons: {
     icon: "/icon.svg?v=3",
     apple: "/apple-touch-icon.png?v=3",
   },
   appleWebApp: { title: "رحيق كنجو", capable: false },
+  manifest: "/site.webmanifest",
+  alternates: { types: { "application/rss+xml": [{ url: "/rss.xml", title: "رحيق كنجو" }] } },
   twitter: {
     card: "summary_large_image",
     title: "رحيق كنجو | كاتبة محتوى تسويقي للخبراء العرب",
     description:
       "أحوّل معرفة الخبراء العرب وتجاربهم إلى محتوى يحمل صوتهم: LinkedIn، مقالات، وسكريبتات فيديو.",
-    images: ["/og-image.jpg"],
+    images: [{ url: "/og-image.jpg", width: 1200, height: 630, alt: "شعار رحيق كنجو وعبارة: كاتبة محتوى تسويقي مختصة باستراتيجيات المحتوى للخبراء العرب", type: "image/jpeg" }],
   },
 };
 

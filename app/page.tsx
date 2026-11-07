@@ -24,7 +24,24 @@ import SiteFooter from "@/components/SiteFooter";
    writes "/". The two are the same URL by RFC 3986 and Google treats them so;
    it is not worth a trailingSlash config change to make them look alike. */
 export const metadata: Metadata = {
-  alternates: { canonical: "/" },
+  alternates: { canonical: "/", types: { "application/rss+xml": [{ url: "/rss.xml", title: "رحيق كنجو" }] } },
+  openGraph: {
+    type: "website",
+    locale: "ar_AR",
+    siteName: "رحيق كنجو",
+    url: "/",
+    title: "رحيق كنجو | كاتبة محتوى تسويقي للخبراء العرب",
+    description:
+      "أعمل مع الخبراء العرب على تحويل معرفتهم وتجاربهم وآرائهم إلى محتوى يحمل صوتهم: على LinkedIn، في مدونات المواقع، وفي سكريبتات الفيديو.",
+    images: [{ url: "/og-image.jpg", width: 1200, height: 630, alt: "شعار رحيق كنجو وعبارة: كاتبة محتوى تسويقي مختصة باستراتيجيات المحتوى للخبراء العرب", type: "image/jpeg" }],
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "رحيق كنجو | كاتبة محتوى تسويقي للخبراء العرب",
+    description:
+      "أحوّل معرفة الخبراء العرب وتجاربهم إلى محتوى يحمل صوتهم: LinkedIn، مقالات، وسكريبتات فيديو.",
+    images: [{ url: "/og-image.jpg", width: 1200, height: 630, alt: "شعار رحيق كنجو وعبارة: كاتبة محتوى تسويقي مختصة باستراتيجيات المحتوى للخبراء العرب", type: "image/jpeg" }],
+  },
 };
 import Projects from "@/components/Projects";
 import { LinkedInIcon } from "@/components/icons";

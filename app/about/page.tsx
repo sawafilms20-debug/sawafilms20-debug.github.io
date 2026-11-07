@@ -15,17 +15,26 @@ import SiteFooter from "@/components/SiteFooter";
 import { LinkedInIcon } from "@/components/icons";
 
 export const metadata: Metadata = {
-  alternates: { canonical: "/about/" },
+  alternates: { canonical: "/about/", types: { "application/rss+xml": [{ url: "/rss.xml", title: "رحيق كنجو" }] } },
   title: "عني | رحيق كنجو",
   description:
     "أريد أن يصل محتواك إلى المستوى نفسه الذي وصلت إليه خبرتك. أنا رحيق كنجو، كاتبة محتوى تسويقي أعمل مع الخبراء العرب منذ سبع سنوات.",
   openGraph: {
     type: "website",
     locale: "ar_AR",
+    siteName: "رحيق كنجو",
+    url: "/about/",
     title: "عني | رحيق كنجو",
     description:
       "أريد أن يصل محتواك إلى المستوى نفسه الذي وصلت إليه خبرتك.",
-    images: ["/og-image.jpg"],
+    images: [{ url: "/og-image.jpg", width: 1200, height: 630, alt: "شعار رحيق كنجو وعبارة: كاتبة محتوى تسويقي مختصة باستراتيجيات المحتوى للخبراء العرب", type: "image/jpeg" }],
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "عني | رحيق كنجو",
+    description:
+      "أريد أن يصل محتواك إلى المستوى نفسه الذي وصلت إليه خبرتك.",
+    images: [{ url: "/og-image.jpg", width: 1200, height: 630, alt: "شعار رحيق كنجو وعبارة: كاتبة محتوى تسويقي مختصة باستراتيجيات المحتوى للخبراء العرب", type: "image/jpeg" }],
   },
 };
 
