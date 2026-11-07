@@ -6,6 +6,7 @@ import PostView from "./PostView";
 
 export const metadata: Metadata = {
   title: "مقال | رحيق كنجو",
+  robots: { index: false, follow: true },
 };
 
 export default function PostPage() {

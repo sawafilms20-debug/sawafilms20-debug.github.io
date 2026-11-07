@@ -303,48 +303,76 @@ ${posts.length ? cards : "<p class='page-lead'>لا توجد مقالات بعد
   return shell({ lang: "ar", head, body, shell: sh });
 }
 
+/* Newest publish date among the posts, as YYYY-MM-DD ("" when there are none). */
+function newestPostDate(posts: Post[]) {
+  return posts.reduce((d, p) => {
+    const day = (p.date || "").slice(0, 10);
+    return day > d ? day : d;
+  }, "");
+}
+
+/* Only indexable URLs belong here: /recommend, /admin, /blog/p and the 404 page
+   are noindex and stay out. Every <loc> uses the trailing-slash form the pages
+   declare as canonical. Google uses <lastmod> only when it is accurate, so a URL
+   gets one only when a real date is known: a post's publish date, and for the
+   blog index the newest post it lists. The static pages carry none rather than
+   an invented one. */
 export function renderSitemap(posts: Post[]) {
-  const urls = [
+  const newest = newestPostDate(posts);
+  const urls: { loc: string; pri: string; lastmod?: string }[] = [
     { loc: `${SITE}/`, pri: "1.0" },
     { loc: `${SITE}/linkedin/`, pri: "0.9" },
     { loc: `${SITE}/articles/`, pri: "0.9" },
     { loc: `${SITE}/scripts/`, pri: "0.9" },
     { loc: `${SITE}/about/`, pri: "0.8" },
     { loc: `${SITE}/contact/`, pri: "0.8" },
-    { loc: `${SITE}/blog/`, pri: "0.8" },
-    ...posts.map((p) => ({ loc: `${SITE}/blog/${p.slug}/`, pri: "0.7", lastmod: p.date })),
+    { loc: `${SITE}/blog/`, pri: "0.8", lastmod: newest || undefined },
+    ...posts.map((p) => ({
+      loc: `${SITE}/blog/${p.slug}/`,
+      pri: "0.7",
+      lastmod: (p.date || "").slice(0, 10) || undefined,
+    })),
   ];
   return `<?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
 ${urls
   .map(
     (u) =>
-      `  <url><loc>${u.loc}</loc>${
-        "lastmod" in u && u.lastmod ? `<lastmod>${u.lastmod}</lastmod>` : ""
+      `  <url><loc>${esc(u.loc)}</loc>${
+        u.lastmod ? `<lastmod>${u.lastmod}</lastmod>` : ""
       }<priority>${u.pri}</priority></url>`
   )
   .join("\n")}
 </urlset>`;
 }
 
+/* RSS 2.0 with the Atom self link feed validators ask for. <lastBuildDate> is
+   the newest post's date, not the time of the build, so re-running the
+   generator does not change the feed when no post changed. <author> must be an
+   email address in RSS 2.0, so the writer's name goes in dc:creator. */
 export function renderRss(posts: Post[]) {
+  const newest = newestPostDate(posts);
   const items = posts
     .map(
       (p) => `  <item>
     <title>${esc(p.title)}</title>
     <link>${SITE}/blog/${p.slug}/</link>
     <guid isPermaLink="true">${SITE}/blog/${p.slug}/</guid>
+    <dc:creator>${BRAND}</dc:creator>
     <pubDate>${new Date(p.date).toUTCString()}</pubDate>
     <description>${esc(p.excerpt)}</description>
   </item>`
     )
     .join("\n");
   return `<?xml version="1.0" encoding="UTF-8"?>
-<rss version="2.0"><channel>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom" xmlns:dc="http://purl.org/dc/elements/1.1/"><channel>
   <title>${BRAND} | المدونة</title>
   <link>${SITE}/blog/</link>
+  <atom:link href="${SITE}/rss.xml" rel="self" type="application/rss+xml"/>
   <description>مقالات عن الكتابة، السرد، واستراتيجية المحتوى.</description>
-  <language>ar</language>
+  <language>ar</language>${
+    newest ? `\n  <lastBuildDate>${new Date(newest).toUTCString()}</lastBuildDate>` : ""
+  }
 ${items}
 </channel></rss>`;
 }

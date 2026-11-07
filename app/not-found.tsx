@@ -27,7 +27,7 @@ export default function NotFound() {
           <Link className="btn btn-gold" href="/">
             العودة إلى الرئيسية
           </Link>
-          <Link className="btn btn-ghost" href="/contact">
+          <Link className="btn btn-ghost" href="/contact/">
             تواصل معي
           </Link>
         </div>
