@@ -15,9 +15,9 @@ import { LinkedInIcon } from "@/components/icons";
 
 export const metadata: Metadata = {
   alternates: { canonical: "/about/", types: { "application/rss+xml": [{ url: "/rss.xml", title: "رحيق كنجو" }] } },
-  title: "عني | رحيق كنجو",
+  title: "عني: كاتبة واستراتيجية محتوى للخبراء | رحيق كنجو",
   description:
-    "أريد أن يصل محتواك إلى المستوى نفسه الذي وصلت إليه خبرتك. أنا رحيق كنجو، كاتبة محتوى تسويقي أعمل مع الخبراء العرب منذ سبع سنوات.",
+    "أنا رحيق كنجو، كاتبة واستراتيجية محتوى تسويقي أعمل مع الخبراء العرب منذ سبع سنوات، ليصل محتواك إلى المستوى نفسه الذي وصلت إليه خبرتك.",
   openGraph: {
     type: "website",
     locale: "ar_AR",

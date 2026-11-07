@@ -8,9 +8,9 @@ import { LinkedInIcon } from "@/components/icons";
 
 export const metadata: Metadata = {
   alternates: { canonical: "/contact/", types: { "application/rss+xml": [{ url: "/rss.xml", title: "رحيق كنجو" }] } },
-  title: "تواصل معي | رحيق كنجو",
+  title: "تواصل مع كاتبة محتوى للخبراء | رحيق كنجو",
   description:
-    "لديك فكرة تستحق أن تتحول إلى محتوى؟ احكِ لي عن خبرتك، المشروع والجمهور الذي تريد الوصول إليه.",
+    "لديك فكرة تستحق أن تتحول إلى محتوى؟ احكِ لي عن خبرتك ومشروعك وجمهورك، لنبدأ العمل على حساب LinkedIn أو مقال لموقعك أو سكريبت فيديو.",
   openGraph: {
     type: "website",
     locale: "ar_AR",

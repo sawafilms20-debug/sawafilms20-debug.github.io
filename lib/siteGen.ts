@@ -191,8 +191,8 @@ ${p.cover ? "" : `<meta property="og:image:width" content="1200"/>
 }
 
 export function renderBlogIndex(posts: Post[], sh: Shell) {
-  const head = `<title>خلينا نحكي محتوى | ${BRAND}</title>
-<meta name="description" content="مدونتي هي مساحة أكبر لأفكاري وتجاربي في المحتوى، القصص، وبناء الحضور الرقمي للخبراء العرب بأبسط طريقة ممكنة."/>
+  const head = `<title>مدونة كتابة المحتوى: خلينا نحكي محتوى | ${BRAND}</title>
+<meta name="description" content="مدونة رحيق كنجو عن كتابة المحتوى: مساحة أكبر لأفكاري وتجاربي في المحتوى، القصص، وبناء الحضور الرقمي للخبراء العرب بأبسط طريقة ممكنة."/>
 <link rel="canonical" href="${SITE}/blog/"/>
 <meta property="og:type" content="website"/>
 <meta property="og:title" content="خلينا نحكي محتوى | ${BRAND}"/>

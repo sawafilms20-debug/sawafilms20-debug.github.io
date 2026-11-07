@@ -18,9 +18,9 @@ import Faq from "@/components/Faq";
 
 export const metadata: Metadata = {
   alternates: { canonical: "/scripts/", types: { "application/rss+xml": [{ url: "/rss.xml", title: "رحيق كنجو" }] } },
-  title: "كتابة سكريبتات الفيديو | رحيق كنجو",
+  title: "كتابة سكريبت فيديو وسيناريو يوتيوب | رحيق كنجو",
   description:
-    "أحوّل خبرتك إلى فيديو يمنح المشاهد سببًا للاستمرار من أول ثانية إلى النهاية: فيديوهات قصيرة وتعليمية، محتوى معرفي وتحليلي، وYouTube.",
+    "كتابة سكريبت فيديو يحافظ على انتباه المشاهد من الهوك حتى آخر ثانية: سيناريو فيديوهات قصيرة وتعليمية، محتوى معرفي وتحليلي، وحلقات YouTube.",
   openGraph: {
     type: "website",
     locale: "ar_AR",
@@ -121,7 +121,7 @@ export default function ScriptsPage() {
         <section className="chapter wrap">
           <div className="ch-head rv">
             <h2 className="ch-title">
-              أكتب <em>سكريبتات</em>
+              أكتب <em>سكريبتات الفيديو</em>
             </h2>
           </div>
           <ul className="icon-list cols2">

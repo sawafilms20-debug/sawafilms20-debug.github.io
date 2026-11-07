@@ -21,9 +21,9 @@ import Faq from "@/components/Faq";
 
 export const metadata: Metadata = {
   alternates: { canonical: "/linkedin/", types: { "application/rss+xml": [{ url: "/rss.xml", title: "رحيق كنجو" }] } },
-  title: "خدمات LinkedIn للخبراء | رحيق كنجو",
+  title: "كتابة محتوى LinkedIn وبناء العلامة الشخصية | رحيق كنجو",
   description:
-    "استراتيجية محتوى، Ghostwriting، تطوير الحساب واستشارات LinkedIn: أساعدك على بناء حساب ومحتوى يوضح خبرتك ويمنح الناس أسبابًا أكثر لتذكّر اسمك.",
+    "كتابة محتوى LinkedIn وبناء العلامة الشخصية للخبراء: استراتيجية محتوى، كتابة منشورات بصوتك (Ghostwriting)، وتطوير حسابك على لينكدإن ليعكس خبرتك.",
   openGraph: {
     type: "website",
     locale: "ar_AR",
@@ -150,14 +150,16 @@ export default function LinkedInPage() {
             </li>
           </ul>
           <p className="list-close rv d4">
-            أنا أساعدك على التقاط هذه الأفكار وتحويلها إلى محتوى مستمر
+            أنا أساعدك على التقاط هذه الأفكار وتحويلها إلى محتوى مستمر، وبعضها يستحق
+            مساحة أكبر في <Link href="/articles">مقال على موقعك</Link> أو في{" "}
+            <Link href="/scripts">سكريبت فيديو</Link>
           </p>
         </section>
 
         <section className="chapter wrap">
           <div className="ch-head rv">
             <h2 className="ch-title">
-              خدمات <em>LinkedIn</em>
+              خدمات كتابة محتوى <em>LinkedIn</em>
             </h2>
           </div>
           <div className="svc-grid">

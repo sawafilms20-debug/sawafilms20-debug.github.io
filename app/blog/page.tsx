@@ -6,9 +6,9 @@ import BlogList from "./BlogList";
 
 export const metadata: Metadata = {
   alternates: { canonical: "/blog/", types: { "application/rss+xml": [{ url: "/rss.xml", title: "رحيق كنجو" }] } },
-  title: "خلينا نحكي محتوى | رحيق كنجو",
+  title: "مدونة كتابة المحتوى: خلينا نحكي محتوى | رحيق كنجو",
   description:
-    "مدونتي هي مساحة أكبر لأفكاري وتجاربي في المحتوى، القصص، وبناء الحضور الرقمي للخبراء العرب بأبسط طريقة ممكنة.",
+    "مدونة رحيق كنجو عن كتابة المحتوى: مساحة أكبر لأفكاري وتجاربي في المحتوى، القصص، وبناء الحضور الرقمي للخبراء العرب بأبسط طريقة ممكنة.",
   openGraph: {
     type: "website",
     locale: "ar_AR",

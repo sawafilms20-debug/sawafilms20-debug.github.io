@@ -167,7 +167,7 @@ export default function Home() {
         <section className="chapter wrap" id="services">
           <div className="ch-head rv">
             <h2 className="ch-title">
-              كيف <em>أساعدك</em>؟
+              كيف <em>أساعدك</em> في كتابة المحتوى؟
             </h2>
           </div>
           <div className="offers rv d1">

@@ -18,9 +18,9 @@ import Faq from "@/components/Faq";
 
 export const metadata: Metadata = {
   alternates: { canonical: "/articles/", types: { "application/rss+xml": [{ url: "/rss.xml", title: "رحيق كنجو" }] } },
-  title: "كتابة المقالات | رحيق كنجو",
+  title: "كتابة مقالات للمواقع والمدونات | رحيق كنجو",
   description:
-    "أعمل مع الخبراء على تحويل معرفتهم وآرائهم إلى مقالات واضحة وعميقة تحمل أسماءهم: مقالات متخصصة، Thought Leadership، رأي وتحليل، وSEO.",
+    "كتابة مقالات للمواقع والمدونات تحمل اسمك وخبرتك: مقالات متخصصة، Thought Leadership، رأي وتحليل، ومقالات SEO مبنية على البحث والمصادر والبيانات.",
   openGraph: {
     type: "website",
     locale: "ar_AR",
@@ -64,7 +64,8 @@ export default function ArticlesPage() {
           أو معرفة تستحق أن تتحول إلى مرجع يمكن الرجوع إليه
         </p>
         <p className="page-lead strong rv d3">
-          أعمل مع الخبراء على تحويل هذه المادة إلى مقالات تحمل معرفتهم وصوتهم
+          أعمل مع الخبراء على تحويل هذه المادة إلى مقالات تحمل معرفتهم وصوتهم، وتجد
+          نماذج من كتابتي في <Link href="/blog">مقالات مدونتي</Link>
         </p>
       </header>
 
@@ -124,7 +125,7 @@ export default function ArticlesPage() {
         <section className="chapter wrap">
           <div className="ch-head rv">
             <h2 className="ch-title">
-              <em>أكتب</em>
+              أكتب <em>للمواقع والمدونات</em>
             </h2>
           </div>
           <ul className="icon-list cols2">
