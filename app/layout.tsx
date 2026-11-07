@@ -1,6 +1,7 @@
 import type { Metadata, Viewport } from "next";
 import { El_Messiri, Tajawal } from "next/font/google";
 import "./globals.css";
+import "./faq.css";
 
 const messiri = El_Messiri({
   subsets: ["arabic", "latin"],

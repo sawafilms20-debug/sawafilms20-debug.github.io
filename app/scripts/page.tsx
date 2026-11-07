@@ -15,6 +15,7 @@ import FX from "../fx";
 import SiteNav from "@/components/SiteNav";
 import SiteFooter from "@/components/SiteFooter";
 import { YouTubeIcon } from "@/components/icons";
+import Faq from "@/components/Faq";
 
 export const metadata: Metadata = {
   alternates: { canonical: "/scripts/", types: { "application/rss+xml": [{ url: "/rss.xml", title: "رحيق كنجو" }] } },
@@ -157,6 +158,8 @@ export default function ScriptsPage() {
             </li>
           </ul>
         </section>
+
+        <Faq page="scripts" />
 
         <section className="contact wrap">
           <h2 className="rv">

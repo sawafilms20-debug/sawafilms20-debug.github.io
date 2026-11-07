@@ -377,8 +377,29 @@ ${items}
 </channel></rss>`;
 }
 
-export const ROBOTS = `User-agent: *
+export const ROBOTS = `# Search and AI answer engines are welcome to read and cite every public page.
+# A crawler obeys only the group that names it, so each group repeats the
+# private paths.
+User-agent: OAI-SearchBot
+User-agent: ChatGPT-User
+User-agent: GPTBot
+User-agent: ClaudeBot
+User-agent: Claude-SearchBot
+User-agent: Claude-User
+User-agent: PerplexityBot
+User-agent: Perplexity-User
+User-agent: Google-Extended
+User-agent: Applebot-Extended
+User-agent: Bingbot
+User-agent: meta-externalagent
+User-agent: CCBot
 Allow: /
 Disallow: /admin
+Disallow: /recommend
+
+User-agent: *
+Allow: /
+Disallow: /admin
+Disallow: /recommend
 
 Sitemap: ${SITE}/sitemap.xml`;

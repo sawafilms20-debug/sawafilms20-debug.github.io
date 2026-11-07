@@ -18,6 +18,7 @@ import {
 import FX from "../fx";
 import SiteNav from "@/components/SiteNav";
 import SiteFooter from "@/components/SiteFooter";
+import Faq from "@/components/Faq";
 
 export const metadata: Metadata = {
   alternates: { canonical: "/linkedin/", types: { "application/rss+xml": [{ url: "/rss.xml", title: "رحيق كنجو" }] } },
@@ -191,6 +192,8 @@ export default function LinkedInPage() {
             </div>
           </div>
         </section>
+
+        <Faq page="linkedin" />
 
         <section className="contact wrap">
           <h2 className="rv">

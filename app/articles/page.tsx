@@ -15,6 +15,7 @@ import {
 import FX from "../fx";
 import SiteNav from "@/components/SiteNav";
 import SiteFooter from "@/components/SiteFooter";
+import Faq from "@/components/Faq";
 
 export const metadata: Metadata = {
   alternates: { canonical: "/articles/", types: { "application/rss+xml": [{ url: "/rss.xml", title: "رحيق كنجو" }] } },
@@ -160,6 +161,8 @@ export default function ArticlesPage() {
             </li>
           </ul>
         </section>
+
+        <Faq page="articles" />
 
         <section className="contact wrap">
           <h2 className="rv">

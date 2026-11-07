@@ -44,6 +44,7 @@ export const metadata: Metadata = {
   },
 };
 import Projects from "@/components/Projects";
+import Faq from "@/components/Faq";
 import { LinkedInIcon } from "@/components/icons";
 
 export default function Home() {
@@ -386,6 +387,8 @@ export default function Home() {
 
         {/* admin-managed projects (renders nothing when the list is empty) */}
         <Projects />
+
+        <Faq page="home" />
 
         {/* ======== PROCESS ======== */}
         <div className="method-band" id="process">

@@ -1,0 +1,31 @@
+/* ===== FAQ (components/Faq.tsx) =====
+   Follows the site's section shell: the chapter hairline, a .ch-title-sized
+   heading, and the /about question style (.qa-q). It uses its own class names
+   so the dashboard's selectors stay unambiguous. No .rv reveal: the answers
+   are visible without JavaScript. */
+.faq{padding-top:clamp(70px,10vw,120px)}
+.faq::before{content:"";display:block;width:min(180px,42%);height:1px;
+  margin:0 auto clamp(28px,4vw,44px);
+  background:linear-gradient(90deg,transparent,var(--gold-soft) 22%,var(--gold) 50%,var(--gold-soft) 78%,transparent)}
+.faq-title{
+  font-family:var(--font-messiri),serif;font-weight:700;color:var(--espresso);
+  font-size:clamp(30px,4.6vw,48px);line-height:1.25;text-align:center;
+  margin:16px 0 clamp(30px,4vw,46px);
+  text-shadow:0 1px 0 rgba(255,253,248,.9);
+}
+.faq-title em{font-style:normal;color:var(--gold-deep)}
+.faq-list{
+  display:grid;gap:clamp(28px,4vw,44px);
+  max-width:66ch;margin-inline:auto;text-align:start;
+}
+.faq-q{
+  font-family:var(--font-messiri),serif;font-weight:700;
+  color:var(--gold-deep);font-size:clamp(20px,2.4vw,25px);line-height:1.4;
+  margin:0;position:relative;padding-inline-start:16px;
+}
+.faq-q::before{
+  content:"";position:absolute;inset-inline-start:0;top:.18em;bottom:.18em;
+  width:3px;border-radius:3px;
+  background:linear-gradient(180deg,var(--gold),var(--gold-soft));
+}
+.faq-a{font-size:17px;line-height:1.8;color:var(--ink);margin:12px 0 0;padding-inline-start:16px}
