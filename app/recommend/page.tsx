@@ -11,6 +11,21 @@ export const metadata: Metadata = {
   title: "اكتب توصية | رحيق كنجو",
   description: "شاركني تجربتك في العمل معي.",
   robots: { index: false, follow: false },
+  openGraph: {
+    type: "website",
+    locale: "ar_AR",
+    siteName: "رحيق كنجو",
+    url: "/recommend/",
+    title: "اكتب توصية | رحيق كنجو",
+    description: "شاركني تجربتك في العمل معي.",
+    images: [{ url: "/og-image.jpg", width: 1200, height: 630, alt: "شعار رحيق كنجو وعبارة: كاتبة محتوى تسويقي مختصة باستراتيجيات المحتوى للخبراء العرب", type: "image/jpeg" }],
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "اكتب توصية | رحيق كنجو",
+    description: "شاركني تجربتك في العمل معي.",
+    images: [{ url: "/og-image.jpg", width: 1200, height: 630, alt: "شعار رحيق كنجو وعبارة: كاتبة محتوى تسويقي مختصة باستراتيجيات المحتوى للخبراء العرب", type: "image/jpeg" }],
+  },
 };
 
 export default function RecommendPage() {
