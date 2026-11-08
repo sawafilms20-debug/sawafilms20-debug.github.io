@@ -1,5 +1,4 @@
 import type { Metadata } from "next";
-import Link from "next/link";
 import {
   Clapperboard,
   Compass,
@@ -74,9 +73,9 @@ export default function Home() {
                 إلى جمهورهم
               </p>
               <div className="hero-ctas rv d4">
-                <Link className="btn btn-gold" href="/contact">
+                <a className="btn btn-gold" href="/contact/">
                   اكتشف كيف نعمل معًا
-                </Link>
+                </a>
               </div>
             </div>
 
@@ -95,28 +94,28 @@ export default function Home() {
               </div>
               <ul className="channels rv d4">
                 <li>
-                  <Link href="/linkedin">
+                  <a href="/linkedin/">
                     <span className="ic-chip">
                       <LinkedInIcon />
                     </span>
                     LinkedIn
-                  </Link>
+                  </a>
                 </li>
                 <li>
-                  <Link href="/articles">
+                  <a href="/articles/">
                     <span className="ic-chip">
                       <FileText />
                     </span>
                     المقالات
-                  </Link>
+                  </a>
                 </li>
                 <li>
-                  <Link href="/scripts">
+                  <a href="/scripts/">
                     <span className="ic-chip">
                       <Clapperboard />
                     </span>
                     السكريبت
-                  </Link>
+                  </a>
                 </li>
               </ul>
             </div>
@@ -172,7 +171,7 @@ export default function Home() {
             </h2>
           </div>
           <div className="offers rv d1">
-            <Link className="offer" href="/linkedin" aria-label="خدمات LinkedIn">
+            <a className="offer" href="/linkedin/" aria-label="خدمات LinkedIn">
               <img
                 className="offer-art"
                 src="/art-linkedin.webp"
@@ -191,8 +190,8 @@ export default function Home() {
               <div className="offer-cta">
                 <span>تفاصيل الخدمة</span>
               </div>
-            </Link>
-            <Link className="offer" href="/articles" aria-label="خدمة كتابة المقالات">
+            </a>
+            <a className="offer" href="/articles/" aria-label="خدمة كتابة المقالات">
               <img
                 className="offer-art"
                 src="/art-book.webp"
@@ -207,8 +206,8 @@ export default function Home() {
               <div className="offer-cta">
                 <span>تفاصيل الخدمة</span>
               </div>
-            </Link>
-            <Link className="offer" href="/scripts" aria-label="خدمة كتابة سيناريو الفيديو">
+            </a>
+            <a className="offer" href="/scripts/" aria-label="خدمة كتابة سيناريو الفيديو">
               <img
                 className="offer-art"
                 src="/art-script.webp"
@@ -228,7 +227,7 @@ export default function Home() {
               <div className="offer-cta">
                 <span>تفاصيل الخدمة</span>
               </div>
-            </Link>
+            </a>
           </div>
         </section>
 
@@ -433,9 +432,9 @@ export default function Home() {
               </div>
             </div>
             <div className="band-cta rv d4">
-              <Link className="btn btn-gold" href="/contact">
+              <a className="btn btn-gold" href="/contact/">
                 ابدأ مشروعك
-              </Link>
+              </a>
             </div>
           </div>
         </div>

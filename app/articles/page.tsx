@@ -1,5 +1,4 @@
 import type { Metadata } from "next";
-import Link from "next/link";
 import {
   Award,
   BarChart3,
@@ -169,9 +168,9 @@ export default function ArticlesPage() {
             لديك معرفة تستحق أن تصبح <em>مرجعًا</em>؟
           </h2>
           <div className="contact-ctas rv d1">
-            <Link className="btn btn-gold" href="/contact">
+            <a className="btn btn-gold" href="/contact/">
               ناقش فكرة مقالك
-            </Link>
+            </a>
           </div>
         </section>
       </main>

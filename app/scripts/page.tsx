@@ -1,5 +1,4 @@
 import type { Metadata } from "next";
-import Link from "next/link";
 import {
   BookOpen,
   Brain,
@@ -166,9 +165,9 @@ export default function ScriptsPage() {
             فيديو يعرف كيف يبدأ، وكيف <em>يحافظ على المشاهد</em>
           </h2>
           <div className="contact-ctas rv d1">
-            <Link className="btn btn-gold" href="/contact">
+            <a className="btn btn-gold" href="/contact/">
               ناقش فكرة الفيديو
-            </Link>
+            </a>
           </div>
         </section>
       </main>

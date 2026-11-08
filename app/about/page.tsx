@@ -1,5 +1,4 @@
 import type { Metadata } from "next";
-import Link from "next/link";
 import {
   Briefcase,
   Building2,
@@ -70,28 +69,28 @@ export default function AboutPage() {
             </div>
               <ul className="channels rv d4">
                 <li>
-                  <Link href="/linkedin">
+                  <a href="/linkedin/">
                     <span className="ic-chip">
                       <LinkedInIcon />
                     </span>
                     منشور
-                  </Link>
+                  </a>
                 </li>
                 <li>
-                  <Link href="/articles">
+                  <a href="/articles/">
                     <span className="ic-chip">
                       <FileText />
                     </span>
                     مقال
-                  </Link>
+                  </a>
                 </li>
                 <li>
-                  <Link href="/scripts">
+                  <a href="/scripts/">
                     <span className="ic-chip">
                       <Clapperboard />
                     </span>
                     سكريبت فيديو
-                  </Link>
+                  </a>
                 </li>
               </ul>
           </div>
@@ -388,9 +387,9 @@ export default function AboutPage() {
           </h2>
           <p className="rv d1">ثم يأتي دوري في إيجاد الطريقة التي تجعله يصل</p>
           <div className="contact-ctas rv d2">
-            <Link className="btn btn-gold" href="/contact">
+            <a className="btn btn-gold" href="/contact/">
               ابدأ مشروعك
-            </Link>
+            </a>
           </div>
         </section>
       </main>
