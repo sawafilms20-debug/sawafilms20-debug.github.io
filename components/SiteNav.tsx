@@ -1,6 +1,5 @@
 "use client";
 
-import Link from "next/link";
 import { useEffect, useState } from "react";
 import { Menu, X } from "lucide-react";
 
@@ -30,14 +29,17 @@ export default function SiteNav({ solid = false }: { solid?: boolean }) {
     };
   }, [open]);
 
+  /* Plain anchors, not next/link. With trailingSlash off, Link strips the final
+     slash from href, and the live site is GitHub Pages, where /linkedin answers
+     with a 301 to /linkedin/. The written href is what crawlers must see. */
   return (
     <nav id="nav" className={`${solid ? "scrolled" : ""} ${open ? "nav-open" : ""}`.trim() || undefined}>
       <div className="nav-in">
-        <Link className="mark" href="/" onClick={close}>
+        <a className="mark" href="/" onClick={close}>
           <img src="/logo-raheeq.webp" alt="رحيق" width={360} height={470} />
-        </Link>
+        </a>
         <div className="nav-links" id="nav-menu">
-          <Link href="/" onClick={close}>الرئيسية</Link>
+          <a href="/" onClick={close}>الرئيسية</a>
           <div className="nav-group">
             {/* opens on hover and on focus-within, so it needs no javascript and
                 works the same in the static snapshot as it does here */}
@@ -48,18 +50,18 @@ export default function SiteNav({ solid = false }: { solid?: boolean }) {
               </svg>
             </button>
             <div className="nav-drop">
-              <Link href="/linkedin" onClick={close}>بناء علامتك الشخصية على LinkedIn</Link>
-              <Link href="/articles" onClick={close}>خدمة كتابة المقالات</Link>
-              <Link href="/scripts" onClick={close}>خدمة كتابة سيناريو الفيديو</Link>
+              <a href="/linkedin/" onClick={close}>بناء علامتك الشخصية على LinkedIn</a>
+              <a href="/articles/" onClick={close}>خدمة كتابة المقالات</a>
+              <a href="/scripts/" onClick={close}>خدمة كتابة سيناريو الفيديو</a>
             </div>
           </div>
-          <Link href="/blog" onClick={close}>المدونة</Link>
-          <Link href="/about" onClick={close}>عني</Link>
+          <a href="/blog/" onClick={close}>المدونة</a>
+          <a href="/about/" onClick={close}>عني</a>
         </div>
         <div className="nav-end">
-          <Link className="nav-cta" href="/contact" onClick={close}>
+          <a className="nav-cta" href="/contact/" onClick={close}>
             تواصل معي
-          </Link>
+          </a>
           <button
             type="button"
             className="nav-burger"

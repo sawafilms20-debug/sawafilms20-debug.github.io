@@ -1,5 +1,4 @@
 import type { Metadata } from "next";
-import Link from "next/link";
 import SiteNav from "@/components/SiteNav";
 import SiteFooter from "@/components/SiteFooter";
 
@@ -24,12 +23,12 @@ export default function NotFound() {
         <h1 className="hero-title">هذه الصفحة غير موجودة</h1>
         <p className="page-lead">ربما تغيّر الرابط، أو كُتب بشكل غير صحيح</p>
         <div className="contact-ctas nf-ctas">
-          <Link className="btn btn-gold" href="/">
+          <a className="btn btn-gold" href="/">
             العودة إلى الرئيسية
-          </Link>
-          <Link className="btn btn-ghost" href="/contact/">
+          </a>
+          <a className="btn btn-ghost" href="/contact/">
             تواصل معي
-          </Link>
+          </a>
         </div>
       </main>
       <SiteFooter />

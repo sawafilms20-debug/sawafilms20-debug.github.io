@@ -1,4 +1,3 @@
-import Link from "next/link";
 import { Mail } from "lucide-react";
 import { LinkedInIcon } from "./icons";
 
@@ -18,12 +17,12 @@ export default function SiteFooter() {
           <span className="foot-tag">كاتبة محتوى تسويقي مختصة باستراتيجيات المحتوى للخبراء العرب</span>
         </div>
         <nav className="foot-nav" aria-label="روابط الموقع">
-          <Link href="/linkedin">بناء علامتك الشخصية على LinkedIn</Link>
-          <Link href="/articles">خدمة كتابة المقالات</Link>
-          <Link href="/scripts">خدمة كتابة سيناريو الفيديو</Link>
-          <Link href="/blog">المدونة</Link>
-          <Link href="/about">عني</Link>
-          <Link href="/contact">تواصل معي</Link>
+          <a href="/linkedin/">بناء علامتك الشخصية على LinkedIn</a>
+          <a href="/articles/">خدمة كتابة المقالات</a>
+          <a href="/scripts/">خدمة كتابة سيناريو الفيديو</a>
+          <a href="/blog/">المدونة</a>
+          <a href="/about/">عني</a>
+          <a href="/contact/">تواصل معي</a>
         </nav>
         <div className="foot-social">
           <a
