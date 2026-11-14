@@ -14,6 +14,7 @@ import {
   Users,
   Wrench,
 } from "lucide-react";
+import Link from "next/link";
 import FX from "../fx";
 import SiteNav from "@/components/SiteNav";
 import SiteFooter from "@/components/SiteFooter";
@@ -152,8 +153,8 @@ export default function LinkedInPage() {
           </ul>
           <p className="list-close rv d4">
             أنا أساعدك على التقاط هذه الأفكار وتحويلها إلى محتوى مستمر، وبعضها يستحق
-            مساحة أكبر في <Link href="/articles">مقال على موقعك</Link> أو في{" "}
-            <Link href="/scripts">سكريبت فيديو</Link>
+            مساحة أكبر في <Link href="/articles/">مقال على موقعك</Link> أو في{" "}
+            <Link href="/scripts/">سكريبت فيديو</Link>
           </p>
         </section>
 

@@ -46,7 +46,7 @@ export default function PostView() {
   if (failed)
     return (
       <div className="article">
-        <Link href="/blog" className="back-link">
+        <Link href="/blog/" className="back-link">
           العودة إلى المدونة
         </Link>
         <p className="page-lead">لم نعثر على هذا المقال.</p>
@@ -63,7 +63,7 @@ export default function PostView() {
   return (
     <article className="article">
       <header className="article-head" dir={post.lang === "en" ? "ltr" : undefined}>
-        <Link href="/blog" className="back-link">
+        <Link href="/blog/" className="back-link">
           {post.lang === "en" ? "Back to blog" : "العودة إلى المدونة"}
         </Link>
         <h1>{post.title}</h1>
@@ -93,7 +93,7 @@ export default function PostView() {
       <aside className="article-cta">
         <h3>لديك فكرة تستحق أن تتحول إلى محتوى؟</h3>
         <p>احكِ لي عن خبرتك، المشروع والجمهور الذي تريد الوصول إليه</p>
-        <Link className="btn btn-gold" href="/contact">
+        <Link className="btn btn-gold" href="/contact/">
           تواصل معي
         </Link>
       </aside>

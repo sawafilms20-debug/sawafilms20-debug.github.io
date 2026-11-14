@@ -11,6 +11,7 @@ import {
   Quote,
   Search,
 } from "lucide-react";
+import Link from "next/link";
 import FX from "../fx";
 import SiteNav from "@/components/SiteNav";
 import SiteFooter from "@/components/SiteFooter";
@@ -66,7 +67,7 @@ export default function ArticlesPage() {
         </p>
         <p className="page-lead strong rv d3">
           أعمل مع الخبراء على تحويل هذه المادة إلى مقالات تحمل معرفتهم وصوتهم، وتجد
-          نماذج من كتابتي في <Link href="/blog">مقالات مدونتي</Link>
+          نماذج من كتابتي في <Link href="/blog/">مقالات مدونتي</Link>
         </p>
       </header>
 
