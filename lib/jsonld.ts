@@ -1,3 +1,4 @@
+import { FAQ } from "./faq";
 /* One entity graph for the whole site, with stable @ids reused on every page.
    Every Next page emits it through components/JsonLd.tsx and the generated blog
    pages through lib/siteGen.ts, so search engines see the same Person, WebSite,
@@ -353,6 +354,23 @@ export function pageGraph(key: PageKey, meta: { name?: string; description?: str
   ];
   if (p.crumb) nodes.push(breadcrumbNode(url, [{ name: p.crumb, url }]));
   if (key === "blog") nodes.push(blogNode());
+  // The same questions the page shows in its FAQ section (components/Faq.tsx),
+  // word for word — FAQPage markup must match visible text.
+  const faq = FAQ[key];
+  if (faq?.length) {
+    nodes.push({
+      "@type": "FAQPage",
+      "@id": `${url}#faq`,
+      url,
+      inLanguage: "ar",
+      isPartOf: ref(`${url}#webpage`),
+      mainEntity: faq.map((f) => ({
+        "@type": "Question",
+        name: f.q,
+        acceptedAnswer: { "@type": "Answer", text: f.a },
+      })),
+    });
+  }
   return graph(nodes);
 }
 
