@@ -70,10 +70,15 @@ export function readingLabel(words: number, lang: "ar" | "en") {
 
 const NAV = `<nav id="nav"><div class="nav-in"><a class="mark" href="/"><img src="/logo-raheeq.webp" alt="رحيق" width="360" height="470"/></a><div class="nav-links" id="nav-menu"><a href="/">الرئيسية</a><div class="nav-group"><button type="button" class="nav-group-btn" aria-haspopup="true">خدمات<svg viewBox="0 0 24 24" aria-hidden="true" class="nav-caret"><path d="m6 9 6 6 6-6"/></svg></button><div class="nav-drop"><a href="/linkedin/">بناء علامتك الشخصية على LinkedIn</a><a href="/articles/">خدمة كتابة المقالات</a><a href="/scripts/">خدمة كتابة سيناريو الفيديو</a></div></div><a href="/blog/">المدونة</a><a href="/about/">عني</a></div><div class="nav-end"><a class="nav-cta" href="/contact/">تواصل معي</a><button type="button" class="nav-burger" aria-label="فتح القائمة" aria-expanded="false" aria-controls="nav-menu" onclick="var n=this.closest('nav');var o=n.classList.toggle('nav-open');this.setAttribute('aria-expanded',o);document.documentElement.classList.toggle('nav-locked',o)"><svg xmlns="http://www.w3.org/2000/svg" width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="4" x2="20" y1="6" y2="6"/><line x1="4" x2="20" y1="12" y2="12"/><line x1="4" x2="20" y1="18" y2="18"/></svg></button></div></div></nav>`;
 
-const LINKEDIN_SVG = `<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433c-1.144 0-2.063-.926-2.063-2.065 0-1.138.92-2.063 2.063-2.063 1.14 0 2.064.925 2.064 2.063 0 1.139-.925 2.065-2.064 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.225 0z"/></svg>`;
+/* The three brand marks copy components/icons.tsx (LinkedInIcon, InstagramIcon,
+   FacebookIcon), so the footer of a generated page shows the same outline set
+   as SiteFooter on the pages the Next app renders. */
+const LINKEDIN_SVG = `<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="2" y="2" width="20" height="20" rx="4"/><line x1="7.4" y1="10.6" x2="7.4" y2="17"/><line x1="7.4" y1="7.2" x2="7.4" y2="7.3"/><path d="M11.6 17v-6.4"/><path d="M11.6 13.4a2.9 2.9 0 0 1 5.8 0V17"/></svg>`;
+const INSTAGRAM_SVG = `<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="2" y="2" width="20" height="20" rx="5"/><circle cx="12" cy="12" r="4.2"/><line x1="17.4" y1="6.6" x2="17.5" y2="6.6"/></svg>`;
+const FACEBOOK_SVG = `<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="2" y="2" width="20" height="20" rx="4"/><path d="M16 7.2h-1.6a2.4 2.4 0 0 0-2.4 2.4V22"/><line x1="9.4" y1="12.6" x2="15.4" y2="12.6"/></svg>`;
 const MAIL_SVG = `<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="20" height="16" x="2" y="4" rx="2"/><path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"/></svg>`;
 
-const FOOT = `<footer class="foot foot2"><div class="wrap"><div class="foot-brand"><img class="foot-logo" src="/logo-raheeq.webp" alt="${BRAND}" width="360" height="470" loading="lazy"/><span class="foot-tag">كاتبة محتوى تسويقي مختصة باستراتيجيات المحتوى للخبراء العرب</span></div><nav class="foot-nav" aria-label="روابط الموقع"><a href="/linkedin/">بناء علامتك الشخصية على LinkedIn</a><a href="/articles/">خدمة كتابة المقالات</a><a href="/scripts/">خدمة كتابة سيناريو الفيديو</a><a href="/blog/">المدونة</a><a href="/about/">عني</a><a href="/contact/">تواصل معي</a></nav><div class="foot-social"><a href="https://www.linkedin.com/in/raheekkanjo/" target="_blank" rel="noopener" aria-label="حساب رحيق على LinkedIn">${LINKEDIN_SVG}</a><a href="mailto:raheeqkanjo@gmail.com" aria-label="راسلني عبر البريد الإلكتروني">${MAIL_SVG}</a></div><p class="foot-line">أحوّل خبرتك إلى محتوى يحمل صوتك ويصنع حضورك.</p><p class="foot-copy">© ${new Date().getFullYear()} ${BRAND}</p></div></footer>`;
+const FOOT = `<footer class="foot foot2"><div class="wrap"><div class="foot-brand"><img class="foot-logo" src="/logo-raheeq.webp" alt="${BRAND}" width="360" height="470" loading="lazy"/><span class="foot-tag">كاتبة محتوى تسويقي مختصة باستراتيجيات المحتوى للخبراء العرب</span></div><nav class="foot-nav" aria-label="روابط الموقع"><a href="/linkedin/">بناء علامتك الشخصية على LinkedIn</a><a href="/articles/">خدمة كتابة المقالات</a><a href="/scripts/">خدمة كتابة سيناريو الفيديو</a><a href="/blog/">المدونة</a><a href="/about/">عني</a><a href="/contact/">تواصل معي</a></nav><div class="foot-social"><a href="https://www.linkedin.com/in/raheekkanjo/" target="_blank" rel="noopener" aria-label="حساب رحيق على LinkedIn">${LINKEDIN_SVG}</a><a href="https://www.instagram.com/raheek_kanjo/" target="_blank" rel="noopener" aria-label="حساب رحيق على Instagram">${INSTAGRAM_SVG}</a><a href="https://www.facebook.com/raheeq.kanjo/" target="_blank" rel="noopener" aria-label="حساب رحيق على Facebook">${FACEBOOK_SVG}</a><a href="mailto:raheeqkanjo@gmail.com" aria-label="راسلني عبر البريد الإلكتروني">${MAIL_SVG}</a></div><p class="foot-line">أحوّل خبرتك إلى محتوى يحمل صوتك ويصنع حضورك.</p><p class="foot-copy">© ${new Date().getFullYear()} ${BRAND}</p></div></footer>`;
 
 function shell(o: {
   lang: "ar" | "en";
@@ -107,7 +112,52 @@ ${FOOT}
 </html>`;
 }
 
-export function renderPostPage(p: Post, sh: Shell) {
+const cmp = (a: string, b: string) => (a < b ? -1 : a > b ? 1 : 0);
+
+/* Up to three other posts for the «مقالات ذات صلة» list: the most tags in
+   common first, then the newest. The slug settles the rest, because the
+   publish path and scripts/regen-blog.mjs list same-day posts in different
+   orders and should still pick the same three. */
+function pickRelated(p: Post, candidates: Post[], limit = 3): Post[] {
+  const norm = (t: string) => t.trim().toLowerCase();
+  const own = new Set(p.tags.map(norm));
+  return candidates
+    .filter((o) => o.slug !== p.slug)
+    .map((o) => ({
+      o,
+      shared: Array.from(new Set(o.tags.map(norm))).filter((t) => own.has(t)).length,
+    }))
+    .sort((a, b) => b.shared - a.shared || cmp(b.o.date, a.o.date) || cmp(a.o.slug, b.o.slug))
+    .slice(0, limit)
+    .map(({ o }) => o);
+}
+
+/* Plain title links between the article and its CTA. `.prose` gives the
+   heading and the gold list markers the article itself uses; `.channels`
+   gives the links their colour and hover (prose has no link style of its own).
+   Empty when there is nothing to list, so the page is unchanged. */
+function relatedList(p: Post, candidates: Post[]): string {
+  const picks = pickRelated(p, candidates);
+  if (!picks.length) return "";
+  const dir = p.lang === "en" ? "ltr" : "rtl";
+  const items = picks
+    .map((r) => {
+      const own = r.lang === p.lang ? "" : ` lang="${r.lang}" dir="${r.lang === "en" ? "ltr" : "rtl"}"`;
+      return `<li${own}><a href="/blog/${esc(r.slug)}/">${esc(r.title)}</a></li>`;
+    })
+    .join("\n      ");
+  return `<nav class="prose" dir="${dir}" lang="${p.lang}" aria-labelledby="related-posts">
+    <h2 id="related-posts">${p.lang === "en" ? "Related articles" : "مقالات ذات صلة"}</h2>
+    <ul class="channels">
+      ${items}
+    </ul>
+  </nav>
+  `;
+}
+
+/** `related` is every published post; the page lists up to three of the
+ *  others above its CTA (see pickRelated). */
+export function renderPostPage(p: Post, sh: Shell, related: Post[] = []) {
   const url = `${SITE}/blog/${p.slug}/`;
   const html = p.html ?? (marked.parse(p.body) as string);
   const text = p.html ? p.html.replace(/<[^>]+>/g, " ") : p.body;
@@ -186,7 +236,7 @@ ${p.cover ? "" : `<meta property="og:image:width" content="1200"/>
   </header>
   ${p.cover ? `<img class="article-cover" src="${esc(p.cover)}" alt="${esc(p.title)}"/>` : ""}
   <div class="prose" dir="${dir}" lang="${p.lang}"><!--rk:body-->${html}<!--/rk:body--></div>
-  <aside class="article-cta">
+  ${relatedList(p, related)}<aside class="article-cta">
     <h3>لديك فكرة تستحق أن تتحول إلى محتوى؟</h3>
     <p>احكِ لي عن خبرتك، المشروع والجمهور الذي تريد الوصول إليه</p>
     <a class="btn btn-gold" href="/contact/">تواصل معي</a>

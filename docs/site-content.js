@@ -73,7 +73,13 @@
     if (!el) return;
     if (item.type === "richtext") el.innerHTML = item.value;
     else if (item.type === "url") el.setAttribute("href", item.value);
-    else if (item.type === "image") el.setAttribute("src", item.value);
+    else if (item.type === "image") {
+      // A srcset outranks src, so a replaced image would never show while the
+      // built-in sizes are still listed (the home portrait has them).
+      el.removeAttribute("srcset");
+      el.removeAttribute("sizes");
+      el.setAttribute("src", item.value);
+    }
     else setText(el, item.value);
   }
 

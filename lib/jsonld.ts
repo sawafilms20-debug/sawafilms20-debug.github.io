@@ -12,6 +12,9 @@ const HOME = `${SITE_URL}/`;
 const NAME = "رحيق كنجو";
 const EMAIL = "raheeqkanjo@gmail.com";
 const LINKEDIN = "https://www.linkedin.com/in/raheekkanjo/";
+const INSTAGRAM = "https://www.instagram.com/raheek_kanjo/";
+const FACEBOOK = "https://www.facebook.com/raheeq.kanjo/";
+const FORLANSO = "https://www.forlanso.com/en/raheek-kanjo";
 
 export const ID = {
   person: `${SITE_URL}/#person`,
@@ -159,7 +162,7 @@ const PERSON: Node = {
     inLanguage: "ar",
   },
   email: EMAIL,
-  sameAs: [LINKEDIN],
+  sameAs: [LINKEDIN, INSTAGRAM, FACEBOOK, FORLANSO],
   knowsLanguage: ["ar", "en"],
   knowsAbout: [
     "كتابة المحتوى التسويقي",

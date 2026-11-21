@@ -159,6 +159,29 @@ export default function ScriptsPage() {
           </ul>
         </section>
 
+        {/* The guide from the blog. Each selector in lib/pageRegistry.ts must
+            keep matching exactly one element, so this section reuses none of
+            the classes they address (.ch-title, .icon-list, .page-lead).
+            No .rv either: like the FAQ, it is visible without JS. Plain <a>,
+            not <Link>, so the trailing slash survives (see app/linkedin). */}
+        <section className="chapter wrap" aria-labelledby="guides-title">
+          <div className="ch-head">
+            <h2 className="page-title" id="guides-title">
+              دليل مجاني من <em>المدونة</em>
+            </h2>
+            <ul className="channels">
+              <li>
+                <a href="/blog/video-script-writing-guide/">
+                  <span className="ic-chip">
+                    <BookOpen />
+                  </span>
+                  كتابة سكريبت فيديو: دليل عملي يحافظ على المشاهد
+                </a>
+              </li>
+            </ul>
+          </div>
+        </section>
+
         <Faq page="scripts" />
 
         <section className="contact wrap">

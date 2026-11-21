@@ -665,6 +665,10 @@ section.chapter{padding-top:clamp(70px,10vw,120px)}
 }
 .prose blockquote p{margin:0}
 .prose strong{color:var(--gold-deep)}
+/* Links inside an article's own text. Without a rule they fell back to the
+   browser's blue; div only, so the related-posts nav keeps its list styling. */
+div.prose a{color:var(--gold-text);font-weight:500;text-decoration:underline;text-decoration-color:var(--gold-soft);text-decoration-thickness:2px;text-underline-offset:4px;transition:text-decoration-color .2s}
+div.prose a:hover,div.prose a:focus-visible{text-decoration-color:var(--gold)}
 .article-cta{
   margin-top:clamp(40px,6vw,60px);text-align:center;
   background:#f8f2e3;

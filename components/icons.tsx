@@ -38,3 +38,45 @@ export function YouTubeIcon({ size = 24 }: { size?: number }) {
     </svg>
   );
 }
+
+export function InstagramIcon({ size = 24 }: { size?: number }) {
+  return (
+    <svg
+      xmlns="http://www.w3.org/2000/svg"
+      width={size}
+      height={size}
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth={1.75}
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      aria-hidden="true"
+    >
+      <rect x="2" y="2" width="20" height="20" rx="5" />
+      <circle cx="12" cy="12" r="4.2" />
+      <line x1="17.4" y1="6.6" x2="17.5" y2="6.6" />
+    </svg>
+  );
+}
+
+export function FacebookIcon({ size = 24 }: { size?: number }) {
+  return (
+    <svg
+      xmlns="http://www.w3.org/2000/svg"
+      width={size}
+      height={size}
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth={1.75}
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      aria-hidden="true"
+    >
+      <rect x="2" y="2" width="20" height="20" rx="4" />
+      <path d="M16 7.2h-1.6a2.4 2.4 0 0 0-2.4 2.4V22" />
+      <line x1="9.4" y1="12.6" x2="15.4" y2="12.6" />
+    </svg>
+  );
+}

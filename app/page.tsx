@@ -87,6 +87,8 @@ export default function Home() {
               <div className="stage">
                 <img
                   src="/raheeq-cutout.webp"
+                  srcSet="/raheeq-cutout-480.webp 480w, /raheeq-cutout-720.webp 720w, /raheeq-cutout.webp 965w"
+                  sizes="(min-width: 1308px) 320px, (min-width: 962px) 24.5vw, 235px"
                   alt="رحيق كنجو، كاتبة محتوى تسويقي للخبراء العرب"
                   width={965}
                   height={1340}
@@ -176,6 +178,8 @@ export default function Home() {
               <img
                 className="offer-art"
                 src="/art-linkedin.webp"
+                srcSet="/art-linkedin-240.webp 240w, /art-linkedin-320.webp 320w, /art-linkedin.webp 401w"
+                sizes="auto, (min-width: 1091px) 144px, 115px"
                 alt=""
                 aria-hidden="true"
                 loading="lazy"
@@ -196,6 +200,8 @@ export default function Home() {
               <img
                 className="offer-art"
                 src="/art-book.webp"
+                srcSet="/art-book-280.webp 280w, /art-book-480.webp 480w, /art-book.webp 764w"
+                sizes="auto, (min-width: 901px) 248px, (min-width: 712px) 235px, (min-width: 340px) 33vw, 235px"
                 alt=""
                 aria-hidden="true"
                 loading="lazy"
@@ -212,6 +218,8 @@ export default function Home() {
               <img
                 className="offer-art"
                 src="/art-script.webp"
+                srcSet="/art-script-200.webp 200w, /art-script-320.webp 320w, /art-script.webp 560w"
+                sizes="auto, (min-width: 901px) 155px, (min-width: 510px) 112px, (min-width: 340px) 22vw, 124px"
                 alt=""
                 aria-hidden="true"
                 loading="lazy"

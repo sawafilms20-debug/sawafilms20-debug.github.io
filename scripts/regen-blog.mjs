@@ -106,7 +106,8 @@ const posts = slugs.map(readPost).sort((a, b) => (a.date < b.date ? 1 : a.date >
 const shell = shellFrom(fs.readFileSync(path.join(DOCS, "index.html"), "utf8"));
 
 const out = new Map();
-for (const p of posts) out.set(path.join(BLOG, p.slug, "index.html"), renderPostPage(p, shell));
+// Every page also lists up to three of the other posts («مقالات ذات صلة»).
+for (const p of posts) out.set(path.join(BLOG, p.slug, "index.html"), renderPostPage(p, shell, posts));
 out.set(path.join(BLOG, "index.html"), renderBlogIndex(posts, shell));
 out.set(path.join(DOCS, "sitemap.xml"), renderSitemap(posts));
 out.set(path.join(DOCS, "rss.xml"), renderRss(posts));

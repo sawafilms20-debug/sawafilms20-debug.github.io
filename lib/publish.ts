@@ -202,13 +202,13 @@ export async function buildPublishTree(): Promise<{
 
   const entries: TreeEntry[] = [];
 
-  // 1. article pages
+  // 1. article pages, each with links to up to three of the others
   for (const p of posts) {
     entries.push({
       path: `docs/blog/${p.slug}/index.html`,
       mode: "100644",
       type: "blob",
-      content: renderPostPage(p, shell),
+      content: renderPostPage(p, shell, posts),
     });
   }
 

@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import {
   AlertTriangle,
+  BookOpen,
   Briefcase,
   Compass,
   HelpCircle,
@@ -44,6 +45,26 @@ export const metadata: Metadata = {
     images: [{ url: "/og-image.jpg", width: 1200, height: 630, alt: "شعار رحيق كنجو وعبارة: كاتبة محتوى تسويقي مختصة باستراتيجيات المحتوى للخبراء العرب", type: "image/jpeg" }],
   },
 };
+
+/* The blog guides this page links to, under their published titles. */
+const GUIDES = [
+  {
+    slug: "linkedin-personal-brand-guide",
+    title: "بناء العلامة الشخصية على لينكدإن: دليل الخبراء والمديرين",
+  },
+  {
+    slug: "linkedin-content-writing",
+    title: "كتابة محتوى لينكدإن: دليل عملي لمنشور يحمل خبرتك",
+  },
+  {
+    slug: "linkedin-ghostwriting",
+    title: "كاتب ظل لينكدإن (Ghostwriting): ما هو، وكيف يبقى صوتك صوتك",
+  },
+  {
+    slug: "linkedin-profile-headline-about",
+    title: "تحسين حساب لينكدإن: دليل Headline وAbout وExperience",
+  },
+];
 
 export default function LinkedInPage() {
   return (
@@ -193,6 +214,33 @@ export default function LinkedInPage() {
               <h3>الاستشارات</h3>
               <p>جلسة مركزة لمراجعة الحساب وتحديد الخطوات القادمة</p>
             </div>
+          </div>
+        </section>
+
+        {/* Guides from the blog. Each selector in lib/pageRegistry.ts must
+            keep matching exactly one element, so this section reuses none of
+            the classes they address (.ch-title, .icon-list, .page-lead,
+            .svc-grid). No .rv either: like the FAQ, it is visible without JS.
+            Plain <a>, not <Link>: Link drops the trailing slash (this config
+            has no trailingSlash), and the blog posts are generated pages, not
+            routes of this app, so there is nothing for it to prefetch. */}
+        <section className="chapter wrap" aria-labelledby="guides-title">
+          <div className="ch-head">
+            <h2 className="page-title" id="guides-title">
+              أدلة مجانية من <em>المدونة</em>
+            </h2>
+            <ul className="channels">
+              {GUIDES.map((g) => (
+                <li key={g.slug}>
+                  <a href={`/blog/${g.slug}/`}>
+                    <span className="ic-chip">
+                      <BookOpen />
+                    </span>
+                    {g.title}
+                  </a>
+                </li>
+              ))}
+            </ul>
           </div>
         </section>
 

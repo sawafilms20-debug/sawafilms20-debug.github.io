@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import {
   Award,
   BarChart3,
+  BookOpen,
   CheckCheck,
   FileText,
   Globe,
@@ -162,6 +163,29 @@ export default function ArticlesPage() {
               مقالات مبنية على دراسات وتقارير
             </li>
           </ul>
+        </section>
+
+        {/* The guide from the blog. Each selector in lib/pageRegistry.ts must
+            keep matching exactly one element, so this section reuses none of
+            the classes they address (.ch-title, .icon-list, .page-lead).
+            No .rv either: like the FAQ, it is visible without JS. Plain <a>,
+            not <Link>, so the trailing slash survives (see app/linkedin). */}
+        <section className="chapter wrap" aria-labelledby="guides-title">
+          <div className="ch-head">
+            <h2 className="page-title" id="guides-title">
+              دليل مجاني من <em>المدونة</em>
+            </h2>
+            <ul className="channels">
+              <li>
+                <a href="/blog/thought-leadership-articles/">
+                  <span className="ic-chip">
+                    <BookOpen />
+                  </span>
+                  كتابة مقالات للمواقع: دليل الخبير لمقال يصبح مرجعًا
+                </a>
+              </li>
+            </ul>
+          </div>
         </section>
 
         <Faq page="articles" />

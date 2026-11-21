@@ -1,5 +1,5 @@
 import { Mail } from "lucide-react";
-import { LinkedInIcon } from "./icons";
+import { FacebookIcon, InstagramIcon, LinkedInIcon } from "./icons";
 
 export default function SiteFooter() {
   return (
@@ -32,6 +32,22 @@ export default function SiteFooter() {
             aria-label="حساب رحيق على LinkedIn"
           >
             <LinkedInIcon />
+          </a>
+          <a
+            href="https://www.instagram.com/raheek_kanjo/"
+            target="_blank"
+            rel="noopener"
+            aria-label="حساب رحيق على Instagram"
+          >
+            <InstagramIcon />
+          </a>
+          <a
+            href="https://www.facebook.com/raheeq.kanjo/"
+            target="_blank"
+            rel="noopener"
+            aria-label="حساب رحيق على Facebook"
+          >
+            <FacebookIcon />
           </a>
           <a href="mailto:raheeqkanjo@gmail.com" aria-label="راسلني عبر البريد الإلكتروني">
             <Mail />
