@@ -18,7 +18,11 @@ const tajawal = Tajawal({
 export const metadata: Metadata = {
   metadataBase: new URL("https://raheeqkanjo.com"),
   // Google Search Console ownership (zvxa.homam@gmail.com). Removing it un-verifies the site.
-  verification: { google: "UN6EU9YCuF45Kpj2Sd3Vro2aae7gJMgE6xJXyAiVmzo" },
+  verification: {
+    google: "UN6EU9YCuF45Kpj2Sd3Vro2aae7gJMgE6xJXyAiVmzo",
+    // Bing Webmaster Tools ownership.
+    other: { "msvalidate.01": "0A2C15C89A237012C2E50D4F0743D31A" },
+  },
   title: "كاتبة محتوى تسويقي للخبراء العرب | رحيق كنجو",
   description:
     "رحيق كنجو، كاتبة محتوى تسويقي للخبراء العرب: أحوّل معرفتك وتجاربك وآراءك إلى محتوى يحمل صوتك على LinkedIn، وفي مقالات موقعك، وفي سكريبتات الفيديو.",
