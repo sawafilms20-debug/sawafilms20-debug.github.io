@@ -18,6 +18,10 @@ const EXTS = [".ts", ".tsx", ".mjs", ".js", "/index.ts"];
 
 registerHooks({
   resolve(specifier, context, nextResolve) {
+    // Dependencies resolve themselves; only the app's own imports need help.
+    if (context.parentURL && context.parentURL.includes("/node_modules/")) {
+      return nextResolve(specifier, context);
+    }
     let spec = specifier;
     if (spec.startsWith("@/")) spec = pathToFileURL(path.join(ROOT, spec.slice(2))).href;
 
